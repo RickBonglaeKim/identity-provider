@@ -4,6 +4,6 @@ import { ClientKeypairRepository } from './repository/client.keypair.repository'
 
 @Module({
   providers: [mainConnection, ClientKeypairRepository],
-  exports: [ClientKeypairRepository],
+  exports: [ClientKeypairRepository, mainConnection],
 })
 export class MainSchemaModule {}

@@ -8,7 +8,7 @@ const mainConnection = {
   provide: DATABASE_CONNECTION_MAIN,
   useFactory(configService: ConfigService) {
     const SCHEMA_NAME = 'main';
-    const poolConnection = mysql.createPool({
+    const connectionPool = mysql.createPool({
       uri: `${configService.getOrThrow<string>('DATABASE_URI')}/${SCHEMA_NAME}`,
       connectionLimit: configService.getOrThrow<number>(
         'MAIN_CONNECTION_LIMIT',
@@ -17,7 +17,7 @@ const mainConnection = {
       idleTimeout: configService.getOrThrow<number>('DATABASE_IDLE_TIMEOUT'),
     });
     return drizzle({
-      client: poolConnection,
+      client: connectionPool,
     });
   },
   inject: [ConfigService],
