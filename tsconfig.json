@@ -29,6 +29,12 @@
       ],
       "@app/interceptor/*": [
         "libs/interceptor/src/*"
+      ],
+      "@app/persistence": [
+        "libs/persistence/src"
+      ],
+      "@app/persistence/*": [
+        "libs/persistence/src/*"
       ]
     }
   }
