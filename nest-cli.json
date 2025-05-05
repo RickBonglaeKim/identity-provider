@@ -1,8 +1,32 @@
 {
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
-  "sourceRoot": "src",
+  "sourceRoot": "apps/identity-open_id-provider/src",
   "compilerOptions": {
-    "deleteOutDir": true
+    "deleteOutDir": true,
+    "webpack": true,
+    "tsConfigPath": "apps/identity-open_id-provider/tsconfig.app.json"
+  },
+  "monorepo": true,
+  "root": "apps/identity-open_id-provider",
+  "projects": {
+    "client-auth": {
+      "type": "application",
+      "root": "apps/client-auth",
+      "entryFile": "main",
+      "sourceRoot": "apps/client-auth/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/client-auth/tsconfig.app.json"
+      }
+    },
+    "identity-open_id-provider": {
+      "type": "application",
+      "root": "apps/identity-open_id-provider",
+      "entryFile": "main",
+      "sourceRoot": "apps/identity-open_id-provider/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/identity-open_id-provider/tsconfig.app.json"
+      }
+    }
   }
 }
