@@ -19,6 +19,15 @@
         "tsConfigPath": "apps/client-auth/tsconfig.app.json"
       }
     },
+    "communication-security": {
+      "type": "application",
+      "root": "apps/communication-security",
+      "entryFile": "main",
+      "sourceRoot": "apps/communication-security/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/communication-security/tsconfig.app.json"
+      }
+    },
     "identity-open_id-provider": {
       "type": "application",
       "root": "apps/identity-open_id-provider",
