@@ -23,6 +23,8 @@
     "test:e2e": "jest --config ./apps/identity-open_id-provider/test/jest-e2e.json"
   },
   "dependencies": {
+    "@nestjs-cls/transactional": "^2.7.0",
+    "@nestjs-cls/transactional-adapter-drizzle-orm": "^1.1.16",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
@@ -30,6 +32,7 @@
     "drizzle-orm": "^0.43.1",
     "jose": "^6.0.10",
     "mysql2": "^3.14.1",
+    "nestjs-cls": "^5.4.3",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
