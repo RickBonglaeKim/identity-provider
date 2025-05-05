@@ -6,7 +6,7 @@ import { DATABASE_CONNECTION_MAIN } from '@app/persistence/persistence.connectio
 type MainSchema = MySql2Database<typeof mainSchema>;
 
 @Injectable()
-export class MainService {
+export class MainSchemaService {
   protected mainDB: MainSchema;
 
   constructor(@Inject(DATABASE_CONNECTION_MAIN) _main: MainSchema) {
