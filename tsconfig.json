@@ -23,6 +23,12 @@
       ],
       "@app/exception/*": [
         "libs/exception/src/*"
+      ],
+      "@app/interceptor": [
+        "libs/interceptor/src"
+      ],
+      "@app/interceptor/*": [
+        "libs/interceptor/src/*"
       ]
     }
   }

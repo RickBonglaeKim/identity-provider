@@ -45,6 +45,15 @@
       "compilerOptions": {
         "tsConfigPath": "apps/identity-open_id-provider/tsconfig.app.json"
       }
+    },
+    "interceptor": {
+      "type": "library",
+      "root": "libs/interceptor",
+      "entryFile": "index",
+      "sourceRoot": "libs/interceptor/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/interceptor/tsconfig.lib.json"
+      }
     }
   }
 }

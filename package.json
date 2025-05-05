@@ -80,7 +80,8 @@
       "<rootDir>/libs/"
     ],
     "moduleNameMapper": {
-      "^@app/exception(|/.*)$": "<rootDir>/libs/exception/src/$1"
+      "^@app/exception(|/.*)$": "<rootDir>/libs/exception/src/$1",
+      "^@app/interceptor(|/.*)$": "<rootDir>/libs/interceptor/src/$1"
     }
   }
 }
