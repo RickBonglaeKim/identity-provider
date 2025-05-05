@@ -1,4 +1,7 @@
+import { mainConnection } from '@app/persistence/persistence.connection.main';
 import { Module } from '@nestjs/common';
 
-@Module({})
+@Module({
+  providers: [mainConnection],
+})
 export class MainModule {}
