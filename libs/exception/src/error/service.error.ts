@@ -1,4 +1,4 @@
-class ServiceException extends Error {
+class ServiceError extends Error {
   readonly code: number;
   constructor(code: number, message: string) {
     super(message);
@@ -6,4 +6,4 @@ class ServiceException extends Error {
   }
 }
 
-export default ServiceException;
+export default ServiceError;

@@ -1,5 +1,5 @@
 import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
-import ServiceException from './service-exception';
+import ServiceException from '../error/service.error';
 import { Request, Response } from 'express';
 
 @Catch(ServiceException)

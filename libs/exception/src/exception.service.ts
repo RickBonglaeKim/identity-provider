@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import ServiceException from './service-exception';
+import ServiceException from './error/service.error';
 
 @Injectable()
 export class ExceptionService {
