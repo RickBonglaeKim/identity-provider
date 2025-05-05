@@ -7,6 +7,8 @@ import { TransactionalAdapterDrizzleOrm } from '@nestjs-cls/transactional-adapte
 import { ConfigModule } from '@nestjs/config';
 import { ExceptionModule } from '@app/exception/exception.module';
 import { HomeController } from './controller/home/home.controller';
+import { SignupController } from './controller/signup/signup.controller';
+import { SignupService } from './controller/signup/signup.service';
 
 @Module({
   imports: [
@@ -27,7 +29,7 @@ import { HomeController } from './controller/home/home.controller';
       ],
     }),
   ],
-  controllers: [HomeController],
-  providers: [],
+  controllers: [HomeController, SignupController],
+  providers: [SignupService],
 })
 export class ClientAuthModule {}
