@@ -45,14 +45,14 @@ export class ClientKeypairRepository extends MainSchemaService {
     }
   }
 
-  async selectOneClientKeyByClientIdDescendingLatestVersion(
-    clientId: string,
+  async selectOneClientKeyByClientKeyDescendingLatestVersion(
+    clientKey: string,
   ): Promise<ResponseEntity<typeof clientKeypair.$inferSelect> | undefined> {
     try {
       const result = await this.mainDB
         .select()
         .from(clientKeypair)
-        .where(eq(clientKeypair.clientId, clientId))
+        .where(eq(clientKeypair.clientKey, clientKey))
         .orderBy(desc(clientKeypair.version))
         .limit(1);
       if (result.length > 1) {
@@ -70,8 +70,8 @@ export class ClientKeypairRepository extends MainSchemaService {
     }
   }
 
-  async selectOneClientKeyByClientIdAndVersion(
-    clientId: string,
+  async selectOneClientKeyByClientKeyAndVersion(
+    clientKey: string,
     version: number,
   ): Promise<ResponseEntity<typeof clientKeypair.$inferSelect> | undefined> {
     try {
@@ -80,7 +80,7 @@ export class ClientKeypairRepository extends MainSchemaService {
         .from(clientKeypair)
         .where(
           and(
-            eq(clientKeypair.clientId, clientId),
+            eq(clientKeypair.clientKey, clientKey),
             eq(clientKeypair.version, version),
           ),
         );
