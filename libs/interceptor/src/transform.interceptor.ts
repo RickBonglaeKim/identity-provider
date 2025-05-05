@@ -2,10 +2,10 @@ import {
   CallHandler,
   ExecutionContext,
   Injectable,
-  Logger,
   NestInterceptor,
 } from '@nestjs/common';
-import CommonResponse from 'dto/common/common.response.dto';
+import { Request } from 'express';
+import CommonResponse from 'dto/response.dto';
 import { map, Observable } from 'rxjs';
 
 @Injectable()
