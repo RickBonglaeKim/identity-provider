@@ -1,11 +1,11 @@
 import { and, desc, eq } from 'drizzle-orm';
 import { Injectable, Logger } from '@nestjs/common';
 import { clientKeypair } from 'libs/persistence/database-schema/main/schema';
-import { MainService } from '../main.service';
+import { MainSchemaService } from '../main.schema.service';
 import { ResponseEntity } from '@app/persistence/response.entity';
 
 @Injectable()
-export class ClientKeypairRepository extends MainService {
+export class ClientKeypairRepository extends MainSchemaService {
   private readonly logger = new Logger(ClientKeypairRepository.name);
 
   async insertClientKeypair(
