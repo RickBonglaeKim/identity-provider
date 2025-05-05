@@ -17,7 +17,6 @@ export const child = mysqlTable("child", {
 
 export const client = mysqlTable("client", {
 	key: varchar({ length: 32 }).notNull(),
-	providerKey: varchar("provider_key", { length: 32 }).notNull().references(() => provider.key),
 	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	clientSecret: varchar("client_secret", { length: 64 }).notNull(),
@@ -74,6 +73,7 @@ export const code = mysqlTable("code", {
 export const member = mysqlTable("member", {
 	id: bigint({ mode: "number" }).autoincrement().notNull(),
 	clientKey: varchar("client_key", { length: 32 }).notNull().references(() => client.key),
+	providerKey: varchar("provider_key", { length: 32 }).references(() => provider.key),
 	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	isAgreedTerms: tinyint("is_agreed_terms").notNull(),
@@ -126,7 +126,6 @@ export const provider = mysqlTable("provider", {
 	key: varchar({ length: 32 }).notNull(),
 	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
-	isInternalProvider: tinyint("is_internal_provider").notNull(),
 	name: varchar({ length: 16 }).notNull(),
 	note: varchar({ length: 256 }),
 },
