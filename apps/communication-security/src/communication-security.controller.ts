@@ -3,7 +3,9 @@ import { CommunicationSecurityService } from './communication-security.service';
 
 @Controller()
 export class CommunicationSecurityController {
-  constructor(private readonly communicationSecurityService: CommunicationSecurityService) {}
+  constructor(
+    private readonly communicationSecurityService: CommunicationSecurityService,
+  ) {}
 
   @Get()
   getHello(): string {

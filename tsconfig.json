@@ -18,24 +18,12 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@app/exception": [
-        "libs/exception/src"
-      ],
-      "@app/exception/*": [
-        "libs/exception/src/*"
-      ],
-      "@app/interceptor": [
-        "libs/interceptor/src"
-      ],
-      "@app/interceptor/*": [
-        "libs/interceptor/src/*"
-      ],
-      "@app/persistence": [
-        "libs/persistence/src"
-      ],
-      "@app/persistence/*": [
-        "libs/persistence/src/*"
-      ]
+      "@app/exception": ["libs/exception/src"],
+      "@app/exception/*": ["libs/exception/src/*"],
+      "@app/interceptor": ["libs/interceptor/src"],
+      "@app/interceptor/*": ["libs/interceptor/src/*"],
+      "@app/persistence": ["libs/persistence/src"],
+      "@app/persistence/*": ["libs/persistence/src/*"]
     }
   }
 }

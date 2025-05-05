@@ -11,7 +11,9 @@ describe('CommunicationSecurityController', () => {
       providers: [CommunicationSecurityService],
     }).compile();
 
-    communicationSecurityController = app.get<CommunicationSecurityController>(CommunicationSecurityController);
+    communicationSecurityController = app.get<CommunicationSecurityController>(
+      CommunicationSecurityController,
+    );
   });
 
   describe('root', () => {
