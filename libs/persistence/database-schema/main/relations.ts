@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { member, child, client, clientKeypair, clientUri, code, provider, memberDetail, memberPhone, memberWithdrawal } from "./schema";
+import { member, child, provider, client, clientKeypair, clientUri, code, memberDetail, memberPhone, memberWithdrawal } from "./schema";
 
 export const childRelations = relations(child, ({one}) => ({
 	member: one(member, {
@@ -14,31 +14,35 @@ export const memberRelations = relations(member, ({one, many}) => ({
 		fields: [member.clientKey],
 		references: [client.key]
 	}),
-	provider: one(provider, {
-		fields: [member.providerKey],
-		references: [provider.key]
-	}),
 	memberDetails: many(memberDetail),
 	memberPhones: many(memberPhone),
 	memberWithdrawals: many(memberWithdrawal),
 }));
 
-export const clientKeypairRelations = relations(clientKeypair, ({one}) => ({
-	client: one(client, {
-		fields: [clientKeypair.clientId],
-		references: [client.key]
+export const clientRelations = relations(client, ({one, many}) => ({
+	provider: one(provider, {
+		fields: [client.providerKey],
+		references: [provider.key]
 	}),
-}));
-
-export const clientRelations = relations(client, ({many}) => ({
 	clientKeypairs: many(clientKeypair),
 	clientUris: many(clientUri),
 	members: many(member),
 }));
 
+export const providerRelations = relations(provider, ({many}) => ({
+	clients: many(client),
+}));
+
+export const clientKeypairRelations = relations(clientKeypair, ({one}) => ({
+	client: one(client, {
+		fields: [clientKeypair.clientKey],
+		references: [client.key]
+	}),
+}));
+
 export const clientUriRelations = relations(clientUri, ({one}) => ({
 	client: one(client, {
-		fields: [clientUri.clientId],
+		fields: [clientUri.clientKey],
 		references: [client.key]
 	}),
 }));
@@ -52,10 +56,6 @@ export const codeRelations = relations(code, ({one, many}) => ({
 	codes: many(code, {
 		relationName: "code_parentId_code_id"
 	}),
-}));
-
-export const providerRelations = relations(provider, ({many}) => ({
-	members: many(member),
 }));
 
 export const memberDetailRelations = relations(memberDetail, ({one}) => ({

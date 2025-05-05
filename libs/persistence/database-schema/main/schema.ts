@@ -17,6 +17,7 @@ export const child = mysqlTable("child", {
 
 export const client = mysqlTable("client", {
 	key: varchar({ length: 32 }).notNull(),
+	providerKey: varchar("provider_key", { length: 32 }).notNull().references(() => provider.key),
 	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	clientSecret: varchar("client_secret", { length: 64 }).notNull(),
@@ -29,7 +30,7 @@ export const client = mysqlTable("client", {
 
 export const clientKeypair = mysqlTable("client_keypair", {
 	id: bigint({ mode: "number" }).autoincrement().notNull(),
-	clientId: varchar("client_id", { length: 32 }).notNull().references(() => client.key),
+	clientKey: varchar("client_key", { length: 32 }).notNull().references(() => client.key),
 	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	privateKey: text("private_key").notNull(),
@@ -42,7 +43,7 @@ export const clientKeypair = mysqlTable("client_keypair", {
 
 export const clientUri = mysqlTable("client_uri", {
 	id: bigint({ mode: "number" }).autoincrement().notNull(),
-	clientId: varchar("client_id", { length: 32 }).notNull().references(() => client.key),
+	clientKey: varchar("client_key", { length: 32 }).notNull().references(() => client.key),
 	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	redirectUri: varchar("redirect_uri", { length: 128 }).notNull(),
@@ -72,7 +73,6 @@ export const code = mysqlTable("code", {
 
 export const member = mysqlTable("member", {
 	id: bigint({ mode: "number" }).autoincrement().notNull(),
-	providerKey: varchar("provider_key", { length: 32 }).notNull().references(() => provider.key),
 	clientKey: varchar("client_key", { length: 32 }).notNull().references(() => client.key),
 	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
