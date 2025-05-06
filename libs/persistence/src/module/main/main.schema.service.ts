@@ -10,12 +10,12 @@ type DrizzleAdapter = TransactionalAdapterDrizzleOrm<MainSchema>;
 @Injectable()
 export class MainSchemaService {
   protected mainDB: MainSchema;
-  protected transactionHost: TransactionHost<DrizzleAdapter>;
+  protected mainTransaction: TransactionHost<DrizzleAdapter>;
   constructor(
     @Inject(DATABASE_CONNECTION_MAIN) _main: MainSchema,
     _transactionHost: TransactionHost<DrizzleAdapter>,
   ) {
     this.mainDB = _main;
-    this.transactionHost = _transactionHost;
+    this.mainTransaction = _transactionHost;
   }
 }

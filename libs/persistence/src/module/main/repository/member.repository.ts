@@ -11,10 +11,8 @@ export class MemberRepository extends MainSchemaService {
     data: typeof member.$inferInsert,
   ): Promise<ResponseEntity<number> | undefined> {
     try {
-      // const result = (await this.mainDB.insert(member).values(data))[0];
-      this.logger.debug(this.transactionHost.isTransactionActive());
       const result = (
-        await this.transactionHost.tx.insert(member).values(data)
+        await this.mainTransaction.tx.insert(member).values(data)
       )[0];
       if (result.affectedRows === 0) {
         return new ResponseEntity<number>(false);

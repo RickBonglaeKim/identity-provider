@@ -12,7 +12,9 @@ export class ClientKeypairRepository extends MainSchemaService {
     data: typeof clientKeypair.$inferInsert,
   ): Promise<ResponseEntity<number> | undefined> {
     try {
-      const result = (await this.mainDB.insert(clientKeypair).values(data))[0];
+      const result = (
+        await this.mainTransaction.tx.insert(clientKeypair).values(data)
+      )[0];
       if (result.affectedRows === 0) {
         return new ResponseEntity<number>(false);
       }
@@ -26,7 +28,7 @@ export class ClientKeypairRepository extends MainSchemaService {
     id: number,
   ): Promise<ResponseEntity<typeof clientKeypair.$inferSelect> | undefined> {
     try {
-      const result = await this.mainDB
+      const result = await this.mainTransaction.tx
         .select()
         .from(clientKeypair)
         .where(eq(clientKeypair.id, id));
@@ -45,50 +47,15 @@ export class ClientKeypairRepository extends MainSchemaService {
     }
   }
 
-  async selectOneClientKeyByClientKeyDescendingLatestVersion(
+  async selectOneClientKeypairByClientKeyDescendingLatest(
     clientKey: string,
   ): Promise<ResponseEntity<typeof clientKeypair.$inferSelect> | undefined> {
     try {
-      const result = await this.mainDB
+      const result = await this.mainTransaction.tx
         .select()
         .from(clientKeypair)
         .where(eq(clientKeypair.clientKey, clientKey))
-        .orderBy(desc(clientKeypair.version))
         .limit(1);
-      if (result.length > 1) {
-        throw new Error('The data searched by client id is duplicated.');
-      }
-      if (result.length === 0) {
-        return new ResponseEntity<typeof clientKeypair.$inferSelect>(false);
-      }
-      return new ResponseEntity<typeof clientKeypair.$inferSelect>(
-        true,
-        result[0],
-      );
-    } catch (error) {
-      this.logger.error(error);
-    }
-  }
-
-  async selectOneClientKeyByClientKeyAndVersion(
-    clientKey: string,
-    version: number,
-  ): Promise<ResponseEntity<typeof clientKeypair.$inferSelect> | undefined> {
-    try {
-      const result = await this.mainDB
-        .select()
-        .from(clientKeypair)
-        .where(
-          and(
-            eq(clientKeypair.clientKey, clientKey),
-            eq(clientKeypair.version, version),
-          ),
-        );
-      if (result.length > 1) {
-        throw new Error(
-          'The data searched by client id and version is duplicated.',
-        );
-      }
       if (result.length === 0) {
         return new ResponseEntity<typeof clientKeypair.$inferSelect>(false);
       }
