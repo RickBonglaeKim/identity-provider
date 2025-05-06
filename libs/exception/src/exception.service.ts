@@ -7,15 +7,15 @@ export class ExceptionService {
     throw new ServiceException(401, `This http request is not authorized.`);
   }
 
-  notCreatedEntity(entityName: string) {
+  notInsertedEntity(entityName: string) {
     throw new ServiceException(901, `The ${entityName} entity is not created.`);
   }
 
-  notReadEntity(entityName: string) {
+  notSelectedEntity(entityName: string) {
     throw new ServiceException(902, `The ${entityName} entity is not read.`);
   }
 
-  notChangedEntity(entityName) {
+  notUpdatedEntity(entityName) {
     throw new ServiceException(903, `The ${entityName} entity is not changed.`);
   }
 
