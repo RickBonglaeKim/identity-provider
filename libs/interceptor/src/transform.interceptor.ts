@@ -5,7 +5,7 @@ import {
   NestInterceptor,
 } from '@nestjs/common';
 import { Request } from 'express';
-import CommonResponse from 'dto/response.dto';
+import CommonResponse from 'dto/interface/response.dto';
 import { map, Observable } from 'rxjs';
 
 @Injectable()
