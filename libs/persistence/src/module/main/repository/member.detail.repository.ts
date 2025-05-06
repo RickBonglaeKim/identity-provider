@@ -1,18 +1,18 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { MainSchemaService } from '../main.schema.service';
-import { member } from 'libs/persistence/database-schema/main/schema';
+import { memberDetail } from 'libs/persistence/database-schema/main/schema';
 import { ResponseEntity } from '@app/persistence/entity/response.entity';
 
 @Injectable()
-export class MemberRepository extends MainSchemaService {
-  private readonly logger = new Logger(MemberRepository.name);
+export class MemberDetailRepository extends MainSchemaService {
+  private readonly logger = new Logger(MemberDetailRepository.name);
 
-  async insertMember(
-    data: typeof member.$inferInsert,
+  async insertMemberDetail(
+    data: typeof memberDetail.$inferInsert,
   ): Promise<ResponseEntity<number> | undefined> {
     try {
       const result = (
-        await this.mainTransaction.tx.insert(member).values(data)
+        await this.mainTransaction.tx.insert(memberDetail).values(data)
       )[0];
       if (result.affectedRows === 0) {
         return new ResponseEntity<number>(false);
