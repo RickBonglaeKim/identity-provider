@@ -9,11 +9,13 @@ import { ExceptionModule } from '@app/exception/exception.module';
 import { HomeController } from './controller/home/home.controller';
 import { SignupController } from './controller/signup/signup.controller';
 import { SignupService } from './controller/signup/signup.service';
+import { CryptoModule } from '@app/crypto/crypto.module';
 
 @Module({
   imports: [
     MainSchemaModule,
     ExceptionModule,
+    CryptoModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: `./env/.env.${process.env.NODE_ENV}`,
