@@ -1,4 +1,4 @@
-import { mysqlTable, mysqlSchema, AnyMySqlColumn, foreignKey, primaryKey, bigint, datetime, varchar, date, text, int, tinyint, unique } from "drizzle-orm/mysql-core"
+import { mysqlTable, mysqlSchema, AnyMySqlColumn, foreignKey, primaryKey, bigint, datetime, varchar, date, unique, text, tinyint, int, json, index } from "drizzle-orm/mysql-core"
 import { sql } from "drizzle-orm"
 
 export const child = mysqlTable("child", {
@@ -19,12 +19,27 @@ export const client = mysqlTable("client", {
 	key: varchar({ length: 32 }).notNull(),
 	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
+	clientId: varchar("client_id", { length: 32 }).notNull(),
 	clientSecret: varchar("client_secret", { length: 64 }).notNull(),
 	name: varchar({ length: 32 }).notNull(),
 	note: varchar({ length: 256 }),
 },
 (table) => [
 	primaryKey({ columns: [table.key], name: "client_key"}),
+	unique("client_ix__client_id").on(table.clientId),
+]);
+
+export const clientConsent = mysqlTable("client_consent", {
+	id: bigint({ mode: "number" }).autoincrement().notNull(),
+	clientKey: varchar("client_key", { length: 32 }).notNull().references(() => client.key),
+	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
+	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
+	title: varchar({ length: 64 }).notNull(),
+	content: text().notNull(),
+	isRequired: tinyint("is_required").notNull(),
+},
+(table) => [
+	primaryKey({ columns: [table.id], name: "client_consent_id"}),
 ]);
 
 export const clientKeypair = mysqlTable("client_keypair", {
@@ -34,10 +49,20 @@ export const clientKeypair = mysqlTable("client_keypair", {
 	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	privateKey: text("private_key").notNull(),
 	publicKey: text("public_key").notNull(),
-	version: int().notNull(),
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "client_keypair_id"}),
+]);
+
+export const clientMember = mysqlTable("client_member", {
+	id: bigint({ mode: "number" }).notNull(),
+	memberId: bigint("member_id", { mode: "number" }).notNull().references(() => member.id),
+	clientKey: varchar("client_key", { length: 32 }).notNull().references(() => client.key),
+	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
+	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
+},
+(table) => [
+	primaryKey({ columns: [table.id], name: "client_member_id"}),
 ]);
 
 export const clientUri = mysqlTable("client_uri", {
@@ -70,23 +95,45 @@ export const code = mysqlTable("code", {
 	primaryKey({ columns: [table.id], name: "code_id"}),
 ]);
 
-export const member = mysqlTable("member", {
+export const idTokenKeypair = mysqlTable("id_token_keypair", {
 	id: bigint({ mode: "number" }).autoincrement().notNull(),
-	clientKey: varchar("client_key", { length: 32 }).notNull().references(() => client.key),
-	providerKey: varchar("provider_key", { length: 32 }).references(() => provider.key),
 	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
-	isAgreedTerms: tinyint("is_agreed_terms").notNull(),
-	isAgreedPrivacy: tinyint("is_agreed_privacy").notNull(),
-	isMoreThanFourteen: tinyint("is_more_than_fourteen").notNull(),
-	isAgreedMarketing: tinyint("is_agreed_marketing").notNull(),
+	isActivated: tinyint("is_activated").default(1).notNull(),
+	privateKey: json("private_key").notNull(),
+	publicKey: json("public_key").notNull(),
+},
+(table) => [
+	primaryKey({ columns: [table.id], name: "id_token_keypair_id"}),
+]);
+
+export const member = mysqlTable("member", {
+	id: bigint({ mode: "number" }).autoincrement().notNull(),
+	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
+	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
+	isConsentedTermsAndConditions: tinyint("is_consented__terms_and_conditions").notNull(),
+	isConsentedCollectionAndUsePersonalData: tinyint("is_consented__collection_and_use_personal_data").notNull(),
+	isConsentedMarketingUseAndInformationReceiving: tinyint("is_consented__marketing_use_and_information_receiving").notNull(),
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "member_id"}),
 ]);
 
+export const memberConsent = mysqlTable("member_consent", {
+	clientConsentId: bigint("client_consent_id", { mode: "number" }).notNull().references(() => clientConsent.id),
+	clientMemberId: bigint("client_member_id", { mode: "number" }).notNull().references(() => clientMember.id),
+	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
+	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
+	isConsented: tinyint("is_consented").notNull(),
+},
+(table) => [
+	primaryKey({ columns: [table.clientConsentId, table.clientMemberId], name: "member_consent_client_consent_id_client_member_id"}),
+]);
+
 export const memberDetail = mysqlTable("member_detail", {
+	id: bigint({ mode: "number" }).autoincrement().notNull(),
 	memberId: bigint("member_id", { mode: "number" }).notNull().references(() => member.id),
+	providerKey: varchar("provider_key", { length: 32 }).references(() => provider.key),
 	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	name: varchar({ length: 32 }).notNull(),
@@ -94,8 +141,8 @@ export const memberDetail = mysqlTable("member_detail", {
 	password: varchar({ length: 256 }).notNull(),
 },
 (table) => [
-	primaryKey({ columns: [table.memberId], name: "member_detail_member_id"}),
-	unique("member_detail_ix__email").on(table.email),
+	index("member_detail_ix__email").on(table.email),
+	primaryKey({ columns: [table.id], name: "member_detail_id"}),
 ]);
 
 export const memberPhone = mysqlTable("member_phone", {
@@ -116,7 +163,7 @@ export const memberWithdrawal = mysqlTable("member_withdrawal", {
 	memberId: bigint("member_id", { mode: "number" }).notNull().references(() => member.id),
 	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
-	reason: varchar({ length: 128 }).notNull(),
+	reason: varchar({ length: 128 }),
 },
 (table) => [
 	primaryKey({ columns: [table.memberId], name: "member_withdrawal_member_id"}),
