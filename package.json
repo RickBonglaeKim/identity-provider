@@ -30,6 +30,7 @@
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+    "bcrypt": "^5.1.1",
     "drizzle-orm": "^0.43.1",
     "jose": "^6.0.10",
     "mysql2": "^3.14.1",
@@ -46,6 +47,7 @@
     "@nestjs/testing": "^11.0.1",
     "@swc/cli": "^0.6.0",
     "@swc/core": "^1.10.7",
+    "@types/bcrypt": "^5.0.2",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.10.7",
@@ -88,6 +90,7 @@
       "<rootDir>/libs/"
     ],
     "moduleNameMapper": {
+      "^@app/crypto(|/.*)$": "<rootDir>/libs/crypto/src/$1",
       "^@app/exception(|/.*)$": "<rootDir>/libs/exception/src/$1",
       "^@app/interceptor(|/.*)$": "<rootDir>/libs/interceptor/src/$1",
       "^@app/persistence(|/.*)$": "<rootDir>/libs/persistence/src/$1"
