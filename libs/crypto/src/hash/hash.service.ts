@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class HashService {
@@ -7,10 +7,12 @@ export class HashService {
   private readonly logger = new Logger(HashService.name);
 
   async generateHash(text: string): Promise<string> {
-    return await bcrypt.hash(text, this.saltRounds);
+    const result = await bcrypt.hash(text, this.saltRounds);
+    return result;
   }
 
   async compareHash(text: string, hash: string): Promise<boolean> {
-    return await bcrypt.compare(text, hash);
+    const result = await bcrypt.compare(text, hash);
+    return result;
   }
 }

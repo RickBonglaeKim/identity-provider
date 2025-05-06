@@ -42,12 +42,15 @@ export class SignupService {
       this.exceptionService.notInsertedEntity('member');
     }
     const memberId: number = memberResult!.data!;
+    this.logger.debug(memberId);
 
     const hashPassword = await this.hashService.generateHash(
       data.memberDetail.password,
     );
+    this.logger.debug(hashPassword);
     const memberDetailResult =
       await this.memberDetailRepository.insertMemberDetail({
+        providerKey: data.memberDetail.providerKey,
         memberId: memberId,
         name: data.memberDetail.name,
         email: data.memberDetail.email,
@@ -75,6 +78,12 @@ export class SignupService {
         countryCallingCode: data.memberPhone.countryCallingCode,
         phoneNumber: data.memberPhone.phoneNumber,
       });
+    if (!memberPhoneResult) {
+      this.exceptionService.notRecognizedError();
+    }
+    if (!memberPhoneResult?.isSucceed || !memberPhoneResult?.data) {
+      this.exceptionService.notInsertedEntity('member detail');
+    }
 
     return memberId;
   }

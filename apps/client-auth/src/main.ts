@@ -1,6 +1,5 @@
 import { NestFactory } from '@nestjs/core';
 import { ClientAuthModule } from './client-auth.module';
-import { ValidationPipe } from '@nestjs/common/pipes';
 import { ServiceExceptionFilter } from '@app/exception/filter/service.exception.filter';
 import { LogInterceptor } from '@app/interceptor/log.interceptor';
 import { ZodValidationPipe } from 'nestjs-zod';
