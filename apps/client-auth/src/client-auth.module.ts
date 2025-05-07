@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { MainSchemaModule } from '@app/persistence/module/main/main.schema.module';
+import { MainSchemaModule } from '@app/persistence/schema/main/main.schema.module';
 import { mainConnection } from '@app/persistence/persistence.connection.main';
 import { ClsModule } from 'nestjs-cls';
 import { ClsPluginTransactional } from '@nestjs-cls/transactional';

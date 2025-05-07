@@ -1,8 +1,8 @@
 import { HashService } from '@app/crypto/hash/hash.service';
 import { ExceptionService } from '@app/exception/exception.service';
-import { MemberDetailRepository } from '@app/persistence/module/main/repository/member.detail.repository';
-import { MemberPhoneRepository } from '@app/persistence/module/main/repository/member.phone.repository';
-import { MemberRepository } from '@app/persistence/module/main/repository/member.repository';
+import { MemberDetailRepository } from '@app/persistence/schema/main/repository/member.detail.repository';
+import { MemberPhoneRepository } from '@app/persistence/schema/main/repository/member.phone.repository';
+import { MemberRepository } from '@app/persistence/schema/main/repository/member.repository';
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import { SignupCreateRequest } from 'dto/interface/signup/create/signup.create.request.dto';
