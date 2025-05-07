@@ -12,7 +12,7 @@
     "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
     "format:all": "prettier --write .",
     "start": "nest start",
-    "start:local:client-auth": "cross-env NODE_ENV=local nest start client-auth --watch",
+    "start:local:auth": "cross-env NODE_ENV=local nest start client-auth --watch",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/apps/identity-open_id-provider/main",
