@@ -7,9 +7,10 @@ import { TransactionalAdapterDrizzleOrm } from '@nestjs-cls/transactional-adapte
 import { ConfigModule } from '@nestjs/config';
 import { ExceptionModule } from '@app/exception/exception.module';
 import { HomeController } from './controller/home/home.controller';
-import { SignupController } from './controller/signup/signup.controller';
-import { SignupService } from './controller/signup/signup.service';
+import { SignupController } from './controller/sign.up/sign.up.controller';
+import { SignupService } from './controller/sign.up/sign.up.service';
 import { CryptoModule } from '@app/crypto/crypto.module';
+import { MemberService } from './controller/member/member.service';
 
 @Module({
   imports: [
@@ -32,6 +33,6 @@ import { CryptoModule } from '@app/crypto/crypto.module';
     }),
   ],
   controllers: [HomeController, SignupController],
-  providers: [SignupService],
+  providers: [MemberService, SignupService],
 })
 export class ClientAuthModule {}
