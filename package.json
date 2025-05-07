@@ -91,6 +91,7 @@
       "<rootDir>/libs/"
     ],
     "moduleNameMapper": {
+      "^@app/cache(|/.*)$": "<rootDir>/libs/cache/src/$1",
       "^@app/crypto(|/.*)$": "<rootDir>/libs/crypto/src/$1",
       "^@app/exception(|/.*)$": "<rootDir>/libs/exception/src/$1",
       "^@app/interceptor(|/.*)$": "<rootDir>/libs/interceptor/src/$1",
