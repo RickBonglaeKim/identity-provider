@@ -22,41 +22,62 @@ export class SignupService {
 
   @Transactional()
   async createSignup(data: SignupCreateRequest): Promise<number> {
-    const memberResult = await this.memberRepository.insertMember({
-      isConsentedTermsAndConditions: data.member.isConsentedTermsAndConditions
-        ? 1
-        : 0,
-      isConsentedCollectionAndUsePersonalData: data.member
-        .isConsentedCollectionAndUsePersonalData
-        ? 1
-        : 0,
-      isConsentedMarketingUseAndInformationReceiving: data.member
-        .isConsentedMarketingUseAndInformationReceiving
-        ? 1
-        : 0,
-    });
-    if (!memberResult) {
-      this.exceptionService.notRecognizedError();
-    }
-    if (!memberResult?.isSucceed || !memberResult?.data) {
-      this.exceptionService.notInsertedEntity('member');
-    }
-    const memberId: number = memberResult!.data!;
-    this.logger.debug(memberId);
-
-    const memberDetailId = (
+    let memberDetailData =
       await this.memberDetailRepository.selectMemberDetailByEmailAndMemberDetailIdIsNull(
         data.memberDetail.email,
-      )
-    )?.data?.memberDetailId;
+      );
+    this.logger.debug(
+      `memberDetailData -> ${JSON.stringify(memberDetailData)}`,
+    );
+
+    let memberId: number;
+
+    if (memberDetailData?.isSucceed) {
+      // TODO: Check the email is verified or not by the cache.
+
+      memberId = memberDetailData?.data!.memberId;
+      memberDetailData =
+        await this.memberDetailRepository.selectMemberDetailById(
+          memberDetailData?.data!.id,
+        );
+      if (!memberDetailData) {
+        this.exceptionService.notRecognizedError();
+      }
+      if (!memberDetailData?.isSucceed || !memberDetailData?.data) {
+        this.exceptionService.notSelectedEntity('member detail');
+      }
+    } else {
+      const memberResult = await this.memberRepository.insertMember({
+        isConsentedTermsAndConditions: data.member.isConsentedTermsAndConditions
+          ? 1
+          : 0,
+        isConsentedCollectionAndUsePersonalData: data.member
+          .isConsentedCollectionAndUsePersonalData
+          ? 1
+          : 0,
+        isConsentedMarketingUseAndInformationReceiving: data.member
+          .isConsentedMarketingUseAndInformationReceiving
+          ? 1
+          : 0,
+      });
+      if (!memberResult) {
+        this.exceptionService.notRecognizedError();
+      }
+      if (!memberResult?.isSucceed || !memberResult?.data) {
+        this.exceptionService.notInsertedEntity('member');
+      }
+      memberId = memberResult!.data!;
+      this.logger.debug(`memberResult.memberId -> ${memberId}`);
+    }
 
     const hashPassword = await this.hashService.generateHash(
       data.memberDetail.password,
     );
-    this.logger.debug(hashPassword);
+    this.logger.debug(`hashPassword -> ${hashPassword}`);
+
     const memberDetailResult =
       await this.memberDetailRepository.insertMemberDetail({
-        memberDetailId: memberDetailId,
+        memberDetailId: memberDetailData?.data?.id,
         providerKey: data.memberDetail.providerKey,
         memberId: memberId,
         name: data.memberDetail.name,
@@ -76,8 +97,14 @@ export class SignupService {
   @Transactional()
   async createSignupWithPhone(
     data: SignupWithPhoneCreateRequest,
-  ): Promise<number> {
+  ): Promise<void> {
     const memberId = await this.createSignup(data);
+    const memberPhoneData =
+      await this.memberPhoneRepository.selectMemberDetailByMemberIdAndPhoneNumber(
+        memberId,
+        data.memberPhone.phoneNumber,
+      );
+    if (!memberPhoneData?.isSucceed || !memberPhoneData.data) return;
     const memberPhoneResult =
       await this.memberPhoneRepository.insertMemberDetail({
         memberId: memberId,
@@ -92,6 +119,6 @@ export class SignupService {
       this.exceptionService.notInsertedEntity('member detail');
     }
 
-    return memberId;
+    return;
   }
 }

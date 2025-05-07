@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { MainSchemaService } from '../main.schema.service';
 import { memberPhone } from 'libs/persistence/database-schema/main/schema';
 import { ResponseEntity } from '@app/persistence/entity/response.entity';
+import { and, eq } from 'drizzle-orm';
 
 @Injectable()
 export class MemberPhoneRepository extends MainSchemaService {
@@ -18,6 +19,37 @@ export class MemberPhoneRepository extends MainSchemaService {
         return new ResponseEntity<number>(false);
       }
       return new ResponseEntity<number>(true, result.insertId);
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
+  async selectMemberDetailByMemberIdAndPhoneNumber(
+    memberId: number,
+    phoneNumber: string,
+  ): Promise<ResponseEntity<typeof memberPhone.$inferSelect> | undefined> {
+    try {
+      const result = await this.mainTransaction.tx
+        .select()
+        .from(memberPhone)
+        .where(
+          and(
+            eq(memberPhone.memberId, memberId),
+            eq(memberPhone.phoneNumber, phoneNumber),
+          ),
+        );
+      if (result.length > 1) {
+        throw new Error(
+          'The data searched by memberPhone.memberId and memberPhone.phoneNumber is duplicated.',
+        );
+      }
+      if (result.length === 0) {
+        return new ResponseEntity<typeof memberPhone.$inferSelect>(false);
+      }
+      return new ResponseEntity<typeof memberPhone.$inferSelect>(
+        true,
+        result[0],
+      );
     } catch (error) {
       this.logger.error(error);
     }
