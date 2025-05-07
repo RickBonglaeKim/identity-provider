@@ -132,6 +132,7 @@ export const memberConsent = mysqlTable("member_consent", {
 
 export const memberDetail = mysqlTable("member_detail", {
 	id: bigint({ mode: "number" }).autoincrement().notNull(),
+	memberDetailId: bigint("member_detail_id", { mode: "number" }),
 	memberId: bigint("member_id", { mode: "number" }).notNull().references(() => member.id),
 	providerKey: varchar("provider_key", { length: 32 }).references(() => provider.key),
 	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
@@ -142,6 +143,11 @@ export const memberDetail = mysqlTable("member_detail", {
 },
 (table) => [
 	index("member_detail_ix__email").on(table.email),
+	foreignKey({
+			columns: [table.memberDetailId],
+			foreignColumns: [table.id],
+			name: "id_member_detail"
+		}),
 	primaryKey({ columns: [table.id], name: "member_detail_id"}),
 ]);
 

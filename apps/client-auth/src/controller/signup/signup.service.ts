@@ -44,12 +44,19 @@ export class SignupService {
     const memberId: number = memberResult!.data!;
     this.logger.debug(memberId);
 
+    const memberDetailId = (
+      await this.memberDetailRepository.selectMemberDetailByEmailAndMemberDetailIdIsNull(
+        data.memberDetail.email,
+      )
+    )?.data?.memberDetailId;
+
     const hashPassword = await this.hashService.generateHash(
       data.memberDetail.password,
     );
     this.logger.debug(hashPassword);
     const memberDetailResult =
       await this.memberDetailRepository.insertMemberDetail({
+        memberDetailId: memberDetailId,
         providerKey: data.memberDetail.providerKey,
         memberId: memberId,
         name: data.memberDetail.name,

@@ -79,7 +79,15 @@ export const memberConsentRelations = relations(memberConsent, ({one}) => ({
 	}),
 }));
 
-export const memberDetailRelations = relations(memberDetail, ({one}) => ({
+export const memberDetailRelations = relations(memberDetail, ({one, many}) => ({
+	memberDetail: one(memberDetail, {
+		fields: [memberDetail.memberDetailId],
+		references: [memberDetail.id],
+		relationName: "memberDetail_memberDetailId_memberDetail_id"
+	}),
+	memberDetails: many(memberDetail, {
+		relationName: "memberDetail_memberDetailId_memberDetail_id"
+	}),
 	member: one(member, {
 		fields: [memberDetail.memberId],
 		references: [member.id]
