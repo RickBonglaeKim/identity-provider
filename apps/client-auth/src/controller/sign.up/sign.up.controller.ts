@@ -7,7 +7,7 @@ import {
   Post,
   UseInterceptors,
 } from '@nestjs/common';
-import { SignupService } from './sign.up.service';
+import { SignupService } from '../../service/sign.up/sign.up.service';
 import { SignupCreateRequest } from 'dto/interface/sign.up/create/sign.up.create.request.dto';
 import { SignupWithPhoneCreateRequest } from 'dto/interface/sign.up/create/sign.up.phone.create.request.dto';
 

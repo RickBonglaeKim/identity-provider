@@ -8,9 +8,9 @@ import { ConfigModule } from '@nestjs/config';
 import { ExceptionModule } from '@app/exception/exception.module';
 import { HomeController } from './controller/home/home.controller';
 import { SignupController } from './controller/sign.up/sign.up.controller';
-import { SignupService } from './controller/sign.up/sign.up.service';
+import { SignupService } from './service/sign.up/sign.up.service';
 import { CryptoModule } from '@app/crypto/crypto.module';
-import { MemberService } from './controller/member/member.service';
+import { MemberService } from './service/member/member.service';
 
 @Module({
   imports: [
