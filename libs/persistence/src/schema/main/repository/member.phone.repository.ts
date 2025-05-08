@@ -8,7 +8,7 @@ import { and, eq } from 'drizzle-orm';
 export class MemberPhoneRepository extends MainSchemaService {
   private readonly logger = new Logger(MemberPhoneRepository.name);
 
-  async insertMemberDetail(
+  async insertMemberPhone(
     data: typeof memberPhone.$inferInsert,
   ): Promise<ResponseEntity<number> | undefined> {
     try {

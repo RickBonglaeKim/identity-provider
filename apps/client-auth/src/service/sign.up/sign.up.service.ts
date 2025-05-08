@@ -1,4 +1,3 @@
-import { ExceptionService } from '@app/exception/exception.service';
 import { MemberDetailRepository } from '@app/persistence/schema/main/repository/member.detail.repository';
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
@@ -17,12 +16,11 @@ export class SignupService {
     private readonly memberService: MemberService,
     private readonly memberDetailService: MemberDetailService,
     private readonly memberPhoneService: MemberPhoneService,
-    private readonly exceptionService: ExceptionService,
   ) {}
 
   @Transactional()
   async createSignup(data: SignupCreateRequest): Promise<number> {
-    let memberDetailData =
+    const memberDetailData =
       await this.memberDetailRepository.selectMemberDetailByEmailAndMemberDetailIdIsNull(
         data.memberDetail.email,
       );
@@ -31,23 +29,18 @@ export class SignupService {
     );
 
     let memberId: number;
+    let memberDetailId: number | null;
 
     if (memberDetailData?.isSucceed) {
       // TODO: Check the email is verified or not by the cache.
-      memberId = memberDetailData?.data?.memberId as number;
-      memberDetailData =
-        await this.memberDetailRepository.selectMemberDetailById(
-          memberDetailData?.data?.id as number,
-        );
-      if (!memberDetailData) this.exceptionService.notRecognizedError();
-      if (!memberDetailData?.isSucceed || !memberDetailData?.data)
-        this.exceptionService.notSelectedEntity('member detail');
+      memberId = memberDetailData.data!.memberId;
+      memberDetailId = memberDetailData.data!.id;
     } else {
       memberId = await this.memberService.createMember(data.member);
-      this.logger.debug(`memberResult.memberId -> ${memberId}`);
+      memberDetailId = null;
     }
     await this.memberDetailService.createMemberDetail(
-      memberDetailData?.data?.memberDetailId as number,
+      memberDetailId,
       memberId,
       data.memberDetail,
     );
@@ -59,7 +52,9 @@ export class SignupService {
   async createSignupWithPhone(
     data: SignupWithPhoneCreateRequest,
   ): Promise<void> {
-    const memberId = await this.createSignup(data);
+    this.logger.debug(`createSignupWithPhone.data -> ${JSON.stringify(data)}`);
+    const memberId: number = await this.createSignup(data);
+    this.logger.debug(memberId);
     await this.memberPhoneService.createMemberPhone(memberId, data.memberPhone);
   }
 }

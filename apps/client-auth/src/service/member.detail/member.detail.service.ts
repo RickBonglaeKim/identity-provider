@@ -17,7 +17,7 @@ export class MemberDetailService {
 
   @Transactional()
   async createMemberDetail(
-    memberDetailId: number,
+    memberDetailId: number | null,
     memberId: number,
     data: MemberDetailCreateRequest,
   ): Promise<number> {

@@ -2,7 +2,6 @@ import { TransformInterceptor } from '@app/interceptor/transform.interceptor';
 import {
   Body,
   Controller,
-  Get,
   Logger,
   Post,
   UseInterceptors,

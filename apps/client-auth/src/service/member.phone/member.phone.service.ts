@@ -18,15 +18,20 @@ export class MemberPhoneService {
     memberId: number,
     data: MemberPhoneCreateREquest,
   ): Promise<number | null> {
+    this.logger.debug(`createMemberPhone.memberId -> ${memberId}`);
+    this.logger.debug(`createMemberPhone.data -> ${JSON.stringify(data)}`);
     const memberPhoneData =
       await this.memberPhoneRepository.selectMemberDetailByMemberIdAndPhoneNumber(
         memberId,
         data.phoneNumber,
       );
-    if (!memberPhoneData?.isSucceed || !memberPhoneData.data) return null;
+    this.logger.debug(
+      `createMemberPhone.memberPhoneData -> ${JSON.stringify(memberPhoneData)}`,
+    );
+    if (memberPhoneData?.isSucceed as boolean) return null;
 
     const memberPhoneResult =
-      await this.memberPhoneRepository.insertMemberDetail({
+      await this.memberPhoneRepository.insertMemberPhone({
         memberId: memberId,
         isPrimary: data.isPrimary ? 1 : 0,
         countryCallingCode: data.countryCallingCode,
@@ -34,7 +39,7 @@ export class MemberPhoneService {
       });
     if (!memberPhoneResult) this.exceptionService.notRecognizedError();
     if (!memberPhoneResult?.isSucceed || !memberPhoneResult?.data)
-      this.exceptionService.notInsertedEntity('member detail');
+      this.exceptionService.notInsertedEntity('member phone');
 
     return memberPhoneResult?.data as number;
   }
