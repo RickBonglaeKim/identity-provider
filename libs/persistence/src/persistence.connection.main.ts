@@ -18,6 +18,7 @@ const mainConnection = {
     });
     return drizzle({
       client: connectionPool,
+      logger: true,
     });
   },
   inject: [ConfigService],
