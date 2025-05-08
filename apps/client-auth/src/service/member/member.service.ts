@@ -1,17 +1,12 @@
-import { HashService } from '@app/crypto/hash/hash.service';
 import { ExceptionService } from '@app/exception/exception.service';
-import { MemberDetailRepository } from '@app/persistence/schema/main/repository/member.detail.repository';
-import { MemberPhoneRepository } from '@app/persistence/schema/main/repository/member.phone.repository';
 import { MemberRepository } from '@app/persistence/schema/main/repository/member.repository';
 import { Injectable, Logger } from '@nestjs/common';
-import { SignupService } from '../sign.up/sign.up.service';
 import { Transactional } from '@nestjs-cls/transactional';
-import { member } from 'libs/persistence/database-schema/main/schema';
 import { MemberCreateRequest } from 'dto/interface/member/create/member.create.request.dto';
 
 @Injectable()
 export class MemberService {
-  private readonly logger = new Logger(SignupService.name);
+  private readonly logger = new Logger(MemberService.name);
 
   constructor(
     private readonly memberRepository: MemberRepository,
@@ -32,6 +27,6 @@ export class MemberService {
     if (!memberResult?.isSucceed || !memberResult?.data)
       this.exceptionService.notInsertedEntity('member');
 
-    return memberResult!.data!;
+    return memberResult?.data as number;
   }
 }

@@ -1,13 +1,12 @@
-import { HashService } from '@app/crypto/hash/hash.service';
 import { ExceptionService } from '@app/exception/exception.service';
 import { MemberDetailRepository } from '@app/persistence/schema/main/repository/member.detail.repository';
-import { MemberPhoneRepository } from '@app/persistence/schema/main/repository/member.phone.repository';
-import { MemberRepository } from '@app/persistence/schema/main/repository/member.repository';
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import { SignupCreateRequest } from 'dto/interface/sign.up/create/sign.up.create.request.dto';
 import { SignupWithPhoneCreateRequest } from 'dto/interface/sign.up/create/sign.up.phone.create.request.dto';
 import { MemberService } from '../member/member.service';
+import { MemberDetailService } from '../member.detail/member.detail.service';
+import { MemberPhoneService } from '../member.phone/member.phone.service';
 
 @Injectable()
 export class SignupService {
@@ -15,10 +14,10 @@ export class SignupService {
 
   constructor(
     private readonly memberDetailRepository: MemberDetailRepository,
-    private readonly memberPhoneRepository: MemberPhoneRepository,
     private readonly memberService: MemberService,
+    private readonly memberDetailService: MemberDetailService,
+    private readonly memberPhoneService: MemberPhoneService,
     private readonly exceptionService: ExceptionService,
-    private readonly hashService: HashService,
   ) {}
 
   @Transactional()
@@ -35,11 +34,10 @@ export class SignupService {
 
     if (memberDetailData?.isSucceed) {
       // TODO: Check the email is verified or not by the cache.
-
-      memberId = memberDetailData?.data!.memberId;
+      memberId = memberDetailData?.data?.memberId as number;
       memberDetailData =
         await this.memberDetailRepository.selectMemberDetailById(
-          memberDetailData?.data!.id,
+          memberDetailData?.data?.id as number,
         );
       if (!memberDetailData) this.exceptionService.notRecognizedError();
       if (!memberDetailData?.isSucceed || !memberDetailData?.data)
@@ -48,27 +46,11 @@ export class SignupService {
       memberId = await this.memberService.createMember(data.member);
       this.logger.debug(`memberResult.memberId -> ${memberId}`);
     }
-
-    const hashPassword = await this.hashService.generateHash(
-      data.memberDetail.password,
+    await this.memberDetailService.createMemberDetail(
+      memberDetailData?.data?.memberDetailId as number,
+      memberId,
+      data.memberDetail,
     );
-    this.logger.debug(`hashPassword -> ${hashPassword}`);
-
-    const memberDetailResult =
-      await this.memberDetailRepository.insertMemberDetail({
-        memberDetailId: memberDetailData?.data?.id,
-        providerKey: data.memberDetail.providerKey,
-        memberId: memberId,
-        name: data.memberDetail.name,
-        email: data.memberDetail.email,
-        password: hashPassword,
-      });
-    if (!memberDetailResult) {
-      this.exceptionService.notRecognizedError();
-    }
-    if (!memberDetailResult?.isSucceed || !memberDetailResult?.data) {
-      this.exceptionService.notInsertedEntity('member detail');
-    }
 
     return memberId;
   }
@@ -78,26 +60,6 @@ export class SignupService {
     data: SignupWithPhoneCreateRequest,
   ): Promise<void> {
     const memberId = await this.createSignup(data);
-    const memberPhoneData =
-      await this.memberPhoneRepository.selectMemberDetailByMemberIdAndPhoneNumber(
-        memberId,
-        data.memberPhone.phoneNumber,
-      );
-    if (!memberPhoneData?.isSucceed || !memberPhoneData.data) return;
-    const memberPhoneResult =
-      await this.memberPhoneRepository.insertMemberDetail({
-        memberId: memberId,
-        isPrimary: data.memberPhone.isPrimary ? 1 : 0,
-        countryCallingCode: data.memberPhone.countryCallingCode,
-        phoneNumber: data.memberPhone.phoneNumber,
-      });
-    if (!memberPhoneResult) {
-      this.exceptionService.notRecognizedError();
-    }
-    if (!memberPhoneResult?.isSucceed || !memberPhoneResult?.data) {
-      this.exceptionService.notInsertedEntity('member detail');
-    }
-
-    return;
+    await this.memberPhoneService.createMemberPhone(memberId, data.memberPhone);
   }
 }

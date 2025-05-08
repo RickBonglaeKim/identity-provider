@@ -11,6 +11,8 @@ import { SignupController } from './controller/sign.up/sign.up.controller';
 import { SignupService } from './service/sign.up/sign.up.service';
 import { CryptoModule } from '@app/crypto/crypto.module';
 import { MemberService } from './service/member/member.service';
+import { MemberDetailService } from './service/member.detail/member.detail.service';
+import { MemberPhoneService } from './service/member.phone/member.phone.service';
 
 @Module({
   imports: [
@@ -33,6 +35,11 @@ import { MemberService } from './service/member/member.service';
     }),
   ],
   controllers: [HomeController, SignupController],
-  providers: [MemberService, SignupService],
+  providers: [
+    MemberService,
+    MemberDetailService,
+    MemberPhoneService,
+    SignupService,
+  ],
 })
 export class ClientAuthModule {}
