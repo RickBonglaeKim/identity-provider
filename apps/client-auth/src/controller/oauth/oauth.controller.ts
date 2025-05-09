@@ -8,30 +8,22 @@ import {
   Res,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import * as CryptoJS from 'crypto-js';
-import * as jose from 'jose';
 import { AuthorizeCreateRequest } from 'dto/interface/oauth/authorize/create/authorize.create.request.dto';
 import { OauthService } from '../../service/oauth/oauth.service';
 import { ConfigService } from '@nestjs/config';
+import { CheckCacheRepository } from '@app/cache/repository/check.cache.repository';
 
 @Controller('oauth')
 export class OauthController {
   private readonly logger = new Logger(OauthController.name);
   private readonly signUrl: string;
-  private readonly passportTokenSecret: string;
-  private readonly passportCryptoSecret: string;
 
   constructor(
     private readonly configService: ConfigService,
     private readonly oauthService: OauthService,
+    private readonly checkCacheRepository: CheckCacheRepository,
   ) {
     this.signUrl = this.configService.getOrThrow<string>('SIGN_URL');
-    this.passportCryptoSecret = this.configService.getOrThrow<string>(
-      'PASSPORT_CRYPTO_SECRET',
-    );
-    this.passportTokenSecret = this.configService.getOrThrow<string>(
-      'PASSPORT_TOKEN_SECRET',
-    );
   }
 
   @Get('authorize')
@@ -57,5 +49,7 @@ export class OauthController {
       this.logger.debug(`verifiedResult: ${verifiedResult} -> ${redirectUri}`);
       response.redirect(HttpStatus.TEMPORARY_REDIRECT, redirectUri);
     }
+
+    this.logger.debug(await this.checkCacheRepository.pingPong());
   }
 }
