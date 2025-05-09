@@ -1,20 +1,18 @@
-import { TransformInterceptor } from '@app/interceptor/transform.interceptor';
 import {
   Controller,
   Get,
   HttpStatus,
   Logger,
   Query,
+  Req,
   Res,
-  UseInterceptors,
 } from '@nestjs/common';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { AuthorizeCreateRequest } from 'dto/interface/oauth/authorize/create/authorize.create.request.dto';
 import { OauthService } from '../../service/oauth/oauth.service';
 import { ConfigService } from '@nestjs/config';
 
 @Controller('oauth')
-@UseInterceptors(TransformInterceptor)
 export class OauthController {
   private readonly logger = new Logger(OauthController.name);
   private readonly signUrl: string;
@@ -28,6 +26,7 @@ export class OauthController {
 
   @Get('authorize')
   async getAuthorize(
+    @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
     @Query() dto: AuthorizeCreateRequest,
   ): Promise<void> {
@@ -40,12 +39,12 @@ export class OauthController {
         dto.client_secret,
         dto.redirect_uri,
       );
-    if (!verifiedResult)
-      response.redirect(
-        HttpStatus.TEMPORARY_REDIRECT,
-        redirectClient('invalid_request')('Request parameters is incorrect.')(
-          null,
-        ),
-      );
+    if (!verifiedResult) {
+      const redirectUri = redirectClient('invalid_request')(
+        'Request parameters are incorrect.',
+      )(null);
+      this.logger.debug(`verifiedResult: ${verifiedResult} -> ${redirectUri}`);
+      response.redirect(HttpStatus.TEMPORARY_REDIRECT, redirectUri);
+    }
   }
 }

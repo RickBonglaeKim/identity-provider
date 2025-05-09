@@ -3,7 +3,6 @@ import { ClientRepository } from '@app/persistence/schema/main/repository/client
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { retry } from 'rxjs';
 
 @Injectable()
 export class OauthService {
@@ -18,9 +17,9 @@ export class OauthService {
   createRedirectUri(uri: string): oauthRedirection {
     let redirectUri: string = uri;
     return (state: oauthState) => {
-      redirectUri += `?state=${state}`;
+      if (state) redirectUri += `?state=${state}`;
       return (error: oauthError) => {
-        if (error) redirectUri += `&error=${error}`;
+        if (error) redirectUri += `${state ? '&' : '?'}error=${error}`;
         return (errorDescription: oauthErrorDescription) => {
           if (errorDescription)
             redirectUri += `&error_description=${errorDescription}`;
@@ -47,7 +46,7 @@ export class OauthService {
     if (!clientResult) this.exceptionService.notRecognizedError();
 
     if (!clientResult?.isSucceed) return false;
-    if (clientResult.data?.redirectUri !== redirectUri) return false;
+    if (clientResult.data?.redirectUri === redirectUri) return false;
 
     return true;
   }
