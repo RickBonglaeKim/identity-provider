@@ -13,6 +13,8 @@ import { CryptoModule } from '@app/crypto/crypto.module';
 import { MemberService } from './service/member/member.service';
 import { MemberDetailService } from './service/member.detail/member.detail.service';
 import { MemberPhoneService } from './service/member.phone/member.phone.service';
+import { OauthController } from './controller/oauth/oauth.controller';
+import { OauthService } from './service/oauth/oauth.service';
 
 @Module({
   imports: [
@@ -34,12 +36,13 @@ import { MemberPhoneService } from './service/member.phone/member.phone.service'
       ],
     }),
   ],
-  controllers: [HomeController, SignupController],
+  controllers: [HomeController, SignupController, OauthController],
   providers: [
     MemberService,
     MemberDetailService,
     MemberPhoneService,
     SignupService,
+    OauthService,
   ],
 })
 export class ClientAuthModule {}
