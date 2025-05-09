@@ -15,12 +15,14 @@ import { MemberDetailService } from './service/member.detail/member.detail.servi
 import { MemberPhoneService } from './service/member.phone/member.phone.service';
 import { OauthController } from './controller/oauth/oauth.controller';
 import { OauthService } from './service/oauth/oauth.service';
+import { CacheModule } from '@app/cache/cache.module';
 
 @Module({
   imports: [
     MainSchemaModule,
     ExceptionModule,
     CryptoModule,
+    CacheModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: `./env/.env.${process.env.NODE_ENV}`,

@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GlideClusterClient, GlideClient } from '@valkey/valkey-glide';
 import { VALKEY_CONNECTION } from './cache-connection-symbol';
+import { CheckCacheRepository } from './repository/check.cache.repository';
+import { PassportCacheRepository } from './repository/passport.cache.repository';
 
 const cache = {
   provide: VALKEY_CONNECTION,
@@ -32,7 +34,7 @@ const cache = {
 };
 
 @Module({
-  providers: [cache],
-  exports: [],
+  providers: [cache, CheckCacheRepository, PassportCacheRepository],
+  exports: [CheckCacheRepository, PassportCacheRepository],
 })
 export class CacheModule {}

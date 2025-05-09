@@ -50,6 +50,11 @@ export class OauthController {
       response.redirect(HttpStatus.TEMPORARY_REDIRECT, redirectUri);
     }
 
-    this.logger.debug(await this.checkCacheRepository.pingPong());
+    this.logger.debug(this.checkCacheRepository.pingPong());
+    const passport = await this.oauthService.createPassport(dto);
+    if (!passport)
+      redirectClient('server_error')('It fails to generate passport.')(null);
+
+    response.redirect(`${this.signUrl}?passport=${passport}`);
   }
 }
