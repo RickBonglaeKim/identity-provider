@@ -46,7 +46,7 @@ export class OauthService {
     if (!clientResult) this.exceptionService.notRecognizedError();
 
     if (!clientResult?.isSucceed) return false;
-    if (clientResult.data?.redirectUri === redirectUri) return false;
+    if (clientResult.data?.redirectUri !== redirectUri) return false;
 
     return true;
   }
