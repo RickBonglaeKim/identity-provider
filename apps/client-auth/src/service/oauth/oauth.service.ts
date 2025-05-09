@@ -20,13 +20,12 @@ export class OauthService {
     return (state: oauthState) => {
       redirectUri += `?state=${state}`;
       return (error: oauthError) => {
-        if (typeof error === 'string') redirectUri += `&error=${error}`;
+        if (error) redirectUri += `&error=${error}`;
         return (errorDescription: oauthErrorDescription) => {
-          if (typeof errorDescription === 'string')
+          if (errorDescription)
             redirectUri += `&error_description=${errorDescription}`;
           return (errorUri: oauthErrorUri) => {
-            if (typeof errorUri === 'string')
-              redirectUri += `&error_uri=${errorUri}`;
+            if (errorUri) redirectUri += `&error_uri=${errorUri}`;
             return redirectUri;
           };
         };
