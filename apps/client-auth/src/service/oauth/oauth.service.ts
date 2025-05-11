@@ -103,4 +103,15 @@ export class OauthService {
     );
     if (executeResult.isSucceed) return code;
   }
+
+  async findDataInAuthorizationCode(
+    code: string,
+  ): Promise<AuthorizeCreateRequest | undefined> {
+    const dataResult =
+      await this.authorizationCodeRepository.getDataInAuthorizationCode(code);
+    if (!dataResult) this.exceptionService.notRecognizedError();
+    if (dataResult.isSucceed && dataResult.data)
+      return JSON.parse(dataResult.data) as AuthorizeCreateRequest;
+  }
+
 }

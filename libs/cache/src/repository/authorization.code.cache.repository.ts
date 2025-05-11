@@ -45,10 +45,12 @@ export class AuthorizationCodeCacheRepository extends CacheService {
     code: string,
     data: string,
   ): Transaction {
-    return transaction.hset(code, [
-      { field: this.fields.memberId, value: memberId },
-      { field: this.fields.data, value: data },
-    ]);
+    return transaction
+      .hset(code, [
+        { field: this.fields.memberId, value: memberId },
+        { field: this.fields.data, value: data },
+      ])
+      .expire(code, this.expirySeconds, this.createExpireOption());
   }
 
   async getMemberIdInAuthorizationCode(

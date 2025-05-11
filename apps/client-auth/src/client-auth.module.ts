@@ -16,6 +16,8 @@ import { OauthService } from './service/oauth/oauth.service';
 import { CacheModule } from '@app/cache/cache.module';
 import { SignInController } from './controller/sign.in/sign.in.controller';
 import { SigninService } from './service/sign.in/sign.in.service';
+import { KeyController } from './controller/key/key.controller';
+import { KeyService } from './service/key/key.service';
 
 @Module({
   imports: [
@@ -43,7 +45,14 @@ import { SigninService } from './service/sign.in/sign.in.service';
     SignupController,
     SignInController,
     OauthController,
+    KeyController,
   ],
-  providers: [MemberService, SignupService, SigninService, OauthService],
+  providers: [
+    MemberService,
+    SignupService,
+    SigninService,
+    OauthService,
+    KeyService,
+  ],
 })
 export class ClientAuthModule {}

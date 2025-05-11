@@ -1,8 +1,11 @@
 import {
+  Body,
   Controller,
   Get,
+  HttpException,
   HttpStatus,
   Logger,
+  Post,
   Query,
   Res,
   UseInterceptors,
@@ -12,6 +15,7 @@ import { AuthorizeCreateRequest } from 'dto/interface/oauth/authorize/create/aut
 import { OauthService } from '../../service/oauth/oauth.service';
 import { ConfigService } from '@nestjs/config';
 import { TransformInterceptor } from '@app/interceptor/transform.interceptor';
+import { TokenCreateRequest } from 'dto/interface/oauth/token/create/token.create.request.dto';
 
 @Controller('oauth')
 @UseInterceptors(TransformInterceptor)
@@ -54,6 +58,33 @@ export class OauthController {
     }
   }
 
-  @Get('token')
-  async getToken() {}
+  @Post('token')
+  async getToken(@Body() dto: TokenCreateRequest): Promise<void> {
+    this.logger.debug(`getToken.dto -> ${JSON.stringify(dto)}`);
+    const authorizationDataResult =
+      await this.oauthService.findDataInAuthorizationCode(dto.code);
+    this.logger.debug(
+      `getToken.authorizationDataResult -> ${JSON.stringify(authorizationDataResult)}`,
+    );
+    if (!authorizationDataResult)
+      throw new HttpException(
+        'It does not find the data in authorization code.',
+        HttpStatus.UNAUTHORIZED,
+      );
+    if (dto.client_id !== authorizationDataResult.client_id)
+      throw new HttpException(
+        'The client_id of request parameters is incorrect.',
+        HttpStatus.UNAUTHORIZED,
+      );
+    if (dto.client_secret !== authorizationDataResult.client_secret)
+      throw new HttpException(
+        'The client_secret of request parameters is incorrect.',
+        HttpStatus.UNAUTHORIZED,
+      );
+    if (dto.redirect_uri !== authorizationDataResult.redirect_uri)
+      throw new HttpException(
+        'The redirect_uri of request parameters is incorrect.',
+        HttpStatus.UNAUTHORIZED,
+      );
+  }
 }
