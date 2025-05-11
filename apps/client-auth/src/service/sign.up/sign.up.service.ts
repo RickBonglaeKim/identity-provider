@@ -4,8 +4,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { SignupCreateRequest } from 'dto/interface/sign.up/create/sign.up.create.request.dto';
 import { SignupWithPhoneCreateRequest } from 'dto/interface/sign.up/create/sign.up.phone.create.request.dto';
 import { MemberService } from '../member/member.service';
-import { MemberDetailService } from '../member.detail/member.detail.service';
-import { MemberPhoneService } from '../member.phone/member.phone.service';
 
 @Injectable()
 export class SignupService {
@@ -14,8 +12,6 @@ export class SignupService {
   constructor(
     private readonly memberDetailRepository: MemberDetailRepository,
     private readonly memberService: MemberService,
-    private readonly memberDetailService: MemberDetailService,
-    private readonly memberPhoneService: MemberPhoneService,
   ) {}
 
   @Transactional()
@@ -39,7 +35,7 @@ export class SignupService {
       memberId = await this.memberService.createMember(data.member);
       memberDetailId = null;
     }
-    await this.memberDetailService.createMemberDetail(
+    await this.memberService.createMemberDetail(
       memberDetailId,
       memberId,
       data.memberDetail,
@@ -55,6 +51,6 @@ export class SignupService {
     this.logger.debug(`createSignupWithPhone.data -> ${JSON.stringify(data)}`);
     const memberId: number = await this.createSignup(data);
     this.logger.debug(memberId);
-    await this.memberPhoneService.createMemberPhone(memberId, data.memberPhone);
+    await this.memberService.createMemberPhone(memberId, data.memberPhone);
   }
 }

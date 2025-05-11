@@ -11,8 +11,6 @@ import { SignupController } from './controller/sign.up/sign.up.controller';
 import { SignupService } from './service/sign.up/sign.up.service';
 import { CryptoModule } from '@app/crypto/crypto.module';
 import { MemberService } from './service/member/member.service';
-import { MemberDetailService } from './service/member.detail/member.detail.service';
-import { MemberPhoneService } from './service/member.phone/member.phone.service';
 import { OauthController } from './controller/oauth/oauth.controller';
 import { OauthService } from './service/oauth/oauth.service';
 import { CacheModule } from '@app/cache/cache.module';
@@ -39,12 +37,6 @@ import { CacheModule } from '@app/cache/cache.module';
     }),
   ],
   controllers: [HomeController, SignupController, OauthController],
-  providers: [
-    MemberService,
-    MemberDetailService,
-    MemberPhoneService,
-    SignupService,
-    OauthService,
-  ],
+  providers: [MemberService, SignupService, OauthService],
 })
 export class ClientAuthModule {}
