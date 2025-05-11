@@ -44,7 +44,12 @@ export class MemberService {
     memberId: number,
     data: MemberDetailCreateRequest,
   ): Promise<number> {
+    this.logger.debug(`createMemberDetail.data.password -> ${data.password}`);
     const hashPassword = await this.hashService.generateHash(data.password);
+    this.logger.debug(`createMemberDetail.hashPassword -> ${hashPassword}`);
+    this.logger.debug(
+      `createMemberDetail -> compared result is ${await this.hashService.compareHash(data.password, hashPassword)}`,
+    );
 
     const memberDetailResult =
       await this.memberDetailRepository.insertMemberDetail({
@@ -56,7 +61,6 @@ export class MemberService {
         password: hashPassword,
       });
     if (!memberDetailResult) this.exceptionService.notRecognizedError();
-
     if (!memberDetailResult?.isSucceed || !memberDetailResult?.data)
       this.exceptionService.notInsertedEntity('member detail');
 

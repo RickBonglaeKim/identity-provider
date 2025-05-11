@@ -36,7 +36,6 @@ export class OauthService {
     };
   }
 
-  @Transactional()
   async verifyClient(
     clientId: string,
     clientSecret: string,

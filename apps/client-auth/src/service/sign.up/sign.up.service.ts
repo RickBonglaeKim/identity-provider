@@ -21,7 +21,7 @@ export class SignupService {
         data.memberDetail.email,
       );
     this.logger.debug(
-      `memberDetailData -> ${JSON.stringify(memberDetailData)}`,
+      `createSignup.memberDetailData -> ${JSON.stringify(memberDetailData)}`,
     );
 
     let memberId: number;

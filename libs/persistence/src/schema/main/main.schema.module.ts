@@ -5,6 +5,7 @@ import { MemberRepository } from './repository/member.repository';
 import { MemberDetailRepository } from './repository/member.detail.repository';
 import { MemberPhoneRepository } from './repository/member.phone.repository';
 import { OauthRepository } from './repository/oauth.repository';
+import { SignRepository } from './repository/sign.repository';
 
 @Module({
   providers: [
@@ -14,6 +15,7 @@ import { OauthRepository } from './repository/oauth.repository';
     MemberDetailRepository,
     MemberPhoneRepository,
     OauthRepository,
+    SignRepository,
   ],
   exports: [
     mainConnection,
@@ -21,7 +23,8 @@ import { OauthRepository } from './repository/oauth.repository';
     MemberRepository,
     MemberDetailRepository,
     MemberPhoneRepository,
-    OauthRepository
+    OauthRepository,
+    SignRepository,
   ],
 })
 export class MainSchemaModule {}
