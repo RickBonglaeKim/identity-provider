@@ -2,8 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { CacheService } from '@app/cache/cache.service';
 import {
   Decoder,
-  DecoderOption,
-  GlideString,
   SetOptions,
   TimeUnit,
   Transaction,
@@ -12,7 +10,6 @@ import { CacheResponseEntity } from '../entity/cache.response.entity';
 
 @Injectable()
 export class PassportCacheRepository extends CacheService {
-
   private createSetOption(): SetOptions {
     return {
       expiry: { type: TimeUnit.Milliseconds, count: 1000 * 60 * 60 },
@@ -28,7 +25,7 @@ export class PassportCacheRepository extends CacheService {
     const result = await this.cache.set(key, data, this.createSetOption());
     if (result === 'OK')
       return new CacheResponseEntity<string>(true, result.toString());
-    return new CacheResponseEntity<string>(false, result?.toString());
+    return new CacheResponseEntity<string>(false);
   }
 
   setPassportWithTransaction(
@@ -39,9 +36,7 @@ export class PassportCacheRepository extends CacheService {
     return transaction.set(key, data, this.createSetOption());
   }
 
-  async getPassport(
-    key: string,
-  ): Promise<CacheResponseEntity<string | undefined>> {
+  async getPassport(key: string): Promise<CacheResponseEntity<string>> {
     const result = await this.cache.get(key, { decoder: Decoder.String });
     if (result) return new CacheResponseEntity<string>(true, result.toString());
     return new CacheResponseEntity<string>(false);
@@ -52,5 +47,17 @@ export class PassportCacheRepository extends CacheService {
     key: string,
   ): Transaction {
     return transaction.get(key);
+  }
+
+  async deletePassport(key: string): Promise<CacheResponseEntity<number>> {
+    const result: number = await this.cache.del([key]);
+    return new CacheResponseEntity<number>(result === 1, result);
+  }
+
+  deletePassportWithTransaction(
+    transaction: Transaction,
+    key: string,
+  ): Transaction {
+    return transaction.del([key]);
   }
 }

@@ -9,6 +9,9 @@
     }
   },
   "cSpell.words": [
+    "hdel",
+    "hget",
+    "hset",
     "KAKAO"
   ]
 }

@@ -1,11 +1,11 @@
 import { PassportCacheRepository } from '@app/cache/repository/passport.cache.repository';
 import { ExceptionService } from '@app/exception/exception.service';
-import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import cryptoRandomString from 'crypto-random-string';
 import { ConfigService } from '@nestjs/config';
 import { AuthorizeCreateRequest } from 'dto/interface/oauth/authorize/create/authorize.create.request.dto';
 import { OauthRepository } from '@app/persistence/schema/main/repository/oauth.repository';
+import { AuthorizationCodeCacheRepository } from '@app/cache/repository/authorization.code.cache.repository';
 
 @Injectable()
 export class OauthService {
@@ -16,6 +16,7 @@ export class OauthService {
     private readonly exceptionService: ExceptionService,
     private readonly oauthRepository: OauthRepository,
     private readonly passportCacheRepository: PassportCacheRepository,
+    private readonly authorizationCodeRepository: AuthorizationCodeCacheRepository,
   ) {}
 
   public createRedirectUri(uri: string): oauthRedirection {
@@ -70,9 +71,36 @@ export class OauthService {
     if (result) return passportKey;
   }
 
-  async findPassport(key: string): Promise<string | null> {
+  async findPassport(key: string): Promise<string | undefined> {
     const result = await this.passportCacheRepository.getPassport(key);
     if (result.isSucceed && result.data) return result.data;
-    return null;
+  }
+
+  async createAuthorizationCode(
+    memberId: number,
+    passport: string,
+    data: string,
+  ): Promise<string | undefined> {
+    const code = cryptoRandomString({
+      length: 32,
+      type: 'url-safe',
+    });
+    const transaction = this.passportCacheRepository.getTransaction();
+    this.passportCacheRepository.deletePassportWithTransaction(
+      transaction,
+      passport,
+    );
+    this.authorizationCodeRepository.setAuthorizationCodeWithTransaction(
+      transaction,
+      memberId.toString(),
+      code,
+      data,
+    );
+    const executeResult =
+      await this.passportCacheRepository.executeTransaction(transaction);
+    this.logger.debug(
+      `createAuthorizationCode.executeResult -> ${JSON.stringify(executeResult.data)}`,
+    );
+    if (executeResult.isSucceed) return code;
   }
 }

@@ -1,5 +1,5 @@
 import { TransformInterceptor } from '@app/interceptor/transform.interceptor';
-import { SigninCreateRequest } from 'dto/interface/sign.in/sign.in.create.request.dto';
+import { SigninCreateRequest } from 'dto/interface/sign.in/create/sign.in.create.request.dto';
 import {
   Controller,
   UseInterceptors,
@@ -7,10 +7,12 @@ import {
   Get,
   Query,
   Res,
+  HttpStatus,
 } from '@nestjs/common';
 import { SigninService } from '../../service/sign.in/sign.in.service';
 import { Response } from 'express';
 import { OauthService } from '../../service/oauth/oauth.service';
+import { AuthorizeCreateRequest } from 'dto/interface/oauth/authorize/create/authorize.create.request.dto';
 
 @Controller('signin')
 @UseInterceptors(TransformInterceptor)
@@ -24,7 +26,7 @@ export class SignInController {
 
   @Get()
   async getSignin(
-    @Res({ passthrough: true }) response: Response,
+    @Res() response: Response,
     @Query() dto: SigninCreateRequest,
   ): Promise<void> {
     const passport = await this.oauthService.findPassport(dto.passport);
@@ -32,14 +34,35 @@ export class SignInController {
       response.status(251);
       return;
     }
-    const isAuthorized = await this.signinService.findMember(
+
+    const memberId = await this.signinService.findMember(
       dto.email,
       dto.password,
     );
-    this.logger.debug(`getSignin.isAuthorized -> ${isAuthorized}`);
-    if (!isAuthorized) {
+    this.logger.debug(`getSignin.memberId -> ${memberId}`);
+    if (!memberId) {
       response.status(252);
       return;
     }
+
+    const authorizationCode = await this.oauthService.createAuthorizationCode(
+      memberId,
+      dto.passport,
+      passport,
+    );
+
+    if (!authorizationCode) {
+      response.status(HttpStatus.INTERNAL_SERVER_ERROR);
+      return;
+    }
+
+    const passportJson = JSON.parse(passport) as AuthorizeCreateRequest;
+    let redirectUrl = `${passportJson.redirect_uri}?code=${authorizationCode}`;
+    if (passportJson.state) redirectUrl += `&state=${passportJson.state}`;
+
+    this.logger.debug(`getSignin.redirectUrl -> ${redirectUrl}`);
+
+    response.redirect(HttpStatus.TEMPORARY_REDIRECT, redirectUrl);
+    return;
   }
 }

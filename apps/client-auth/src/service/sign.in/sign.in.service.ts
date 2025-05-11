@@ -14,17 +14,17 @@ export class SigninService {
     private readonly exceptionService: ExceptionService,
   ) {}
 
-  async findMember(id: string, password: string): Promise<boolean> {
+  async findMember(id: string, password: string): Promise<number | null> {
     const signinResult = await this.signRepository.verifyMemberByEmail(id);
     if (!signinResult) this.exceptionService.notRecognizedError();
-    if (!signinResult?.isSucceed || !signinResult?.data) return false;
+    if (!signinResult?.isSucceed || !signinResult?.data) return null;
     this.logger.debug(
       `findMember.id -> ${id}, findMember.password -> ${password}`,
       `findMember.signinResult -> ${JSON.stringify(signinResult)}`,
     );
-    let isVerifiedPassword: boolean = false;
+    let memberId: number | null = null;
     for (const member of signinResult.data) {
-      isVerifiedPassword = await this.hashService.compareHash(
+      const isVerifiedPassword = await this.hashService.compareHash(
         password,
         member.password,
       );
@@ -32,8 +32,11 @@ export class SigninService {
         `findMember.signinResult.data -> ${JSON.stringify(member)}`,
         `findMember.isVerifiedPassword -> ${isVerifiedPassword}`,
       );
-      if (isVerifiedPassword) break;
+      if (isVerifiedPassword) {
+        memberId = member.memberId;
+        break;
+      }
     }
-    return isVerifiedPassword;
+    return memberId;
   }
 }

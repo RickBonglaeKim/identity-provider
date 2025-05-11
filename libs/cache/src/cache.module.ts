@@ -4,6 +4,7 @@ import { GlideClusterClient, GlideClient } from '@valkey/valkey-glide';
 import { VALKEY_CONNECTION } from './cache-connection-symbol';
 import { CheckCacheRepository } from './repository/check.cache.repository';
 import { PassportCacheRepository } from './repository/passport.cache.repository';
+import { AuthorizationCodeCacheRepository } from './repository/authorization.code.cache.repository';
 
 const cache = {
   provide: VALKEY_CONNECTION,
@@ -34,7 +35,16 @@ const cache = {
 };
 
 @Module({
-  providers: [cache, CheckCacheRepository, PassportCacheRepository],
-  exports: [CheckCacheRepository, PassportCacheRepository],
+  providers: [
+    cache,
+    CheckCacheRepository,
+    PassportCacheRepository,
+    AuthorizationCodeCacheRepository,
+  ],
+  exports: [
+    CheckCacheRepository,
+    PassportCacheRepository,
+    AuthorizationCodeCacheRepository,
+  ],
 })
 export class CacheModule {}

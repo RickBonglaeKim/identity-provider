@@ -4,16 +4,17 @@ import {
   HttpStatus,
   Logger,
   Query,
-  Req,
   Res,
+  UseInterceptors,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AuthorizeCreateRequest } from 'dto/interface/oauth/authorize/create/authorize.create.request.dto';
 import { OauthService } from '../../service/oauth/oauth.service';
 import { ConfigService } from '@nestjs/config';
-import { CheckCacheRepository } from '@app/cache/repository/check.cache.repository';
+import { TransformInterceptor } from '@app/interceptor/transform.interceptor';
 
 @Controller('oauth')
+@UseInterceptors(TransformInterceptor)
 export class OauthController {
   private readonly logger = new Logger(OauthController.name);
   private readonly signUrl: string;
@@ -21,15 +22,13 @@ export class OauthController {
   constructor(
     private readonly configService: ConfigService,
     private readonly oauthService: OauthService,
-    private readonly checkCacheRepository: CheckCacheRepository,
   ) {
     this.signUrl = this.configService.getOrThrow<string>('SIGN_URL');
   }
 
   @Get('authorize')
   async getAuthorize(
-    @Req() request: Request,
-    @Res({ passthrough: true }) response: Response,
+    @Res() response: Response,
     @Query() dto: AuthorizeCreateRequest,
   ): Promise<void> {
     const redirectClient = this.oauthService.createRedirectUri(
@@ -42,7 +41,6 @@ export class OauthController {
     );
 
     if (verifiedResult) {
-      this.logger.debug(await this.checkCacheRepository.pingPong());
       const passport = await this.oauthService.createPassport(dto);
       if (!passport)
         redirectClient('server_error')('It fails to generate passport.')(null);
@@ -55,4 +53,7 @@ export class OauthController {
       response.redirect(HttpStatus.TEMPORARY_REDIRECT, redirectUri);
     }
   }
+
+  @Get('token')
+  async getToken() {}
 }
