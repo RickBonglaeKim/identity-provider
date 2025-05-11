@@ -16,7 +16,7 @@ export const child = mysqlTable("child", {
 ]);
 
 export const client = mysqlTable("client", {
-	key: varchar({ length: 32 }).notNull(),
+	id: bigint({ mode: "number" }).notNull(),
 	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	clientId: varchar("client_id", { length: 32 }).notNull(),
@@ -25,13 +25,13 @@ export const client = mysqlTable("client", {
 	note: varchar({ length: 256 }),
 },
 (table) => [
-	primaryKey({ columns: [table.key], name: "client_key"}),
+	primaryKey({ columns: [table.id], name: "client_id"}),
 	unique("client_ix__client_id").on(table.clientId),
 ]);
 
 export const clientConsent = mysqlTable("client_consent", {
 	id: bigint({ mode: "number" }).autoincrement().notNull(),
-	clientKey: varchar("client_key", { length: 32 }).notNull().references(() => client.key),
+	clientId: bigint("client_id", { mode: "number" }).notNull().references(() => client.id),
 	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	title: varchar({ length: 64 }).notNull(),
@@ -44,7 +44,7 @@ export const clientConsent = mysqlTable("client_consent", {
 
 export const clientKeypair = mysqlTable("client_keypair", {
 	id: bigint({ mode: "number" }).autoincrement().notNull(),
-	clientKey: varchar("client_key", { length: 32 }).notNull().references(() => client.key),
+	clientId: bigint("client_id", { mode: "number" }).notNull().references(() => client.id),
 	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	privateKey: text("private_key").notNull(),
@@ -55,9 +55,9 @@ export const clientKeypair = mysqlTable("client_keypair", {
 ]);
 
 export const clientMember = mysqlTable("client_member", {
-	id: bigint({ mode: "number" }).notNull(),
+	id: bigint({ mode: "number" }).autoincrement().notNull(),
 	memberId: bigint("member_id", { mode: "number" }).notNull().references(() => member.id),
-	clientKey: varchar("client_key", { length: 32 }).notNull().references(() => client.key),
+	clientId: bigint("client_id", { mode: "number" }).notNull().references(() => client.id),
 	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 },
@@ -67,7 +67,7 @@ export const clientMember = mysqlTable("client_member", {
 
 export const clientUri = mysqlTable("client_uri", {
 	id: bigint({ mode: "number" }).autoincrement().notNull(),
-	clientKey: varchar("client_key", { length: 32 }).notNull().references(() => client.key),
+	clientId: bigint("client_id", { mode: "number" }).notNull().references(() => client.id),
 	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	redirectUri: varchar("redirect_uri", { length: 128 }).notNull(),

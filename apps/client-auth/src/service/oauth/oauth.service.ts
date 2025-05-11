@@ -1,11 +1,11 @@
 import { PassportCacheRepository } from '@app/cache/repository/passport.cache.repository';
 import { ExceptionService } from '@app/exception/exception.service';
-import { ClientRepository } from '@app/persistence/schema/main/repository/client.repository';
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import cryptoRandomString from 'crypto-random-string';
 import { ConfigService } from '@nestjs/config';
 import { AuthorizeCreateRequest } from 'dto/interface/oauth/authorize/create/authorize.create.request.dto';
+import { OauthRepository } from '@app/persistence/schema/main/repository/oauth.repository';
 
 @Injectable()
 export class OauthService {
@@ -14,7 +14,7 @@ export class OauthService {
   constructor(
     private readonly configService: ConfigService,
     private readonly exceptionService: ExceptionService,
-    private readonly clientRepository: ClientRepository,
+    private readonly oauthRepository: OauthRepository,
     private readonly passportCacheRepository: PassportCacheRepository,
   ) {}
 
@@ -37,20 +37,22 @@ export class OauthService {
   }
 
   @Transactional()
-  async verifyClientByClientIdAndClientSecret(
+  async verifyClient(
     clientId: string,
     clientSecret: string,
     redirectUri: string,
   ): Promise<boolean> {
-    const clientResult =
-      await this.clientRepository.selectClientByClientIdAndClientSecret(
+    const verifiedResult =
+      await this.oauthRepository.verifyAuthorizationByClientIdAndClientSecretAndRedirectUri(
         clientId,
         clientSecret,
+        redirectUri,
       );
-    if (!clientResult) this.exceptionService.notRecognizedError();
-
-    if (!clientResult?.isSucceed) return false;
-    if (clientResult.data?.redirectUri !== redirectUri) return false;
+    this.logger.debug(
+      `verifyClientByClientIdAndClientSecret.verifiedResult -> ${JSON.stringify(verifiedResult)}`,
+    );
+    if (!verifiedResult) this.exceptionService.notRecognizedError();
+    if (!verifiedResult?.isSucceed) return false;
 
     return true;
   }
@@ -65,6 +67,7 @@ export class OauthService {
       JSON.stringify(data),
     );
     this.logger.debug(`createPassport.result -> ${JSON.stringify(result)}`);
+
     if (result.isSucceed) return passportKey;
   }
 }

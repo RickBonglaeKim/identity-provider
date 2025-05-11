@@ -47,14 +47,14 @@ export class ClientKeypairRepository extends MainSchemaService {
     }
   }
 
-  async selectOneClientKeypairByClientKeyDescendingLatest(
-    clientKey: string,
+  async selectOneClientKeypairByClientIdDescendingLatest(
+    clientId: number,
   ): Promise<ResponseEntity<typeof clientKeypair.$inferSelect> | undefined> {
     try {
       const result = await this.mainTransaction.tx
         .select()
         .from(clientKeypair)
-        .where(eq(clientKeypair.clientKey, clientKey))
+        .where(eq(clientKeypair.clientId, clientId))
         .limit(1);
       if (result.length === 0) {
         return new ResponseEntity<typeof clientKeypair.$inferSelect>(false);

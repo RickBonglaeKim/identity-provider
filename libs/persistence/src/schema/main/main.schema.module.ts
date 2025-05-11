@@ -4,7 +4,7 @@ import { ClientKeypairRepository } from './repository/client.keypair.repository'
 import { MemberRepository } from './repository/member.repository';
 import { MemberDetailRepository } from './repository/member.detail.repository';
 import { MemberPhoneRepository } from './repository/member.phone.repository';
-import { ClientRepository } from './repository/client.repository';
+import { OauthRepository } from './repository/oauth.repository';
 
 @Module({
   providers: [
@@ -13,7 +13,7 @@ import { ClientRepository } from './repository/client.repository';
     MemberRepository,
     MemberDetailRepository,
     MemberPhoneRepository,
-    ClientRepository,
+    OauthRepository,
   ],
   exports: [
     mainConnection,
@@ -21,7 +21,7 @@ import { ClientRepository } from './repository/client.repository';
     MemberRepository,
     MemberDetailRepository,
     MemberPhoneRepository,
-    ClientRepository,
+    OauthRepository
   ],
 })
 export class MainSchemaModule {}

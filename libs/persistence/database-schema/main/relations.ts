@@ -18,8 +18,8 @@ export const memberRelations = relations(member, ({many}) => ({
 
 export const clientConsentRelations = relations(clientConsent, ({one, many}) => ({
 	client: one(client, {
-		fields: [clientConsent.clientKey],
-		references: [client.key]
+		fields: [clientConsent.clientId],
+		references: [client.id]
 	}),
 	memberConsents: many(memberConsent),
 }));
@@ -33,15 +33,15 @@ export const clientRelations = relations(client, ({many}) => ({
 
 export const clientKeypairRelations = relations(clientKeypair, ({one}) => ({
 	client: one(client, {
-		fields: [clientKeypair.clientKey],
-		references: [client.key]
+		fields: [clientKeypair.clientId],
+		references: [client.id]
 	}),
 }));
 
 export const clientMemberRelations = relations(clientMember, ({one, many}) => ({
 	client: one(client, {
-		fields: [clientMember.clientKey],
-		references: [client.key]
+		fields: [clientMember.clientId],
+		references: [client.id]
 	}),
 	member: one(member, {
 		fields: [clientMember.memberId],
@@ -52,8 +52,8 @@ export const clientMemberRelations = relations(clientMember, ({one, many}) => ({
 
 export const clientUriRelations = relations(clientUri, ({one}) => ({
 	client: one(client, {
-		fields: [clientUri.clientKey],
-		references: [client.key]
+		fields: [clientUri.clientId],
+		references: [client.id]
 	}),
 }));
 
