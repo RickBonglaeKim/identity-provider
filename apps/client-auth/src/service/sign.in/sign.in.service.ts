@@ -17,25 +17,22 @@ export class SigninService {
   async findMember(id: string, password: string): Promise<boolean> {
     const signinResult = await this.signRepository.verifyMemberByEmail(id);
     if (!signinResult) this.exceptionService.notRecognizedError();
-    if (!signinResult?.isSucceed || !signinResult?.data)
-      this.exceptionService.notSelectedEntity('signin');
+    if (!signinResult?.isSucceed || !signinResult?.data) return false;
     this.logger.debug(
       `findMember.id -> ${id}, findMember.password -> ${password}`,
       `findMember.signinResult -> ${JSON.stringify(signinResult)}`,
     );
-    const isVerifiedPassword: boolean = false;
-    for (const member of signinResult!.data!) {
-      const isVerifiedPassword = await this.hashService.compareHash(
+    let isVerifiedPassword: boolean = false;
+    for (const member of signinResult.data) {
+      isVerifiedPassword = await this.hashService.compareHash(
         password,
         member.password,
       );
-      if (isVerifiedPassword) {
-        this.logger.debug(
-          `findMember.signinResult.data -> ${JSON.stringify(member)}`,
-          `findMember.isSucceed -> ${isVerifiedPassword}`,
-        );
-        break;
-      }
+      this.logger.debug(
+        `findMember.signinResult.data -> ${JSON.stringify(member)}`,
+        `findMember.isVerifiedPassword -> ${isVerifiedPassword}`,
+      );
+      if (isVerifiedPassword) break;
     }
     return isVerifiedPassword;
   }

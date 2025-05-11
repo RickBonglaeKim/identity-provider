@@ -67,6 +67,12 @@ export class OauthService {
     );
     this.logger.debug(`createPassport.result -> ${JSON.stringify(result)}`);
 
-    if (result.isSucceed) return passportKey;
+    if (result) return passportKey;
+  }
+
+  async findPassport(key: string): Promise<string | null> {
+    const result = await this.passportCacheRepository.getPassport(key);
+    if (result.isSucceed && result.data) return result.data;
+    return null;
   }
 }

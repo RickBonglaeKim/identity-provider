@@ -6,18 +6,40 @@ import {
   Logger,
   Get,
   Query,
+  Res,
 } from '@nestjs/common';
 import { SigninService } from '../../service/sign.in/sign.in.service';
+import { Response } from 'express';
+import { OauthService } from '../../service/oauth/oauth.service';
 
 @Controller('signin')
 @UseInterceptors(TransformInterceptor)
 export class SignInController {
   private readonly logger = new Logger(SignInController.name);
 
-  constructor(private readonly signinService: SigninService) {}
+  constructor(
+    private readonly signinService: SigninService,
+    private readonly oauthService: OauthService,
+  ) {}
 
   @Get()
-  async signin(@Query() dto: SigninCreateRequest): Promise<void> {
-    const result = await this.signinService.findMember(dto.email, dto.password);
+  async getSignin(
+    @Res({ passthrough: true }) response: Response,
+    @Query() dto: SigninCreateRequest,
+  ): Promise<void> {
+    const passport = await this.oauthService.findPassport(dto.passport);
+    if (!passport) {
+      response.status(251);
+      return;
+    }
+    const isAuthorized = await this.signinService.findMember(
+      dto.email,
+      dto.password,
+    );
+    this.logger.debug(`getSignin.isAuthorized -> ${isAuthorized}`);
+    if (!isAuthorized) {
+      response.status(252);
+      return;
+    }
   }
 }
