@@ -35,18 +35,16 @@ export class SignInController {
       return;
     }
 
-    const memberId = await this.signinService.findMember(
-      dto.email,
-      dto.password,
-    );
-    this.logger.debug(`getSignin.memberId -> ${memberId}`);
-    if (!memberId) {
+    const member = await this.signinService.findMember(dto.email, dto.password);
+    this.logger.debug(`getSignin.memberId -> ${JSON.stringify(member)}`);
+    if (!member) {
       response.status(252);
       return;
     }
 
     const authorizationCode = await this.oauthService.createAuthorizationCode(
-      memberId,
+      member.memberId,
+      member.memberDetailId,
       dto.passport,
       passport,
     );

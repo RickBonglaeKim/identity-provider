@@ -8,6 +8,7 @@ import { MemberDetailRepository } from '@app/persistence/schema/main/repository/
 import { MemberDetailCreateRequest } from 'dto/interface/member.detail/create/member.detail.create.request.dto';
 import { MemberPhoneRepository } from '@app/persistence/schema/main/repository/member.phone.repository';
 import { MemberPhoneCreateREquest } from 'dto/interface/member.phone/create/member.phone.create.request.dto';
+import { ClientMemberRepository } from '@app/persistence/schema/main/repository/client.member.repository';
 
 @Injectable()
 export class MemberService {
@@ -17,6 +18,7 @@ export class MemberService {
     private readonly memberRepository: MemberRepository,
     private readonly memberDetailRepository: MemberDetailRepository,
     private readonly memberPhoneRepository: MemberPhoneRepository,
+    private readonly clientMemberRepository: ClientMemberRepository,
     private readonly exceptionService: ExceptionService,
     private readonly hashService: HashService,
   ) {}
@@ -32,7 +34,7 @@ export class MemberService {
     });
 
     if (!memberResult) this.exceptionService.notRecognizedError();
-    if (!memberResult?.isSucceed || !memberResult?.data)
+    if (!memberResult?.isSucceed || !memberResult.data)
       this.exceptionService.notInsertedEntity('member');
 
     return memberResult?.data as number;
@@ -61,7 +63,7 @@ export class MemberService {
         password: hashPassword,
       });
     if (!memberDetailResult) this.exceptionService.notRecognizedError();
-    if (!memberDetailResult?.isSucceed || !memberDetailResult?.data)
+    if (!memberDetailResult?.isSucceed || !memberDetailResult.data)
       this.exceptionService.notInsertedEntity('member detail');
 
     return memberDetailResult?.data as number;
@@ -92,9 +94,22 @@ export class MemberService {
         phoneNumber: data.phoneNumber,
       });
     if (!memberPhoneResult) this.exceptionService.notRecognizedError();
-    if (!memberPhoneResult?.isSucceed || !memberPhoneResult?.data)
+    if (!memberPhoneResult?.isSucceed || !memberPhoneResult.data)
       this.exceptionService.notInsertedEntity('member phone');
 
     return memberPhoneResult?.data as number;
+  }
+
+  async createClientMember(
+    clientId: number,
+    memberId: number,
+  ): Promise<number> {
+    const data = { clientId, memberId };
+    const result = await this.clientMemberRepository.insertMemberClient(data);
+    if (!result) this.exceptionService.notRecognizedError();
+    if (!result?.isSucceed || !result.data)
+      this.exceptionService.notInsertedEntity('client member');
+
+    return result?.data as number;
   }
 }

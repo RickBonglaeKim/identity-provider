@@ -8,19 +8,41 @@ export class ExceptionService {
   }
 
   notInsertedEntity(entityName: string) {
-    throw new ServiceException(901, `The ${entityName} entity is not created.`);
+    throw new ServiceException(
+      901,
+      `The ${entityName} entity is not inserted.`,
+    );
   }
 
   notSelectedEntity(entityName: string) {
-    throw new ServiceException(902, `The ${entityName} entity is not read.`);
+    throw new ServiceException(
+      902,
+      `The ${entityName} entity is not selected.`,
+    );
   }
 
-  notUpdatedEntity(entityName) {
-    throw new ServiceException(903, `The ${entityName} entity is not changed.`);
+  notUpdatedEntity(entityName: string) {
+    throw new ServiceException(903, `The ${entityName} entity is not updated.`);
   }
 
-  notDeletedEntity(entityName) {
+  notDeletedEntity(entityName: string) {
     throw new ServiceException(904, `The ${entityName} entity is not deleted.`);
+  }
+
+  notSetCacheValue(keyName: string) {
+    throw new ServiceException(911, `The ${keyName} value is not set.`);
+  }
+
+  notGottenCacheValue(keyName: string) {
+    throw new ServiceException(912, `The ${keyName} value is not gotten.`);
+  }
+
+  notUpdatedCacheValue(keyName: string) {
+    throw new ServiceException(913, `The ${keyName} value is not updated.`);
+  }
+
+  notDeletedCacheValue(keyName: string) {
+    throw new ServiceException(914, `The ${keyName} value is not deleted.`);
   }
 
   notGeneratedKeypair() {

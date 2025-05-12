@@ -10,6 +10,7 @@ import { CacheResponseEntity } from '../entity/cache.response.entity';
 
 @Injectable()
 export class PassportCacheRepository extends CacheService {
+  private readonly prefix = 'passport';
   private createSetOption(): SetOptions {
     return {
       expiry: { type: TimeUnit.Milliseconds, count: 1000 * 60 * 60 },
@@ -22,6 +23,7 @@ export class PassportCacheRepository extends CacheService {
     key: string,
     data: string,
   ): Promise<CacheResponseEntity<string>> {
+    key = `${this.prefix}:${key}`;
     const result = await this.cache.set(key, data, this.createSetOption());
     if (result === 'OK')
       return new CacheResponseEntity<string>(true, result.toString());
@@ -33,23 +35,19 @@ export class PassportCacheRepository extends CacheService {
     key: string,
     data: string,
   ): Transaction {
+    key = `${this.prefix}:${key}`;
     return transaction.set(key, data, this.createSetOption());
   }
 
   async getPassport(key: string): Promise<CacheResponseEntity<string>> {
+    key = `${this.prefix}:${key}`;
     const result = await this.cache.get(key, { decoder: Decoder.String });
     if (result) return new CacheResponseEntity<string>(true, result.toString());
     return new CacheResponseEntity<string>(false);
   }
 
-  getPassportWithTransaction(
-    transaction: Transaction,
-    key: string,
-  ): Transaction {
-    return transaction.get(key);
-  }
-
   async deletePassport(key: string): Promise<CacheResponseEntity<number>> {
+    key = `${this.prefix}:${key}`;
     const result: number = await this.cache.del([key]);
     return new CacheResponseEntity<number>(result === 1, result);
   }
@@ -58,6 +56,7 @@ export class PassportCacheRepository extends CacheService {
     transaction: Transaction,
     key: string,
   ): Transaction {
+    key = `${this.prefix}:${key}`;
     return transaction.del([key]);
   }
 }

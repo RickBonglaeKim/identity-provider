@@ -3,6 +3,7 @@ import { SignupService } from '../sign.up/sign.up.service';
 import { HashService } from '@app/crypto/service/hash/hash.service';
 import { SignRepository } from '@app/persistence/schema/main/repository/sign.repository';
 import { ExceptionService } from '@app/exception/service/exception.service';
+import { FindMemberReturn } from '../../type/service/sign.service.type';
 
 @Injectable()
 export class SigninService {
@@ -14,16 +15,20 @@ export class SigninService {
     private readonly exceptionService: ExceptionService,
   ) {}
 
-  async findMember(id: string, password: string): Promise<number | null> {
+  async findMember(
+    id: string,
+    password: string,
+  ): Promise<FindMemberReturn | undefined> {
     const signinResult = await this.signRepository.verifyMemberByEmail(id);
     if (!signinResult) this.exceptionService.notRecognizedError();
-    if (!signinResult?.isSucceed || !signinResult.data) return null;
+    if (!signinResult?.isSucceed || !signinResult.data)
+      this.exceptionService.notSelectedEntity('signin');
     this.logger.debug(
       `findMember.id -> ${id}, findMember.password -> ${password}`,
       `findMember.signinResult -> ${JSON.stringify(signinResult)}`,
     );
-    let memberId: number | null = null;
-    for (const member of signinResult.data) {
+    let memberResult: FindMemberReturn;
+    for (const member of signinResult!.data!) {
       const isVerifiedPassword = await this.hashService.compareHash(
         password,
         member.password,
@@ -33,10 +38,13 @@ export class SigninService {
         `findMember.isVerifiedPassword -> ${isVerifiedPassword}`,
       );
       if (isVerifiedPassword) {
-        memberId = member.memberId;
+        memberResult = {
+          memberId: member.memberId,
+          memberDetailId: member.memberDetailId,
+        };
         break;
       }
     }
-    return memberId;
+    return memberResult;
   }
 }

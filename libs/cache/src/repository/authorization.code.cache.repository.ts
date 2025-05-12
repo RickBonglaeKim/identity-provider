@@ -1,18 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { CacheService } from '@app/cache/service/cache.service';
-import {
-  Decoder,
-  ExpireOptions,
-  SetOptions,
-  TimeUnit,
-  Transaction,
-} from '@valkey/valkey-glide';
+import { Decoder, ExpireOptions, Transaction } from '@valkey/valkey-glide';
 import { CacheResponseEntity } from '../entity/cache.response.entity';
 
 @Injectable()
 export class AuthorizationCodeCacheRepository extends CacheService {
   private readonly expirySeconds = 60 * 10;
-  private readonly fields = { memberId: 'memberId', data: 'data' };
+  private readonly prefix = 'authorizationCode';
+  private readonly fields = {
+    memberId: 'memberId',
+    memberDetailId: 'memberDetailId',
+    data: 'data',
+  };
 
   private createExpireOption(): { expireOption: ExpireOptions } {
     return {
@@ -21,16 +20,19 @@ export class AuthorizationCodeCacheRepository extends CacheService {
   }
 
   async setAuthorizationCode(
-    memberId: string,
     code: string,
+    memberId: string,
+    memberDetailId: string,
     data: string,
   ): Promise<CacheResponseEntity<number>> {
-    const setResult = await this.cache.hset(code, [
+    const key = `${this.prefix}:${code}`;
+    const setResult = await this.cache.hset(key, [
       { field: this.fields.memberId, value: memberId },
+      { field: this.fields.memberDetailId, value: memberDetailId },
       { field: this.fields.data, value: data },
     ]);
     const expireResult = await this.cache.expire(
-      code,
+      key,
       this.expirySeconds,
       this.createExpireOption(),
     );
@@ -41,22 +43,37 @@ export class AuthorizationCodeCacheRepository extends CacheService {
 
   setAuthorizationCodeWithTransaction(
     transaction: Transaction,
-    memberId: string,
     code: string,
+    memberId: string,
+    memberDetailId: string,
     data: string,
   ): Transaction {
+    const key = `${this.prefix}:${code}`;
     return transaction
-      .hset(code, [
+      .hset(key, [
         { field: this.fields.memberId, value: memberId },
+        { field: this.fields.memberDetailId, value: memberDetailId },
         { field: this.fields.data, value: data },
       ])
-      .expire(code, this.expirySeconds, this.createExpireOption());
+      .expire(key, this.expirySeconds, this.createExpireOption());
   }
 
   async getMemberIdInAuthorizationCode(
     code: string,
   ): Promise<CacheResponseEntity<string>> {
-    const result = await this.cache.hget(code, this.fields.memberId, {
+    const key = `${this.prefix}:${code}`;
+    const result = await this.cache.hget(key, this.fields.memberId, {
+      decoder: Decoder.String,
+    });
+    if (result) return new CacheResponseEntity<string>(true, result.toString());
+    return new CacheResponseEntity<string>(false);
+  }
+
+  async getMemberDetailIdInAuthorizationCode(
+    code: string,
+  ): Promise<CacheResponseEntity<string>> {
+    const key = `${this.prefix}:${code}`;
+    const result = await this.cache.hget(key, this.fields.memberDetailId, {
       decoder: Decoder.String,
     });
     if (result) return new CacheResponseEntity<string>(true, result.toString());
@@ -66,34 +83,19 @@ export class AuthorizationCodeCacheRepository extends CacheService {
   async getDataInAuthorizationCode(
     code: string,
   ): Promise<CacheResponseEntity<string>> {
-    const result = await this.cache.hget(code, this.fields.data, {
+    const key = `${this.prefix}:${code}`;
+    const result = await this.cache.hget(key, this.fields.data, {
       decoder: Decoder.String,
     });
     if (result) return new CacheResponseEntity<string>(true, result.toString());
     return new CacheResponseEntity<string>(false);
   }
 
-  getMemberIdInAuthorizationCodeWithTransaction(
-    transaction: Transaction,
-    code: string,
-  ): Transaction {
-    return transaction.hget(code, this.fields.memberId);
-  }
-
-  getDataInAuthorizationCodeWithTransaction(
-    transaction: Transaction,
-    code: string,
-  ): Transaction {
-    return transaction.hget(code, this.fields.data);
-  }
-
   async deleteAuthorizationCode(
     code: string,
   ): Promise<CacheResponseEntity<number>> {
-    const result = await this.cache.hdel(code, [
-      this.fields.memberId,
-      this.fields.data,
-    ]);
+    const key = `${this.prefix}:${code}`;
+    const result = await this.cache.del([key]);
     return new CacheResponseEntity<number>(result === 1, result);
   }
 
@@ -101,6 +103,7 @@ export class AuthorizationCodeCacheRepository extends CacheService {
     transaction: Transaction,
     code: string,
   ): Transaction {
-    return transaction.hdel(code, [this.fields.memberId, this.fields.data]);
+    const key = `${this.prefix}:${code}`;
+    return transaction.del([key]);
   }
 }

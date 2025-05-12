@@ -1,23 +1,35 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CacheService } from '@app/cache/service/cache.service';
 import {
   Decoder,
   ExpireOptions,
-  SetOptions,
-  TimeUnit,
+  GlideClient,
   Transaction,
 } from '@valkey/valkey-glide';
 import { CacheResponseEntity } from '../entity/cache.response.entity';
+import { ConfigService } from '@nestjs/config';
+import { VALKEY_CONNECTION } from '../cache-connection-symbol';
 
 @Injectable()
 export class AuthorizationRefreshTokenCacheRepository extends CacheService {
-  private readonly expirySeconds: number = 60 * 60 * 24 * 30 * 2; // 2 months
+  private readonly expirySeconds: number;
   private readonly prefix: string = 'refreshToken';
   private readonly fields = {
     memberId: 'memberId',
+    memberDetailId: 'memberDetailId',
     clientMemberId: 'clientMemberId',
     data: 'data',
   };
+
+  constructor(
+    @Inject(VALKEY_CONNECTION) _cache: GlideClient,
+    private readonly configService: ConfigService,
+  ) {
+    super(_cache);
+    this.expirySeconds = this.configService.getOrThrow<number>(
+      'REFRESH_TOKEN_EXPIRE_IN',
+    );
+  }
 
   private createExpireOption(): { expireOption: ExpireOptions } {
     return {
@@ -28,12 +40,14 @@ export class AuthorizationRefreshTokenCacheRepository extends CacheService {
   async setRefreshToken(
     token: string,
     memberId: string,
+    memberDetailId: string,
     clientMemberId: string,
     data: string,
   ): Promise<CacheResponseEntity<number>> {
     const key = `${this.prefix}:${token}`;
     const setResult = await this.cache.hset(key, [
       { field: this.fields.memberId, value: memberId },
+      { field: this.fields.memberDetailId, value: memberDetailId },
       { field: this.fields.clientMemberId, value: clientMemberId },
       { field: this.fields.data, value: data },
     ]);
@@ -51,6 +65,7 @@ export class AuthorizationRefreshTokenCacheRepository extends CacheService {
     transaction: Transaction,
     token: string,
     memberId: string,
+    memberDetailId: string,
     clientMemberId: string,
     data: string,
   ): Transaction {
@@ -58,6 +73,7 @@ export class AuthorizationRefreshTokenCacheRepository extends CacheService {
     return transaction
       .hset(key, [
         { field: this.fields.memberId, value: memberId },
+        { field: this.fields.memberDetailId, value: memberDetailId },
         { field: this.fields.clientMemberId, value: clientMemberId },
         { field: this.fields.data, value: data },
       ])
@@ -69,6 +85,17 @@ export class AuthorizationRefreshTokenCacheRepository extends CacheService {
   ): Promise<CacheResponseEntity<string>> {
     const key = `${this.prefix}:${token}`;
     const result = await this.cache.hget(key, this.fields.memberId, {
+      decoder: Decoder.String,
+    });
+    if (result) return new CacheResponseEntity<string>(true, result.toString());
+    return new CacheResponseEntity<string>(false);
+  }
+
+  async getClientMemberDetailIdIdInRefreshToken(
+    token: string,
+  ): Promise<CacheResponseEntity<string>> {
+    const key = `${this.prefix}:${token}`;
+    const result = await this.cache.hget(key, this.fields.memberDetailId, {
       decoder: Decoder.String,
     });
     if (result) return new CacheResponseEntity<string>(true, result.toString());

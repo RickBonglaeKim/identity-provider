@@ -18,6 +18,7 @@ import { SignInController } from './controller/sign.in/sign.in.controller';
 import { SigninService } from './service/sign.in/sign.in.service';
 import { KeyController } from './controller/key/key.controller';
 import { KeyService } from './service/key/key.service';
+import { ClientService } from './service/client/client.service';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { KeyService } from './service/key/key.service';
     SigninService,
     OauthService,
     KeyService,
+    ClientService,
   ],
 })
 export class ClientAuthModule {}

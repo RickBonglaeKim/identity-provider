@@ -10,25 +10,37 @@ import {
   Res,
   UseInterceptors,
 } from '@nestjs/common';
-import * as jose from 'jose';
 import { Request, Response } from 'express';
 import { AuthorizeCreateRequest } from 'dto/interface/oauth/authorize/create/authorize.create.request.dto';
 import { OauthService } from '../../service/oauth/oauth.service';
 import { ConfigService } from '@nestjs/config';
 import { TransformInterceptor } from '@app/interceptor/transform.interceptor';
-import { TokenCreateRequest } from 'dto/interface/oauth/token/create/token.create.request.dto';
+import { MemberService } from '../../service/member/member.service';
+import { ClientService } from '../../service/client/client.service';
+import { OauthTokenRequest } from 'dto/interface/oauth/token/request/oauth.token.request.dto';
+import { OauthTokenResponse } from 'dto/interface/oauth/token/response/oauth.token.response.dto';
+import { code } from 'libs/persistence/database-schema/main/schema';
 
 @Controller('oauth')
 @UseInterceptors(TransformInterceptor)
 export class OauthController {
   private readonly logger = new Logger(OauthController.name);
   private readonly signUrl: string;
+  private readonly tokenExpirySeconds: number;
+  private readonly refreshTokenExpirySeconds: number;
 
   constructor(
     private readonly configService: ConfigService,
     private readonly oauthService: OauthService,
+    private readonly clientService: ClientService,
+    private readonly memberService: MemberService,
   ) {
     this.signUrl = this.configService.getOrThrow<string>('SIGN_URL');
+    this.tokenExpirySeconds =
+      this.configService.getOrThrow<number>('TOKEN_EXPIRE_IN');
+    this.refreshTokenExpirySeconds = this.configService.getOrThrow<number>(
+      'REFRESH_TOKEN_EXPIRE_IN',
+    );
   }
 
   @Get('authorize')
@@ -41,7 +53,6 @@ export class OauthController {
     )(null);
     const verifiedResult = await this.oauthService.verifyClient(
       dto.client_id,
-      dto.client_secret,
       dto.redirect_uri,
     );
 
@@ -60,35 +71,92 @@ export class OauthController {
   }
 
   @Post('token')
-  async getToken(@Body() dto: TokenCreateRequest): Promise<void> {
+  async getToken(@Body() dto: OauthTokenRequest): Promise<OauthTokenResponse> {
     this.logger.debug(`getToken.dto -> ${JSON.stringify(dto)}`);
-    const authorizationDataResult =
+    const authorizationData =
       await this.oauthService.findDataInAuthorizationCode(dto.code);
     this.logger.debug(
-      `getToken.authorizationDataResult -> ${JSON.stringify(authorizationDataResult)}`,
+      `getToken.authorizationData -> ${JSON.stringify(authorizationData)}`,
     );
-    if (!authorizationDataResult)
+
+    const { client_id, redirect_uri } = authorizationData;
+
+    if (!authorizationData)
       throw new HttpException(
         'It does not find the data in authorization code.',
         HttpStatus.UNAUTHORIZED,
       );
-    if (dto.client_id !== authorizationDataResult.client_id)
+    if (dto.client_id !== client_id)
       throw new HttpException(
         'The client_id of request parameters is incorrect.',
         HttpStatus.UNAUTHORIZED,
       );
-    if (dto.client_secret !== authorizationDataResult.client_secret)
-      throw new HttpException(
-        'The client_secret of request parameters is incorrect.',
-        HttpStatus.UNAUTHORIZED,
-      );
-    if (dto.redirect_uri !== authorizationDataResult.redirect_uri)
+    if (dto.redirect_uri !== redirect_uri)
       throw new HttpException(
         'The redirect_uri of request parameters is incorrect.',
         HttpStatus.UNAUTHORIZED,
       );
 
+    const memberId = await this.oauthService.findMemberIdInAuthorizationCode(
+      dto.code,
+    );
+
+    const memberDetailId =
+      await this.oauthService.findMemberDetailIdInAuthorizationCode(dto.code);
+
+    const client = await this.clientService.findClientByClientId(client_id);
+    const clientMemberId = await this.memberService.createClientMember(
+      client.id,
+      memberId,
+    );
+
     const idTokenKeypair = await this.oauthService.findIdTokenKeypair();
-    await this.oauthService.issueIdToke(idTokenKeypair.privateKey);
+    const idToken = await this.oauthService.issueIdToke(
+      idTokenKeypair.privateKey,
+    );
+    this.logger.debug(`getToken.idToken -> ${idToken}`);
+
+    const accessToken = await this.oauthService.issueAccessToken(
+      memberId,
+      memberDetailId,
+      clientMemberId,
+      authorizationData,
+    );
+    this.logger.debug(`getToken.accessToken -> ${accessToken}`);
+    if (!accessToken)
+      throw new HttpException(
+        'It fails to issue the access token.',
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    const refreshToken = await this.oauthService.issueRefreshToken(
+      memberId,
+      memberDetailId,
+      clientMemberId,
+      authorizationData,
+    );
+    this.logger.debug(`getToken.refreshToken -> ${refreshToken}`);
+    if (!refreshToken)
+      throw new HttpException(
+        'It fails to issue the refresh token.',
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    const deletedResult = await this.oauthService.removeAuthorizationCode(
+      dto.code,
+    );
+    if (!deletedResult)
+      throw new HttpException(
+        'It fails to remove the authorization code.',
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    return new OauthTokenResponse(
+      accessToken,
+      idToken,
+      this.tokenExpirySeconds,
+      refreshToken,
+      this.refreshTokenExpirySeconds,
+    );
   }
 }

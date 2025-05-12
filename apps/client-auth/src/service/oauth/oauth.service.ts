@@ -8,7 +8,9 @@ import { AuthorizeCreateRequest } from 'dto/interface/oauth/authorize/create/aut
 import { OauthRepository } from '@app/persistence/schema/main/repository/oauth.repository';
 import { AuthorizationCodeCacheRepository } from '@app/cache/repository/authorization.code.cache.repository';
 import { IdTokenKeypairRepository } from '@app/persistence/schema/main/repository/id.token.keypair.repository';
-import * as type from '../../type/service/oauth.service';
+import * as type from '../../type/service/oauth.service.type';
+import { AuthorizationAccessTokenCacheRepository } from '@app/cache/repository/authorization.token.access.repository';
+import { AuthorizationRefreshTokenCacheRepository } from '@app/cache/repository/authorization.token.refresh.repository';
 
 @Injectable()
 export class OauthService {
@@ -21,6 +23,8 @@ export class OauthService {
     private readonly passportCacheRepository: PassportCacheRepository,
     private readonly authorizationCodeRepository: AuthorizationCodeCacheRepository,
     private readonly idTokenKeypairRepository: IdTokenKeypairRepository,
+    private readonly authorizationAccessTokenCacheRepository: AuthorizationAccessTokenCacheRepository,
+    private readonly authorizationRefreshTokenCacheRepository: AuthorizationRefreshTokenCacheRepository,
   ) {}
 
   public createRedirectUri(uri: string): type.CreateRedirectUriReturn {
@@ -41,15 +45,10 @@ export class OauthService {
     };
   }
 
-  async verifyClient(
-    clientId: string,
-    clientSecret: string,
-    redirectUri: string,
-  ): Promise<boolean> {
+  async verifyClient(clientId: string, redirectUri: string): Promise<boolean> {
     const verifiedResult =
-      await this.oauthRepository.verifyAuthorizationByClientIdAndClientSecretAndRedirectUri(
+      await this.oauthRepository.verifyAuthorizationByClientIdAndRedirectUri(
         clientId,
-        clientSecret,
         redirectUri,
       );
     this.logger.debug(
@@ -83,6 +82,7 @@ export class OauthService {
 
   async createAuthorizationCode(
     memberId: number,
+    memberDetailId: number,
     passport: string,
     data: string,
   ): Promise<string | undefined> {
@@ -97,8 +97,9 @@ export class OauthService {
     );
     this.authorizationCodeRepository.setAuthorizationCodeWithTransaction(
       transaction,
-      memberId.toString(),
       code,
+      memberId.toString(),
+      memberDetailId.toString(),
       data,
     );
     const executeResult =
@@ -109,14 +110,43 @@ export class OauthService {
     if (executeResult.isSucceed) return code;
   }
 
+  async removeAuthorizationCode(code: string): Promise<boolean> {
+    const result =
+      await this.authorizationCodeRepository.deleteAuthorizationCode(code);
+    return result.isSucceed;
+  }
+
   async findDataInAuthorizationCode(
     code: string,
-  ): Promise<AuthorizeCreateRequest | undefined> {
-    const dataResult =
+  ): Promise<AuthorizeCreateRequest> {
+    const result =
       await this.authorizationCodeRepository.getDataInAuthorizationCode(code);
-    if (!dataResult) this.exceptionService.notRecognizedError();
-    if (dataResult.isSucceed && dataResult.data)
-      return JSON.parse(dataResult.data) as AuthorizeCreateRequest;
+    if (!result) this.exceptionService.notRecognizedError();
+    if (!result.isSucceed && !result.data)
+      this.exceptionService.notGottenCacheValue('data');
+    return JSON.parse(result.data!) as AuthorizeCreateRequest;
+  }
+
+  async findMemberIdInAuthorizationCode(code: string): Promise<number> {
+    const result =
+      await this.authorizationCodeRepository.getMemberIdInAuthorizationCode(
+        code,
+      );
+    if (!result) this.exceptionService.notRecognizedError();
+    if (!result.isSucceed && !result.data)
+      this.exceptionService.notGottenCacheValue('memberId');
+    return JSON.parse(result.data!) as number;
+  }
+
+  async findMemberDetailIdInAuthorizationCode(code: string): Promise<number> {
+    const result =
+      await this.authorizationCodeRepository.getMemberDetailIdInAuthorizationCode(
+        code,
+      );
+    if (!result) this.exceptionService.notRecognizedError();
+    if (!result.isSucceed && !result.data)
+      this.exceptionService.notGottenCacheValue('memberDetailId');
+    return JSON.parse(result.data!) as number;
   }
 
   async findIdTokenKeypair(): Promise<type.Keypair> {
@@ -135,11 +165,49 @@ export class OauthService {
   async issueIdToke(privateKey: string) {
     privateKey = privateKey.replaceAll('\\"', '"').slice(1, -1);
     const privateJWK = JSON.parse(privateKey) as jose.JWK;
+    const expirySeconds =
+      this.configService.getOrThrow<number>('TOKEN_EXPIRE_IN');
     const idToken = await new jose.SignJWT()
       .setProtectedHeader({ alg: 'RS256' })
       .setIssuedAt()
-      .setExpirationTime('2h')
+      .setExpirationTime(`${expirySeconds}seconds`)
       .sign(privateJWK);
-    this.logger.debug(`issueIdToke.idToken -> ${idToken}`);
+    return idToken;
+  }
+
+  async issueAccessToken(
+    memberId: number,
+    memberDetailId: number,
+    clientMemberId: number,
+    data: AuthorizeCreateRequest,
+  ): Promise<string | undefined> {
+    const accessToken = cryptoRandomString({ length: 128, type: 'base64' });
+    const result =
+      await this.authorizationAccessTokenCacheRepository.setAccessToken(
+        accessToken,
+        memberId.toString(),
+        memberDetailId.toString(),
+        clientMemberId.toString(),
+        JSON.stringify(data),
+      );
+    if (result) return accessToken;
+  }
+
+  async issueRefreshToken(
+    memberId: number,
+    memberDetailId: number,
+    clientMemberId: number,
+    data: AuthorizeCreateRequest,
+  ): Promise<string | undefined> {
+    const refreshToken = cryptoRandomString({ length: 256, type: 'base64' });
+    const result =
+      await this.authorizationRefreshTokenCacheRepository.setRefreshToken(
+        refreshToken,
+        memberId.toString(),
+        memberDetailId.toString(),
+        clientMemberId.toString(),
+        JSON.stringify(data),
+      );
+    if (result) return refreshToken;
   }
 }

@@ -12,9 +12,8 @@ import { verifyAuthorizationByClientIdAndClientSecretAndRedirectUri } from '@app
 export class OauthRepository extends MainSchemaService {
   private readonly logger = new Logger(OauthRepository.name);
 
-  async verifyAuthorizationByClientIdAndClientSecretAndRedirectUri(
+  async verifyAuthorizationByClientIdAndRedirectUri(
     clientId: string,
-    clientSecret: string,
     redirectUri: string,
   ): Promise<
     | ResponseEntity<verifyAuthorizationByClientIdAndClientSecretAndRedirectUri>
@@ -28,13 +27,12 @@ export class OauthRepository extends MainSchemaService {
         .where(
           and(
             eq(client.clientId, clientId),
-            eq(client.clientSecret, clientSecret),
             eq(clientUri.redirectUri, redirectUri),
           ),
         );
       if (result.length > 1) {
         throw new Error(
-          'The data searched by client.clientId and client.clientSecret is duplicated.',
+          'The data searched by client.clientId and client.uri is duplicated.',
         );
       }
       if (result.length === 0) {

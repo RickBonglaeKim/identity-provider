@@ -7,7 +7,7 @@ import {
 } from 'libs/persistence/database-schema/main/schema';
 import { ResponseEntity } from '@app/persistence/entity/response.entity';
 import { and, eq } from 'drizzle-orm';
-import { verifyMemberByEmailAndPassword } from '@app/persistence/entity/sign.entity';
+import { verifyMemberByEmail } from '@app/persistence/entity/sign.entity';
 
 @Injectable()
 export class SignRepository extends MainSchemaService {
@@ -15,7 +15,7 @@ export class SignRepository extends MainSchemaService {
 
   async verifyMemberByEmail(
     email: string,
-  ): Promise<ResponseEntity<verifyMemberByEmailAndPassword[]> | undefined> {
+  ): Promise<ResponseEntity<verifyMemberByEmail[]> | undefined> {
     try {
       const result = await this.mainTransaction.tx
         .select({
@@ -27,9 +27,9 @@ export class SignRepository extends MainSchemaService {
         .innerJoin(member, eq(member.id, memberDetail.memberId))
         .where(and(eq(memberDetail.email, email)));
       if (result.length === 0) {
-        return new ResponseEntity<verifyMemberByEmailAndPassword[]>(false);
+        return new ResponseEntity<verifyMemberByEmail[]>(false);
       }
-      return new ResponseEntity<verifyMemberByEmailAndPassword[]>(true, result);
+      return new ResponseEntity<verifyMemberByEmail[]>(true, result);
     } catch (error) {
       this.logger.error(error);
     }
