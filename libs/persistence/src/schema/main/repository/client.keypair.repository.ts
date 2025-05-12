@@ -1,7 +1,7 @@
 import { and, desc, eq } from 'drizzle-orm';
 import { Injectable, Logger } from '@nestjs/common';
 import { clientKeypair } from 'libs/persistence/database-schema/main/schema';
-import { MainSchemaService } from '../main.schema.service';
+import { MainSchemaService } from '../service/main.schema.service';
 import { ResponseEntity } from '@app/persistence/entity/response.entity';
 
 @Injectable()

@@ -1,4 +1,4 @@
-import { mysqlTable, mysqlSchema, AnyMySqlColumn, foreignKey, primaryKey, bigint, datetime, varchar, date, unique, text, tinyint, int, json, index } from "drizzle-orm/mysql-core"
+import { mysqlTable, mysqlSchema, AnyMySqlColumn, foreignKey, primaryKey, bigint, datetime, varchar, date, unique, text, tinyint, int, index } from "drizzle-orm/mysql-core"
 import { sql } from "drizzle-orm"
 
 export const child = mysqlTable("child", {
@@ -100,8 +100,8 @@ export const idTokenKeypair = mysqlTable("id_token_keypair", {
 	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	isActivated: tinyint("is_activated").default(1).notNull(),
-	privateKey: json("private_key").notNull(),
-	publicKey: json("public_key").notNull(),
+	privateKey: text("private_key").notNull(),
+	publicKey: text("public_key").notNull(),
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "id_token_keypair_id"}),

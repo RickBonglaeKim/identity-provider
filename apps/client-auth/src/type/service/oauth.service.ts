@@ -1,0 +1,27 @@
+export type OauthError =
+  | 'invalid_request'
+  | 'unauthorized_client'
+  | 'access_denied'
+  | 'unsupported_response_type'
+  | 'invalid_scope'
+  | 'server_error'
+  | 'temporarily_unavailable';
+
+export type OauthErrorDescription = string | null;
+
+export type OauthErrorUri = string | null;
+
+export type OauthState = string | null;
+
+export type CreateRedirectUriReturn = (
+  state: OauthState,
+) => (
+  error: OauthError,
+) => (
+  errorDescription: OauthErrorDescription,
+) => (errorUri: OauthErrorUri) => string;
+
+export type Keypair = {
+  privateKey: string;
+  publicKey: string;
+};

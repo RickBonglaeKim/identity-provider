@@ -4,8 +4,8 @@ import {
   GlideReturnType,
   Transaction,
 } from '@valkey/valkey-glide';
-import { VALKEY_CONNECTION } from './cache-connection-symbol';
-import { CacheResponseEntity } from './entity/cache.response.entity';
+import { VALKEY_CONNECTION } from '../cache-connection-symbol';
+import { CacheResponseEntity } from '../entity/cache.response.entity';
 
 @Injectable()
 export class CacheService {

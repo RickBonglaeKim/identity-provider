@@ -4,7 +4,7 @@ import {
   client,
   clientUri,
 } from 'libs/persistence/database-schema/main/schema';
-import { MainSchemaService } from '../main.schema.service';
+import { MainSchemaService } from '../service/main.schema.service';
 import { ResponseEntity } from '@app/persistence/entity/response.entity';
 import { verifyAuthorizationByClientIdAndClientSecretAndRedirectUri } from '@app/persistence/entity/oauth.entity';
 

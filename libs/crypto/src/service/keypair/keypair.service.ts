@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import * as jose from 'jose';
-import { keypairJWK } from '../type/keypair.type';
+import * as type from '../../type/keypair.type';
 
 @Injectable()
 export class KeypairService {
-  async generateKeypairJWK(): Promise<keypairJWK> {
+  async generateKeypairJWK(): Promise<type.KeypairJWK> {
     const { publicKey, privateKey } = await jose.generateKeyPair('RS256', {
       extractable: true,
     });

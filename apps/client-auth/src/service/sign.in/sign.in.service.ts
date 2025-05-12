@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { SignupService } from '../sign.up/sign.up.service';
-import { HashService } from '@app/crypto/hash/hash.service';
+import { HashService } from '@app/crypto/service/hash/hash.service';
 import { SignRepository } from '@app/persistence/schema/main/repository/sign.repository';
-import { ExceptionService } from '@app/exception/exception.service';
+import { ExceptionService } from '@app/exception/service/exception.service';
 
 @Injectable()
 export class SigninService {
@@ -17,7 +17,7 @@ export class SigninService {
   async findMember(id: string, password: string): Promise<number | null> {
     const signinResult = await this.signRepository.verifyMemberByEmail(id);
     if (!signinResult) this.exceptionService.notRecognizedError();
-    if (!signinResult?.isSucceed || !signinResult?.data) return null;
+    if (!signinResult?.isSucceed || !signinResult.data) return null;
     this.logger.debug(
       `findMember.id -> ${id}, findMember.password -> ${password}`,
       `findMember.signinResult -> ${JSON.stringify(signinResult)}`,

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CacheService } from '@app/cache/cache.service';
+import { CacheService } from '@app/cache/service/cache.service';
 import {
   Decoder,
   ExpireOptions,

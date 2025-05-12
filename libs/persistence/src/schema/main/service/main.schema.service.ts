@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { MySql2Database } from 'drizzle-orm/mysql2';
-import * as mainSchema from '../../../database-schema/main/schema';
+import * as mainSchema from '../../../../database-schema/main/schema';
 import { DATABASE_CONNECTION_MAIN } from '@app/persistence/persistence.connection.main';
 import { TransactionalAdapterDrizzleOrm } from '@nestjs-cls/transactional-adapter-drizzle-orm';
 import { TransactionHost } from '@nestjs-cls/transactional';

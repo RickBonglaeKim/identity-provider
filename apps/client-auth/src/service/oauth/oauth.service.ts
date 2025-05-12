@@ -1,11 +1,14 @@
 import { PassportCacheRepository } from '@app/cache/repository/passport.cache.repository';
-import { ExceptionService } from '@app/exception/exception.service';
+import { ExceptionService } from '@app/exception/service/exception.service';
 import { Injectable, Logger } from '@nestjs/common';
 import cryptoRandomString from 'crypto-random-string';
+import * as jose from 'jose';
 import { ConfigService } from '@nestjs/config';
 import { AuthorizeCreateRequest } from 'dto/interface/oauth/authorize/create/authorize.create.request.dto';
 import { OauthRepository } from '@app/persistence/schema/main/repository/oauth.repository';
 import { AuthorizationCodeCacheRepository } from '@app/cache/repository/authorization.code.cache.repository';
+import { IdTokenKeypairRepository } from '@app/persistence/schema/main/repository/id.token.keypair.repository';
+import * as type from '../../type/service/oauth.service';
 
 @Injectable()
 export class OauthService {
@@ -17,18 +20,19 @@ export class OauthService {
     private readonly oauthRepository: OauthRepository,
     private readonly passportCacheRepository: PassportCacheRepository,
     private readonly authorizationCodeRepository: AuthorizationCodeCacheRepository,
+    private readonly idTokenKeypairRepository: IdTokenKeypairRepository,
   ) {}
 
-  public createRedirectUri(uri: string): oauthRedirection {
+  public createRedirectUri(uri: string): type.CreateRedirectUriReturn {
     let redirectUri: string = uri;
-    return (state: oauthState) => {
+    return (state: type.OauthState) => {
       if (state) redirectUri += `?state=${state}`;
-      return (error: oauthError) => {
+      return (error: type.OauthError) => {
         if (error) redirectUri += `${state ? '&' : '?'}error=${error}`;
-        return (errorDescription: oauthErrorDescription) => {
+        return (errorDescription: type.OauthErrorDescription) => {
           if (errorDescription)
             redirectUri += `&error_description=${errorDescription}`;
-          return (errorUri: oauthErrorUri) => {
+          return (errorUri: type.OauthErrorUri) => {
             if (errorUri) redirectUri += `&error_uri=${errorUri}`;
             return redirectUri;
           };
@@ -72,8 +76,9 @@ export class OauthService {
   }
 
   async findPassport(key: string): Promise<string | undefined> {
-    const result = await this.passportCacheRepository.getPassport(key);
-    if (result.isSucceed && result.data) return result.data;
+    const passportResult = await this.passportCacheRepository.getPassport(key);
+    if (passportResult.isSucceed && passportResult.data)
+      return passportResult.data;
   }
 
   async createAuthorizationCode(
@@ -114,4 +119,27 @@ export class OauthService {
       return JSON.parse(dataResult.data) as AuthorizeCreateRequest;
   }
 
+  async findIdTokenKeypair(): Promise<type.Keypair> {
+    const keypairResult =
+      await this.idTokenKeypairRepository.selectOneIdTokenKeypairByIsActivatedOrderByRandom();
+    if (!keypairResult) this.exceptionService.notRecognizedError();
+    if (!keypairResult?.isSucceed || !keypairResult.data)
+      this.exceptionService.notSelectedEntity('id token keypair');
+
+    return {
+      privateKey: JSON.stringify(keypairResult?.data?.privateKey),
+      publicKey: JSON.stringify(keypairResult?.data?.publicKey),
+    };
+  }
+
+  async issueIdToke(privateKey: string) {
+    privateKey = privateKey.replaceAll('\\"', '"').slice(1, -1);
+    const privateJWK = JSON.parse(privateKey) as jose.JWK;
+    const idToken = await new jose.SignJWT()
+      .setProtectedHeader({ alg: 'RS256' })
+      .setIssuedAt()
+      .setExpirationTime('2h')
+      .sign(privateJWK);
+    this.logger.debug(`issueIdToke.idToken -> ${idToken}`);
+  }
 }

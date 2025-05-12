@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { HashService } from './hash/hash.service';
-import { KeypairService } from './keypair/keypair.service';
+import { HashService } from './service/hash/hash.service';
+import { KeypairService } from './service/keypair/keypair.service';
 
 @Module({
   providers: [HashService, KeypairService],

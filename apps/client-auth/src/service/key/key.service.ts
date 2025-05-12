@@ -1,6 +1,6 @@
-import { KeypairService } from '@app/crypto/keypair/keypair.service';
-import { keypairJWK } from '@app/crypto/type/keypair.type';
-import { ExceptionService } from '@app/exception/exception.service';
+import { KeypairService } from '@app/crypto/service/keypair/keypair.service';
+import * as type from '@app/crypto/type/keypair.type';
+import { ExceptionService } from '@app/exception/service/exception.service';
 import { IdTokenKeypairRepository } from '@app/persistence/schema/main/repository/id.token.keypair.repository';
 import { Injectable, Logger } from '@nestjs/common';
 
@@ -14,7 +14,7 @@ export class KeyService {
     private readonly exceptionService: ExceptionService,
   ) {}
 
-  async generateJWK(): Promise<keypairJWK> {
+  async generateJWK(): Promise<type.KeypairJWK> {
     return await this.keypairService.generateKeypairJWK();
   }
 

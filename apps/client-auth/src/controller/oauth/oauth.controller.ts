@@ -10,6 +10,7 @@ import {
   Res,
   UseInterceptors,
 } from '@nestjs/common';
+import * as jose from 'jose';
 import { Request, Response } from 'express';
 import { AuthorizeCreateRequest } from 'dto/interface/oauth/authorize/create/authorize.create.request.dto';
 import { OauthService } from '../../service/oauth/oauth.service';
@@ -86,5 +87,8 @@ export class OauthController {
         'The redirect_uri of request parameters is incorrect.',
         HttpStatus.UNAUTHORIZED,
       );
+
+    const idTokenKeypair = await this.oauthService.findIdTokenKeypair();
+    await this.oauthService.issueIdToke(idTokenKeypair.privateKey);
   }
 }

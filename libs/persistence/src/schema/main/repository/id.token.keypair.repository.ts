@@ -1,7 +1,7 @@
 import { and, desc, eq, sql } from 'drizzle-orm';
 import { Injectable, Logger } from '@nestjs/common';
 import { idTokenKeypair } from 'libs/persistence/database-schema/main/schema';
-import { MainSchemaService } from '../main.schema.service';
+import { MainSchemaService } from '../service/main.schema.service';
 import { ResponseEntity } from '@app/persistence/entity/response.entity';
 
 @Injectable()
@@ -74,7 +74,7 @@ export class IdTokenKeypairRepository extends MainSchemaService {
   }
 
   async selectOneIdTokenKeypairByIsActivatedOrderByRandom(): Promise<
-    ResponseEntity<(typeof idTokenKeypair.$inferSelect)[]> | undefined
+    ResponseEntity<typeof idTokenKeypair.$inferSelect> | undefined
   > {
     try {
       const result = await this.mainTransaction.tx
@@ -84,13 +84,11 @@ export class IdTokenKeypairRepository extends MainSchemaService {
         .orderBy(sql`rand()`)
         .limit(1);
       if (result.length === 0) {
-        return new ResponseEntity<(typeof idTokenKeypair.$inferSelect)[]>(
-          false,
-        );
+        return new ResponseEntity<typeof idTokenKeypair.$inferSelect>(false);
       }
-      return new ResponseEntity<(typeof idTokenKeypair.$inferSelect)[]>(
+      return new ResponseEntity<typeof idTokenKeypair.$inferSelect>(
         true,
-        result,
+        result[0],
       );
     } catch (error) {
       this.logger.error(error);
