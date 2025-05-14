@@ -20,7 +20,6 @@ import { ClientService } from '../../service/client/client.service';
 import { OauthTokenRequestCreate } from 'dto/interface/oauth/token/request/oauth.token.request.create.dto';
 import { OauthTokenResponse } from 'dto/interface/oauth/token/response/oauth.token.response.dto';
 import { ChildService } from '../../service/child/child.service';
-import { error } from 'console';
 
 @Controller('oauth')
 @UseInterceptors(TransformInterceptor)
