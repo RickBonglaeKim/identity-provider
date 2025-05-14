@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { MainSchemaService } from '../service/main.schema.service';
 import { clientMember } from 'libs/persistence/database-schema/main/schema';
 import { ResponseEntity } from '@app/persistence/entity/response.entity';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 @Injectable()
 export class ClientMemberRepository extends MainSchemaService {
@@ -34,6 +34,37 @@ export class ClientMemberRepository extends MainSchemaService {
         .where(eq(clientMember.id, clientMemberId));
       if (result.length > 1) {
         throw new Error('The data searched by clientMember.id is duplicated.');
+      }
+      if (result.length === 0) {
+        return new ResponseEntity<typeof clientMember.$inferSelect>(false);
+      }
+      return new ResponseEntity<typeof clientMember.$inferSelect>(
+        true,
+        result[0],
+      );
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
+  async selectClientMemberByMemberIdAndClientId(
+    memberId: number,
+    clientId: number,
+  ): Promise<ResponseEntity<typeof clientMember.$inferSelect> | undefined> {
+    try {
+      const result = await this.mainTransaction.tx
+        .select()
+        .from(clientMember)
+        .where(
+          and(
+            eq(clientMember.clientId, clientId),
+            eq(clientMember.memberId, memberId),
+          ),
+        );
+      if (result.length > 1) {
+        throw new Error(
+          'The data searched by clientMember.memberId and clientMember.clientId is duplicated.',
+        );
       }
       if (result.length === 0) {
         return new ResponseEntity<typeof clientMember.$inferSelect>(false);

@@ -9,6 +9,7 @@ import { SignRepository } from './repository/sign.repository';
 import { IdTokenKeypairRepository } from './repository/id.token.keypair.repository';
 import { ClientMemberRepository } from './repository/client.member.repository';
 import { ClientRepository } from './repository/client.repository';
+import { ChildRepository } from './repository/child.repository';
 
 @Module({
   providers: [
@@ -22,6 +23,7 @@ import { ClientRepository } from './repository/client.repository';
     SignRepository,
     IdTokenKeypairRepository,
     ClientMemberRepository,
+    ChildRepository,
   ],
   exports: [
     mainConnection,
@@ -34,6 +36,7 @@ import { ClientRepository } from './repository/client.repository';
     SignRepository,
     IdTokenKeypairRepository,
     ClientMemberRepository,
+    ChildRepository,
   ],
 })
 export class MainSchemaModule {}

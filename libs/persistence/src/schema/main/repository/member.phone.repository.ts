@@ -77,4 +77,24 @@ export class MemberPhoneRepository extends MainSchemaService {
       this.logger.error(error);
     }
   }
+
+  async selectMemberPhoneByMemberId(
+    memberId: number,
+  ): Promise<ResponseEntity<(typeof memberPhone.$inferSelect)[]> | undefined> {
+    try {
+      const result = await this.mainTransaction.tx
+        .select()
+        .from(memberPhone)
+        .where(eq(memberPhone.memberId, memberId));
+      if (result.length === 0) {
+        return new ResponseEntity<(typeof memberPhone.$inferSelect)[]>(false);
+      }
+      return new ResponseEntity<(typeof memberPhone.$inferSelect)[]>(
+        true,
+        result,
+      );
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
 }

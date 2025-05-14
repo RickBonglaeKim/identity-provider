@@ -1,8 +1,8 @@
 import { MemberDetailRepository } from '@app/persistence/schema/main/repository/member.detail.repository';
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
-import { SignupCreateRequest } from 'dto/interface/sign.up/create/sign.up.create.request.dto';
-import { SignupWithPhoneCreateRequest } from 'dto/interface/sign.up/create/sign.up.phone.create.request.dto';
+import { SignupRequestCreate } from 'dto/interface/sign.up/request/sign.up.request.create.dto';
+import { SignupWithPhoneRequestCreate } from 'dto/interface/sign.up/request/sign.up.phone.request.create.dto';
 import { MemberService } from '../member/member.service';
 
 @Injectable()
@@ -15,7 +15,7 @@ export class SignupService {
   ) {}
 
   @Transactional()
-  async createSignup(data: SignupCreateRequest): Promise<number> {
+  async createSignup(data: SignupRequestCreate): Promise<number> {
     const memberDetailData =
       await this.memberDetailRepository.selectMemberDetailByEmailAndMemberDetailIdIsNull(
         data.memberDetail.email,
@@ -46,7 +46,7 @@ export class SignupService {
 
   @Transactional()
   async createSignupWithPhone(
-    data: SignupWithPhoneCreateRequest,
+    data: SignupWithPhoneRequestCreate,
   ): Promise<void> {
     this.logger.debug(`createSignupWithPhone.data -> ${JSON.stringify(data)}`);
     const memberId: number = await this.createSignup(data);

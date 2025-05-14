@@ -4,7 +4,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import cryptoRandomString from 'crypto-random-string';
 import * as jose from 'jose';
 import { ConfigService } from '@nestjs/config';
-import { AuthorizeCreateRequest } from 'dto/interface/oauth/authorize/create/authorize.create.request.dto';
+import { OauthAuthorizeRequestCreate } from 'dto/interface/oauth/authorize/request/oauth.authorize.request.create.dto';
 import { OauthRepository } from '@app/persistence/schema/main/repository/oauth.repository';
 import { AuthorizationCodeCacheRepository } from '@app/cache/repository/authorization.code.cache.repository';
 import { IdTokenKeypairRepository } from '@app/persistence/schema/main/repository/id.token.keypair.repository';
@@ -27,7 +27,7 @@ export class OauthService {
     private readonly authorizationRefreshTokenCacheRepository: AuthorizationRefreshTokenCacheRepository,
   ) {}
 
-  public createRedirectUri(uri: string): type.CreateRedirectUriReturn {
+  createRedirectUri(uri: string): type.CreateRedirectUriReturn {
     let redirectUri: string = uri;
     return (state: type.OauthState) => {
       if (state) redirectUri += `?state=${state}`;
@@ -61,7 +61,7 @@ export class OauthService {
   }
 
   async createPassport(
-    data: AuthorizeCreateRequest,
+    data: OauthAuthorizeRequestCreate,
   ): Promise<string | undefined> {
     const passportKey = cryptoRandomString({ length: 64, type: 'url-safe' });
     this.logger.debug(`createPassport.passportKey -> ${passportKey}`);
@@ -118,13 +118,13 @@ export class OauthService {
 
   async findDataInAuthorizationCode(
     code: string,
-  ): Promise<AuthorizeCreateRequest> {
+  ): Promise<OauthAuthorizeRequestCreate> {
     const result =
       await this.authorizationCodeRepository.getDataInAuthorizationCode(code);
     if (!result) this.exceptionService.notRecognizedError();
     if (!result.isSucceed && !result.data)
       this.exceptionService.notGottenCacheValue('data');
-    return JSON.parse(result.data!) as AuthorizeCreateRequest;
+    return JSON.parse(result.data!) as OauthAuthorizeRequestCreate;
   }
 
   async findMemberIdInAuthorizationCode(code: string): Promise<number> {
@@ -162,7 +162,7 @@ export class OauthService {
     };
   }
 
-  async issueIdToke(
+  async issueIdToken(
     privateKey: string,
     aud: string, // client_id (oauth)
     iss: string, // constant (ID_TOKEN.ISS)
@@ -189,7 +189,7 @@ export class OauthService {
     memberId: number,
     memberDetailId: number,
     clientMemberId: number,
-    data: AuthorizeCreateRequest,
+    data: OauthAuthorizeRequestCreate,
   ): Promise<string | undefined> {
     const accessToken = cryptoRandomString({ length: 256, type: 'base64' });
     const result =
@@ -207,7 +207,7 @@ export class OauthService {
     memberId: number,
     memberDetailId: number,
     clientMemberId: number,
-    data: AuthorizeCreateRequest,
+    data: OauthAuthorizeRequestCreate,
   ): Promise<string | undefined> {
     const refreshToken = cryptoRandomString({ length: 512, type: 'base64' });
     const result =

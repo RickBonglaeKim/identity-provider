@@ -1,4 +1,4 @@
-export type FindMemberReturn =
+export type SignMember =
   | {
       memberId: number;
       memberDetailId: number;

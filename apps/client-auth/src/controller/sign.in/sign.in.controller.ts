@@ -1,5 +1,5 @@
 import { TransformInterceptor } from '@app/interceptor/transform.interceptor';
-import { SigninCreateRequest } from 'dto/interface/sign.in/create/sign.in.create.request.dto';
+import { SigninRequestCreate } from 'dto/interface/sign.in/request/sign.in.request.create.dto';
 import {
   Controller,
   UseInterceptors,
@@ -12,7 +12,7 @@ import {
 import { SigninService } from '../../service/sign.in/sign.in.service';
 import { Response } from 'express';
 import { OauthService } from '../../service/oauth/oauth.service';
-import { AuthorizeCreateRequest } from 'dto/interface/oauth/authorize/create/authorize.create.request.dto';
+import { OauthAuthorizeRequestCreate } from 'dto/interface/oauth/authorize/request/oauth.authorize.request.create.dto';
 
 @Controller('signin')
 @UseInterceptors(TransformInterceptor)
@@ -27,7 +27,7 @@ export class SignInController {
   @Get()
   async getSignin(
     @Res() response: Response,
-    @Query() dto: SigninCreateRequest,
+    @Query() dto: SigninRequestCreate,
   ): Promise<void> {
     const passport = await this.oauthService.findPassport(dto.passport);
     if (!passport) {
@@ -54,7 +54,7 @@ export class SignInController {
       return;
     }
 
-    const passportJson = JSON.parse(passport) as AuthorizeCreateRequest;
+    const passportJson = JSON.parse(passport) as OauthAuthorizeRequestCreate;
     let redirectUrl = `${passportJson.redirect_uri}?code=${authorizationCode}`;
     if (passportJson.state) redirectUrl += `&state=${passportJson.state}`;
 

@@ -8,6 +8,22 @@ import { and, eq } from 'drizzle-orm';
 export class ChildRepository extends MainSchemaService {
   private readonly logger = new Logger(ChildRepository.name);
 
+  async insertChild(
+    data: typeof child.$inferInsert,
+  ): Promise<ResponseEntity<number> | undefined> {
+    try {
+      const result = (
+        await this.mainTransaction.tx.insert(child).values(data)
+      )[0];
+      if (result.affectedRows === 0) {
+        return new ResponseEntity<number>(false);
+      }
+      return new ResponseEntity<number>(true, result.insertId);
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
   async selectChildById(
     id: number,
   ): Promise<ResponseEntity<typeof child.$inferSelect> | undefined> {
@@ -30,19 +46,16 @@ export class ChildRepository extends MainSchemaService {
 
   async selectChildByMemberId(
     memberId: number,
-  ): Promise<ResponseEntity<typeof child.$inferSelect> | undefined> {
+  ): Promise<ResponseEntity<(typeof child.$inferSelect)[]> | undefined> {
     try {
       const result = await this.mainTransaction.tx
         .select()
         .from(child)
         .where(eq(child.memberId, memberId));
-      if (result.length > 1) {
-        throw new Error('The data searched by child.memberId is duplicated.');
-      }
       if (result.length === 0) {
-        return new ResponseEntity<typeof child.$inferSelect>(false);
+        return new ResponseEntity<(typeof child.$inferSelect)[]>(false);
       }
-      return new ResponseEntity<typeof child.$inferSelect>(true, result[0]);
+      return new ResponseEntity<(typeof child.$inferSelect)[]>(true, result);
     } catch (error) {
       this.logger.error(error);
     }

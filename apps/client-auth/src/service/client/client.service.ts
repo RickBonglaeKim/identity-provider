@@ -1,7 +1,7 @@
 import { ExceptionService } from '@app/exception/service/exception.service';
 import { ClientRepository } from '@app/persistence/schema/main/repository/client.repository';
 import { Injectable, Logger } from '@nestjs/common';
-import { FindClientByClientIdReturn } from '../../type/service/client.service.type';
+import { ClientResponse } from 'dto/interface/client/response/client.response.dto';
 
 @Injectable()
 export class ClientService {
@@ -12,18 +12,18 @@ export class ClientService {
     private readonly exceptionService: ExceptionService,
   ) {}
 
-  async findClientByClientId(
-    clientId: string,
-  ): Promise<FindClientByClientIdReturn> {
+  async findClientByClientId(clientId: string): Promise<ClientResponse> {
     const result = await this.clientRepository.selectClientByClientId(clientId);
     if (!result) this.exceptionService.notRecognizedError();
     if (!result?.isSucceed || !result.data)
       this.exceptionService.notSelectedEntity('client');
 
-    return {
-      id: result!.data!.id,
-      clientId: result!.data!.clientId,
-      clientSecret: result!.data!.clientSecret,
-    };
+    const data = result!.data!;
+    return new ClientResponse(
+      data.id,
+      data.clientId,
+      data.clientSecret,
+      data.name,
+    );
   }
 }

@@ -11,14 +11,16 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { AuthorizeCreateRequest } from 'dto/interface/oauth/authorize/create/authorize.create.request.dto';
+import { OauthAuthorizeRequestCreate } from 'dto/interface/oauth/authorize/request/oauth.authorize.request.create.dto';
 import { OauthService } from '../../service/oauth/oauth.service';
 import { ConfigService } from '@nestjs/config';
 import { TransformInterceptor } from '@app/interceptor/transform.interceptor';
 import { MemberService } from '../../service/member/member.service';
 import { ClientService } from '../../service/client/client.service';
-import { OauthTokenRequest } from 'dto/interface/oauth/token/request/oauth.token.request.dto';
+import { OauthTokenRequestCreate } from 'dto/interface/oauth/token/request/oauth.token.request.create.dto';
 import { OauthTokenResponse } from 'dto/interface/oauth/token/response/oauth.token.response.dto';
+import { ChildService } from '../../service/child/child.service';
+import { error } from 'console';
 
 @Controller('oauth')
 @UseInterceptors(TransformInterceptor)
@@ -34,6 +36,7 @@ export class OauthController {
     private readonly oauthService: OauthService,
     private readonly clientService: ClientService,
     private readonly memberService: MemberService,
+    private readonly childService: ChildService,
   ) {
     this.signUrl = this.configService.getOrThrow<string>('SIGN_URL');
     this.tokenExpirySeconds =
@@ -47,7 +50,7 @@ export class OauthController {
   @Get('authorize')
   async getAuthorize(
     @Res() response: Response,
-    @Query() dto: AuthorizeCreateRequest,
+    @Query() dto: OauthAuthorizeRequestCreate,
   ): Promise<void> {
     const redirectClient = this.oauthService.createRedirectUri(
       dto.redirect_uri,
@@ -72,7 +75,9 @@ export class OauthController {
   }
 
   @Post('token')
-  async getToken(@Body() dto: OauthTokenRequest): Promise<OauthTokenResponse> {
+  async getToken(
+    @Body() dto: OauthTokenRequestCreate,
+  ): Promise<OauthTokenResponse> {
     this.logger.debug(`getToken.dto -> ${JSON.stringify(dto)}`);
     const authorizationData =
       await this.oauthService.findDataInAuthorizationCode(dto.code);
@@ -98,12 +103,18 @@ export class OauthController {
         HttpStatus.UNAUTHORIZED,
       );
 
-    const memberId = await this.oauthService.findMemberIdInAuthorizationCode(
-      dto.code,
-    );
-
-    const memberDetailId =
-      await this.oauthService.findMemberDetailIdInAuthorizationCode(dto.code);
+    const memberResult = await Promise.all([
+      this.oauthService.findMemberIdInAuthorizationCode(dto.code),
+      this.oauthService.findMemberDetailIdInAuthorizationCode(dto.code),
+    ]).catch((error) => {
+      this.logger.error(error);
+      throw new HttpException(
+        'It can not find member form the cache.',
+        HttpStatus.UNAUTHORIZED,
+      );
+    });
+    const memberId = memberResult[0];
+    const memberDetailId = memberResult[1];
 
     const client = await this.clientService.findClientByClientId(client_id);
     const clientMemberId = await this.memberService.createClientMember(
@@ -111,8 +122,23 @@ export class OauthController {
       memberId,
     );
 
+    const memberGroupResult = await Promise.all([
+      this.memberService.findMemberDetailById(memberDetailId),
+      this.memberService.findMemberPhoneByMemberId(memberId),
+      this.childService.findChildByMemberId(memberId),
+    ]).catch((error) => {
+      this.logger.error(error);
+      throw new HttpException(
+        'It fails to take the member information.',
+        HttpStatus.UNAUTHORIZED,
+      );
+    });
+    const memberDetail = memberGroupResult[0];
+    const memberPhone = memberGroupResult[1];
+    const child = memberGroupResult[2];
+
     const idTokenKeypair = await this.oauthService.findIdTokenKeypair();
-    const idToken = await this.oauthService.issueIdToke(
+    const idToken = await this.oauthService.issueIdToken(
       idTokenKeypair.privateKey,
       client_id,
       this.idTokenISS,

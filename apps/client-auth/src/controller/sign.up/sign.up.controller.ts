@@ -7,8 +7,8 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { SignupService } from '../../service/sign.up/sign.up.service';
-import { SignupCreateRequest } from 'dto/interface/sign.up/create/sign.up.create.request.dto';
-import { SignupWithPhoneCreateRequest } from 'dto/interface/sign.up/create/sign.up.phone.create.request.dto';
+import { SignupRequestCreate } from 'dto/interface/sign.up/request/sign.up.request.create.dto';
+import { SignupWithPhoneRequestCreate } from 'dto/interface/sign.up/request/sign.up.phone.request.create.dto';
 
 @Controller('signup')
 @UseInterceptors(TransformInterceptor)
@@ -18,14 +18,14 @@ export class SignupController {
   constructor(private readonly signupService: SignupService) {}
 
   @Post()
-  async postSignup(@Body() dto: SignupCreateRequest): Promise<void> {
+  async postSignup(@Body() dto: SignupRequestCreate): Promise<void> {
     this.logger.debug('postSignup');
     await this.signupService.createSignup(dto);
   }
 
   @Post('/phone')
   async postSignupWithPhone(
-    @Body() dto: SignupWithPhoneCreateRequest,
+    @Body() dto: SignupWithPhoneRequestCreate,
   ): Promise<void> {
     await this.signupService.createSignupWithPhone(dto);
   }
