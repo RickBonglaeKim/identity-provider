@@ -79,35 +79,4 @@ export class MemberDetailRepository extends MainSchemaService {
       this.logger.error(error);
     }
   }
-
-  async selectMemberDetailByEmailAndPassword(
-    email: string,
-    password: string,
-  ): Promise<ResponseEntity<typeof memberDetail.$inferSelect> | undefined> {
-    try {
-      const result = await this.mainTransaction.tx
-        .select()
-        .from(memberDetail)
-        .where(
-          and(
-            eq(memberDetail.email, email),
-            eq(memberDetail.password, password),
-          ),
-        );
-      if (result.length > 1) {
-        throw new Error(
-          'The data searched by memberDetail.email and memberDetail.password is duplicated.',
-        );
-      }
-      if (result.length === 0) {
-        return new ResponseEntity<typeof memberDetail.$inferSelect>(false);
-      }
-      return new ResponseEntity<typeof memberDetail.$inferSelect>(
-        true,
-        result[0],
-      );
-    } catch (error) {
-      this.logger.error(error);
-    }
-  }
 }

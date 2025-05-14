@@ -8,7 +8,7 @@ import { eq } from 'drizzle-orm';
 export class ClientRepository extends MainSchemaService {
   private readonly logger = new Logger(ClientRepository.name);
 
-  async selectMemberDetailById(
+  async selectClientByClientId(
     client_clientId: string,
   ): Promise<ResponseEntity<typeof client.$inferSelect> | undefined> {
     try {

@@ -55,12 +55,13 @@ export class MemberService {
 
     const memberDetailResult =
       await this.memberDetailRepository.insertMemberDetail({
+        providerId: data.providerId,
         memberDetailId: memberDetailId,
-        providerKey: data.providerKey,
         memberId: memberId,
         name: data.name,
         email: data.email,
         password: hashPassword,
+        codeDuplicationType: data.duplicationType,
       });
     if (!memberDetailResult) this.exceptionService.notRecognizedError();
     if (!memberDetailResult?.isSucceed || !memberDetailResult.data)
@@ -73,23 +74,23 @@ export class MemberService {
   async createMemberPhone(
     memberId: number,
     data: MemberPhoneCreateREquest,
-  ): Promise<number | null> {
+  ): Promise<number | undefined> {
     this.logger.debug(`createMemberPhone.memberId -> ${memberId}`);
     this.logger.debug(`createMemberPhone.data -> ${JSON.stringify(data)}`);
     const memberPhoneData =
-      await this.memberPhoneRepository.selectMemberDetailByMemberIdAndPhoneNumber(
+      await this.memberPhoneRepository.selectMemberPhoneByMemberIdAndPhoneNumber(
         memberId,
         data.phoneNumber,
       );
     this.logger.debug(
       `createMemberPhone.memberPhoneData -> ${JSON.stringify(memberPhoneData)}`,
     );
-    if (memberPhoneData?.isSucceed as boolean) return null;
+    if (memberPhoneData?.isSucceed as boolean) return;
 
     const memberPhoneResult =
       await this.memberPhoneRepository.insertMemberPhone({
         memberId: memberId,
-        isPrimary: data.isPrimary ? 1 : 0,
+        memberPhoneId: data.memberPhoneId,
         countryCallingCode: data.countryCallingCode,
         phoneNumber: data.phoneNumber,
       });
@@ -105,7 +106,7 @@ export class MemberService {
     memberId: number,
   ): Promise<number> {
     const data = { clientId, memberId };
-    const result = await this.clientMemberRepository.insertMemberClient(data);
+    const result = await this.clientMemberRepository.insertClientMember(data);
     if (!result) this.exceptionService.notRecognizedError();
     if (!result?.isSucceed || !result.data)
       this.exceptionService.notInsertedEntity('client member');

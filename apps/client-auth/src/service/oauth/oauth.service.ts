@@ -162,14 +162,24 @@ export class OauthService {
     };
   }
 
-  async issueIdToke(privateKey: string) {
+  async issueIdToke(
+    privateKey: string,
+    aud: string, // client_id (oauth)
+    iss: string, // constant (ID_TOKEN.ISS)
+    sub: string, // clientId.clientMemberId (Database)
+    exp: number, // Expiration Time
+  ) {
     privateKey = privateKey.replaceAll('\\"', '"').slice(1, -1);
     const privateJWK = JSON.parse(privateKey) as jose.JWK;
     const expirySeconds =
       this.configService.getOrThrow<number>('TOKEN_EXPIRE_IN');
     const idToken = await new jose.SignJWT()
       .setProtectedHeader({ alg: 'RS256' })
+      .setIssuer(iss)
+      .setAudience(aud)
+      .setSubject(sub)
       .setIssuedAt()
+      .setExpirationTime(`${exp}seconds`)
       .setExpirationTime(`${expirySeconds}seconds`)
       .sign(privateJWK);
     return idToken;
@@ -181,7 +191,7 @@ export class OauthService {
     clientMemberId: number,
     data: AuthorizeCreateRequest,
   ): Promise<string | undefined> {
-    const accessToken = cryptoRandomString({ length: 128, type: 'base64' });
+    const accessToken = cryptoRandomString({ length: 256, type: 'base64' });
     const result =
       await this.authorizationAccessTokenCacheRepository.setAccessToken(
         accessToken,
@@ -199,7 +209,7 @@ export class OauthService {
     clientMemberId: number,
     data: AuthorizeCreateRequest,
   ): Promise<string | undefined> {
-    const refreshToken = cryptoRandomString({ length: 256, type: 'base64' });
+    const refreshToken = cryptoRandomString({ length: 512, type: 'base64' });
     const result =
       await this.authorizationRefreshTokenCacheRepository.setRefreshToken(
         refreshToken,

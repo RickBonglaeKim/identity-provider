@@ -15,7 +15,7 @@ export class ClientService {
   async findClientByClientId(
     clientId: string,
   ): Promise<FindClientByClientIdReturn> {
-    const result = await this.clientRepository.selectMemberDetailById(clientId);
+    const result = await this.clientRepository.selectClientByClientId(clientId);
     if (!result) this.exceptionService.notRecognizedError();
     if (!result?.isSucceed || !result.data)
       this.exceptionService.notSelectedEntity('client');

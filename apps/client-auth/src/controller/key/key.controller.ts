@@ -21,10 +21,4 @@ export class KeyController {
       JSON.stringify(keyResult.publicJWK),
     );
   }
-
-  @Get('test')
-  async testJWK(): Promise<void> {
-    const idTokenKeypair = await this.oauthService.findIdTokenKeypair();
-    await this.oauthService.issueIdToke(idTokenKeypair.privateKey);
-  }
 }

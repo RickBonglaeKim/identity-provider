@@ -24,7 +24,7 @@ export class MemberPhoneRepository extends MainSchemaService {
     }
   }
 
-  async selectMemberDetailByMemberIdAndPhoneNumber(
+  async selectMemberPhoneByMemberIdAndPhoneNumber(
     memberId: number,
     phoneNumber: string,
   ): Promise<ResponseEntity<typeof memberPhone.$inferSelect> | undefined> {
@@ -42,6 +42,29 @@ export class MemberPhoneRepository extends MainSchemaService {
         throw new Error(
           'The data searched by memberPhone.memberId and memberPhone.phoneNumber is duplicated.',
         );
+      }
+      if (result.length === 0) {
+        return new ResponseEntity<typeof memberPhone.$inferSelect>(false);
+      }
+      return new ResponseEntity<typeof memberPhone.$inferSelect>(
+        true,
+        result[0],
+      );
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
+  async selectMemberPhoneById(
+    id: number,
+  ): Promise<ResponseEntity<typeof memberPhone.$inferSelect> | undefined> {
+    try {
+      const result = await this.mainTransaction.tx
+        .select()
+        .from(memberPhone)
+        .where(eq(memberPhone.id, id));
+      if (result.length > 1) {
+        throw new Error('The data searched by memberPhone.id is duplicated.');
       }
       if (result.length === 0) {
         return new ResponseEntity<typeof memberPhone.$inferSelect>(false);

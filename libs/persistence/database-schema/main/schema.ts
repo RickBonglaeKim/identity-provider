@@ -63,6 +63,7 @@ export const clientMember = mysqlTable("client_member", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "client_member_id"}),
+	unique("client_member_ix__member_id__client_id").on(table.memberId, table.clientId),
 ]);
 
 export const clientUri = mysqlTable("client_uri", {
@@ -133,13 +134,14 @@ export const memberConsent = mysqlTable("member_consent", {
 export const memberDetail = mysqlTable("member_detail", {
 	id: bigint({ mode: "number" }).autoincrement().notNull(),
 	memberDetailId: bigint("member_detail_id", { mode: "number" }),
+	providerId: bigint("provider_id", { mode: "number" }).notNull().references(() => provider.id),
 	memberId: bigint("member_id", { mode: "number" }).notNull().references(() => member.id),
-	providerKey: varchar("provider_key", { length: 32 }).references(() => provider.key),
 	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	name: varchar({ length: 32 }).notNull(),
 	email: varchar({ length: 64 }).notNull(),
 	password: varchar({ length: 256 }).notNull(),
+	codeDuplicationType: varchar("code__duplication_type", { length: 32 }).notNull(),
 },
 (table) => [
 	index("member_detail_ix__email").on(table.email),
@@ -153,14 +155,19 @@ export const memberDetail = mysqlTable("member_detail", {
 
 export const memberPhone = mysqlTable("member_phone", {
 	id: bigint({ mode: "number" }).autoincrement().notNull(),
+	memberPhoneId: bigint("member_phone_id", { mode: "number" }),
 	memberId: bigint("member_id", { mode: "number" }).notNull().references(() => member.id),
 	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
-	isPrimary: tinyint("is_primary").notNull(),
 	countryCallingCode: varchar("country_calling_code", { length: 3 }).notNull(),
 	phoneNumber: varchar("phone_number", { length: 16 }).notNull(),
 },
 (table) => [
+	foreignKey({
+			columns: [table.memberPhoneId],
+			foreignColumns: [table.id],
+			name: "id_member_phone"
+		}),
 	primaryKey({ columns: [table.id], name: "member_phone_id"}),
 	unique("member_phone_ix__phone_number").on(table.countryCallingCode, table.phoneNumber),
 ]);
@@ -176,12 +183,12 @@ export const memberWithdrawal = mysqlTable("member_withdrawal", {
 ]);
 
 export const provider = mysqlTable("provider", {
-	key: varchar({ length: 32 }).notNull(),
+	id: bigint({ mode: "number" }).notNull(),
 	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	name: varchar({ length: 16 }).notNull(),
 	note: varchar({ length: 256 }),
 },
 (table) => [
-	primaryKey({ columns: [table.key], name: "provider_key"}),
+	primaryKey({ columns: [table.id], name: "provider_id"}),
 ]);

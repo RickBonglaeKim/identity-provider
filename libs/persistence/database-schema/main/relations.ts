@@ -93,8 +93,8 @@ export const memberDetailRelations = relations(memberDetail, ({one, many}) => ({
 		references: [member.id]
 	}),
 	provider: one(provider, {
-		fields: [memberDetail.providerKey],
-		references: [provider.key]
+		fields: [memberDetail.providerId],
+		references: [provider.id]
 	}),
 }));
 
@@ -102,7 +102,15 @@ export const providerRelations = relations(provider, ({many}) => ({
 	memberDetails: many(memberDetail),
 }));
 
-export const memberPhoneRelations = relations(memberPhone, ({one}) => ({
+export const memberPhoneRelations = relations(memberPhone, ({one, many}) => ({
+	memberPhone: one(memberPhone, {
+		fields: [memberPhone.memberPhoneId],
+		references: [memberPhone.id],
+		relationName: "memberPhone_memberPhoneId_memberPhone_id"
+	}),
+	memberPhones: many(memberPhone, {
+		relationName: "memberPhone_memberPhoneId_memberPhone_id"
+	}),
 	member: one(member, {
 		fields: [memberPhone.memberId],
 		references: [member.id]

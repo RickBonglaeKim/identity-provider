@@ -19,7 +19,6 @@ import { MemberService } from '../../service/member/member.service';
 import { ClientService } from '../../service/client/client.service';
 import { OauthTokenRequest } from 'dto/interface/oauth/token/request/oauth.token.request.dto';
 import { OauthTokenResponse } from 'dto/interface/oauth/token/response/oauth.token.response.dto';
-import { code } from 'libs/persistence/database-schema/main/schema';
 
 @Controller('oauth')
 @UseInterceptors(TransformInterceptor)
@@ -28,6 +27,7 @@ export class OauthController {
   private readonly signUrl: string;
   private readonly tokenExpirySeconds: number;
   private readonly refreshTokenExpirySeconds: number;
+  private readonly idTokenISS: string;
 
   constructor(
     private readonly configService: ConfigService,
@@ -41,6 +41,7 @@ export class OauthController {
     this.refreshTokenExpirySeconds = this.configService.getOrThrow<number>(
       'REFRESH_TOKEN_EXPIRE_IN',
     );
+    this.idTokenISS = this.configService.getOrThrow<string>('ID_TOKEN_ISS');
   }
 
   @Get('authorize')
@@ -79,13 +80,13 @@ export class OauthController {
       `getToken.authorizationData -> ${JSON.stringify(authorizationData)}`,
     );
 
-    const { client_id, redirect_uri } = authorizationData;
-
     if (!authorizationData)
       throw new HttpException(
-        'It does not find the data in authorization code.',
+        'It does not find the data from the authorization code.',
         HttpStatus.UNAUTHORIZED,
       );
+
+    const { client_id, redirect_uri } = authorizationData;
     if (dto.client_id !== client_id)
       throw new HttpException(
         'The client_id of request parameters is incorrect.',
@@ -113,6 +114,10 @@ export class OauthController {
     const idTokenKeypair = await this.oauthService.findIdTokenKeypair();
     const idToken = await this.oauthService.issueIdToke(
       idTokenKeypair.privateKey,
+      client_id,
+      this.idTokenISS,
+      `${client.id}.${clientMemberId}`,
+      Math.floor(Date.now() / 1000) + this.tokenExpirySeconds,
     );
     this.logger.debug(`getToken.idToken -> ${idToken}`);
 

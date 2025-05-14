@@ -8,7 +8,7 @@ import { eq } from 'drizzle-orm';
 export class ClientMemberRepository extends MainSchemaService {
   private readonly logger = new Logger(ClientMemberRepository.name);
 
-  async insertMemberClient(
+  async insertClientMember(
     data: typeof clientMember.$inferInsert,
   ): Promise<ResponseEntity<number> | undefined> {
     try {
@@ -24,7 +24,7 @@ export class ClientMemberRepository extends MainSchemaService {
     }
   }
 
-  async selectMemberDetailById(
+  async selectClientMemberById(
     clientMemberId: number,
   ): Promise<ResponseEntity<typeof clientMember.$inferSelect> | undefined> {
     try {
