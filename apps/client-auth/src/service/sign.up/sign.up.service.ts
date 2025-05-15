@@ -2,7 +2,7 @@ import { MemberDetailRepository } from '@app/persistence/schema/main/repository/
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import { SignupRequestCreate } from 'dto/interface/sign.up/request/sign.up.request.create.dto';
-import { SignupWithPhoneRequestCreate } from 'dto/interface/sign.up/request/sign.up.phone.request.create.dto';
+import { SignupWithPhoneRequestCreate } from 'dto/interface/sign.up/request/phone/sign.up.phone.request.create.dto';
 import { MemberService } from '../member/member.service';
 
 @Injectable()

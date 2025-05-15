@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { SignupService } from '../../service/sign.up/sign.up.service';
 import { SignupRequestCreate } from 'dto/interface/sign.up/request/sign.up.request.create.dto';
-import { SignupWithPhoneRequestCreate } from 'dto/interface/sign.up/request/sign.up.phone.request.create.dto';
+import { SignupWithPhoneRequestCreate } from 'dto/interface/sign.up/request/phone/sign.up.phone.request.create.dto';
 
 @Controller('signup')
 @UseInterceptors(TransformInterceptor)
