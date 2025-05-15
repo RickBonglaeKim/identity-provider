@@ -90,7 +90,7 @@ export class OauthController {
         HttpStatus.UNAUTHORIZED,
       );
 
-    const { client_id, redirect_uri } = authorizationData;
+    const { client_id, redirect_uri, scope } = authorizationData;
     if (dto.client_id !== client_id)
       throw new HttpException(
         'The client_id of request parameters is incorrect.',
@@ -101,6 +101,7 @@ export class OauthController {
         'The redirect_uri of request parameters is incorrect.',
         HttpStatus.UNAUTHORIZED,
       );
+    const scopeType = scope.split(' ');
 
     const memberResult = await Promise.all([
       this.oauthService.findMemberIdInAuthorizationCode(dto.code),
@@ -140,6 +141,8 @@ export class OauthController {
     this.logger.debug(`getToken.memberPhone -> ${JSON.stringify(memberPhone)}`);
     const child = memberGroupResult[2];
     this.logger.debug(`getToken.child -> ${JSON.stringify(child)}`);
+
+    
 
     const idTokenKeypair = await this.oauthService.findIdTokenKeypair();
     const idToken = await this.oauthService.issueIdToken(

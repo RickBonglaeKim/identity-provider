@@ -25,3 +25,19 @@ export type Keypair = {
   privateKey: string;
   publicKey: string;
 };
+
+export type IdTokenPayload = {
+  name: string;
+  email: string;
+  phones: {
+    countryCallingCode: string;
+    number: string;
+  }[];
+  children: {
+    id: number;
+    name: string;
+    birthday: string;
+    createAt: string;
+    gender: 'GENDER.MALE' | 'GENDER.FEMALE';
+  };
+};

@@ -10,8 +10,12 @@ type ProviderData = {
   id: string;
   name: string;
   email: string;
-  countryCallingCode: string;
-  phoneNumber: string;
+  phone:
+    | {
+        countryCallingCode: string;
+        phoneNumber: string;
+      }
+    | undefined;
 };
 
 export type Kakao = ProviderData & {
