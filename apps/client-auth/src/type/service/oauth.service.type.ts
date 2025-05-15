@@ -26,18 +26,25 @@ export type Keypair = {
   publicKey: string;
 };
 
+export const IdTokenPayloadKey = {
+  name: 'name',
+  email: 'email',
+  phone: 'phone',
+  child: 'child',
+};
+
 export type IdTokenPayload = {
   name: string;
   email: string;
-  phones: {
+  phone: {
     countryCallingCode: string;
     number: string;
   }[];
-  children: {
+  child: {
     id: number;
     name: string;
     birthday: string;
     createAt: string;
     gender: 'GENDER.MALE' | 'GENDER.FEMALE';
-  };
+  }[];
 };

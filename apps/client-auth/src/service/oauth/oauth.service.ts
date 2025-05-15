@@ -1,6 +1,6 @@
 import { PassportCacheRepository } from '@app/cache/repository/passport.cache.repository';
 import { ExceptionService } from '@app/exception/service/exception.service';
-import { Injectable, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import cryptoRandomString from 'crypto-random-string';
 import * as jose from 'jose';
 import { ConfigService } from '@nestjs/config';
@@ -11,6 +11,10 @@ import { IdTokenKeypairRepository } from '@app/persistence/schema/main/repositor
 import * as type from '../../type/service/oauth.service.type';
 import { AuthorizationAccessTokenCacheRepository } from '@app/cache/repository/authorization.token.access.repository';
 import { AuthorizationRefreshTokenCacheRepository } from '@app/cache/repository/authorization.token.refresh.repository';
+import { MemberService } from '../member/member.service';
+import { ClientService } from '../client/client.service';
+import { ChildService } from '../child/child.service';
+import { IdTokenPayload } from '../../type/service/oauth.service.type';
 
 @Injectable()
 export class OauthService {
@@ -19,6 +23,8 @@ export class OauthService {
   constructor(
     private readonly configService: ConfigService,
     private readonly exceptionService: ExceptionService,
+    private readonly memberService: MemberService,
+    private readonly childService: ChildService,
     private readonly oauthRepository: OauthRepository,
     private readonly passportCacheRepository: PassportCacheRepository,
     private readonly authorizationCodeRepository: AuthorizationCodeCacheRepository,
@@ -160,6 +166,40 @@ export class OauthService {
       privateKey: JSON.stringify(keypairResult?.data?.privateKey),
       publicKey: JSON.stringify(keypairResult?.data?.publicKey),
     };
+  }
+
+  async createIdTokenPayloadByScope(
+    memberId: number,
+    memberDetailId: number,
+    scope: string,
+  ) {
+    const memberGroupResult = await Promise.all([
+      this.memberService.findMemberDetailById(memberDetailId),
+      this.memberService.findMemberPhoneByMemberId(memberId),
+      this.childService.findChildByMemberId(memberId),
+    ]).catch((error) => {
+      this.logger.error(error);
+      throw new HttpException(
+        'It fails to take the member information.',
+        HttpStatus.UNAUTHORIZED,
+      );
+    });
+    const memberDetail = memberGroupResult[0];
+    this.logger.debug(
+      `getToken.memberDetail -> ${JSON.stringify(memberDetail)}`,
+    );
+    const memberPhone = memberGroupResult[1];
+    this.logger.debug(`getToken.memberPhone -> ${JSON.stringify(memberPhone)}`);
+    const child = memberGroupResult[2];
+    this.logger.debug(`getToken.child -> ${JSON.stringify(child)}`);
+
+    // const scopeValues = scope.split(' ');
+    // let idTokenScope: IdTokenPayload;
+    // for (const value of scopeValues) {
+    //   if (value === type.IdTokenPayloadKey.name) {
+    //     idTokenScope.name = value;
+    //   }
+    // }
   }
 
   async issueIdToken(

@@ -101,7 +101,6 @@ export class OauthController {
         'The redirect_uri of request parameters is incorrect.',
         HttpStatus.UNAUTHORIZED,
       );
-    const scopeType = scope.split(' ');
 
     const memberResult = await Promise.all([
       this.oauthService.findMemberIdInAuthorizationCode(dto.code),
@@ -133,16 +132,6 @@ export class OauthController {
         HttpStatus.UNAUTHORIZED,
       );
     });
-    const memberDetail = memberGroupResult[0];
-    this.logger.debug(
-      `getToken.memberDetail -> ${JSON.stringify(memberDetail)}`,
-    );
-    const memberPhone = memberGroupResult[1];
-    this.logger.debug(`getToken.memberPhone -> ${JSON.stringify(memberPhone)}`);
-    const child = memberGroupResult[2];
-    this.logger.debug(`getToken.child -> ${JSON.stringify(child)}`);
-
-    
 
     const idTokenKeypair = await this.oauthService.findIdTokenKeypair();
     const idToken = await this.oauthService.issueIdToken(
