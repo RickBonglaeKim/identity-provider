@@ -1,6 +1,6 @@
 import { PassportCacheRepository } from '@app/cache/repository/passport.cache.repository';
 import { ExceptionService } from '@app/exception/service/exception.service';
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import cryptoRandomString from 'crypto-random-string';
 import * as jose from 'jose';
 import { ConfigService } from '@nestjs/config';
@@ -11,10 +11,9 @@ import { IdTokenKeypairRepository } from '@app/persistence/schema/main/repositor
 import * as type from '../../type/service/oauth.service.type';
 import { AuthorizationAccessTokenCacheRepository } from '@app/cache/repository/authorization.token.access.repository';
 import { AuthorizationRefreshTokenCacheRepository } from '@app/cache/repository/authorization.token.refresh.repository';
-import { MemberService } from '../member/member.service';
-import { ClientService } from '../client/client.service';
-import { ChildService } from '../child/child.service';
-import { IdTokenPayload } from '../../type/service/oauth.service.type';
+import { ChildResponse } from 'dto/interface/child/response/child.response.dto';
+import { MemberDetailResponse } from 'dto/interface/member.detail/member.detail.response.dto';
+import { MemberPhoneResponse } from 'dto/interface/member.phone/member.phone.response.dto';
 
 @Injectable()
 export class OauthService {
@@ -23,8 +22,6 @@ export class OauthService {
   constructor(
     private readonly configService: ConfigService,
     private readonly exceptionService: ExceptionService,
-    private readonly memberService: MemberService,
-    private readonly childService: ChildService,
     private readonly oauthRepository: OauthRepository,
     private readonly passportCacheRepository: PassportCacheRepository,
     private readonly authorizationCodeRepository: AuthorizationCodeCacheRepository,
@@ -168,38 +165,43 @@ export class OauthService {
     };
   }
 
-  async createIdTokenPayloadByScope(
-    memberId: number,
-    memberDetailId: number,
+  createIdTokenPayloadByScope(
+    memberGroup: [MemberDetailResponse, MemberPhoneResponse[], ChildResponse[]],
     scope: string,
-  ) {
-    const memberGroupResult = await Promise.all([
-      this.memberService.findMemberDetailById(memberDetailId),
-      this.memberService.findMemberPhoneByMemberId(memberId),
-      this.childService.findChildByMemberId(memberId),
-    ]).catch((error) => {
-      this.logger.error(error);
-      throw new HttpException(
-        'It fails to take the member information.',
-        HttpStatus.UNAUTHORIZED,
-      );
-    });
-    const memberDetail = memberGroupResult[0];
-    this.logger.debug(
-      `getToken.memberDetail -> ${JSON.stringify(memberDetail)}`,
-    );
-    const memberPhone = memberGroupResult[1];
-    this.logger.debug(`getToken.memberPhone -> ${JSON.stringify(memberPhone)}`);
-    const child = memberGroupResult[2];
-    this.logger.debug(`getToken.child -> ${JSON.stringify(child)}`);
-
-    // const scopeValues = scope.split(' ');
-    // let idTokenScope: IdTokenPayload;
-    // for (const value of scopeValues) {
-    //   if (value === type.IdTokenPayloadKey.name) {
-    //     idTokenScope.name = value;
-    //   }
-    // }
+  ): type.IdTokenPayload {
+    const memberDetail = memberGroup[0];
+    const memberPhone = memberGroup[1];
+    const memberChild = memberGroup[2];
+    const idTokenPayload: type.IdTokenPayload = {};
+    const scopeValues = scope.split(' ');
+    for (const value of scopeValues) {
+      if (value === type.IdTokenPayloadKey.name)
+        idTokenPayload.name = memberDetail.name;
+      if (value === type.IdTokenPayloadKey.email)
+        idTokenPayload.email = memberDetail.email;
+      if (value === type.IdTokenPayloadKey.phone) {
+        idTokenPayload.phone = [];
+        for (const number of memberPhone) {
+          idTokenPayload.phone.push({
+            countryCallingCode: number.countryCallingCode,
+            number: number.phoneNumber,
+          });
+        }
+      }
+      if (value === type.IdTokenPayloadKey.child) {
+        idTokenPayload.child = [];
+        for (const child of memberChild) {
+          idTokenPayload.child.push({
+            id: child.id,
+            createAt: child.createdAt,
+            name: child.name,
+            birthday: child.birthDay,
+            gender: child.gender,
+          });
+        }
+      }
+    }
+    return idTokenPayload;
   }
 
   async issueIdToken(
@@ -208,12 +210,13 @@ export class OauthService {
     iss: string, // constant (ID_TOKEN.ISS)
     sub: string, // clientId.clientMemberId (Database)
     exp: number, // Expiration Time
+    payload: type.IdTokenPayload, // token payload
   ) {
     privateKey = privateKey.replaceAll('\\"', '"').slice(1, -1);
     const privateJWK = JSON.parse(privateKey) as jose.JWK;
     const expirySeconds =
       this.configService.getOrThrow<number>('TOKEN_EXPIRE_IN');
-    const idToken = await new jose.SignJWT()
+    const idToken = await new jose.SignJWT(payload)
       .setProtectedHeader({ alg: 'RS256' })
       .setIssuer(iss)
       .setAudience(aud)

@@ -132,6 +132,10 @@ export class OauthController {
         HttpStatus.UNAUTHORIZED,
       );
     });
+    const idTokenPayload = this.oauthService.createIdTokenPayloadByScope(
+      memberGroupResult,
+      scope,
+    );
 
     const idTokenKeypair = await this.oauthService.findIdTokenKeypair();
     const idToken = await this.oauthService.issueIdToken(
@@ -140,6 +144,7 @@ export class OauthController {
       this.idTokenISS,
       `${client.id}.${clientMemberId}`,
       Math.floor(Date.now() / 1000) + this.tokenExpirySeconds,
+      idTokenPayload,
     );
     this.logger.debug(`getToken.idToken -> ${idToken}`);
 
