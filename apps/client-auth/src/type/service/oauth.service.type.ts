@@ -33,18 +33,22 @@ export const IdTokenPayloadKey = {
   child: 'child',
 };
 
+type IdTokenPayloadPhone = {
+  countryCallingCode: string;
+  number: string;
+}[];
+
+type IdTokenPayloadChild = {
+  id: number;
+  createAt: string;
+  name: string | null;
+  birthday: string | null;
+  gender: string | null;
+}[];
+
 export type IdTokenPayload = {
-  name: string;
-  email: string;
-  phone: {
-    countryCallingCode: string;
-    number: string;
-  }[];
-  child: {
-    id: number;
-    name: string;
-    birthday: string;
-    createAt: string;
-    gender: 'GENDER.MALE' | 'GENDER.FEMALE';
-  }[];
+  name?: string;
+  email?: string;
+  phone?: IdTokenPayloadPhone;
+  child?: IdTokenPayloadChild;
 };
