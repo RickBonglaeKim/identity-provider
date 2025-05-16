@@ -7,15 +7,27 @@ import { ConfigService } from '@nestjs/config';
 export class ProviderController {
   constructor(private readonly configService: ConfigService) {}
 
-  @Get()
-  async getKakao() {}
+  @Get('test/kakao')
+  async getTestKakao() {}
 
-  @Get()
-  async getNaver() {}
+  @Get('test/naver')
+  async getTestNaver() {}
 
-  @Get()
-  async getGoogle() {}
+  @Get('test/google')
+  async getTestGoogle() {}
 
-  @Get()
-  async getApple() {}
+  @Get('test/apple')
+  async getTestApple() {}
+
+  @Get('callback/kakao')
+  async getCallbackKakao() {}
+
+  @Get('callback/naver')
+  async getCallbackNaver() {}
+
+  @Get('callback/google')
+  async getCallbackGoogle() {}
+
+  @Get('callback/apple')
+  async getCallbackApple() {}
 }
