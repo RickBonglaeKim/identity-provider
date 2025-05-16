@@ -20,6 +20,7 @@ import { KeyController } from './controller/key/key.controller';
 import { KeyService } from './service/key/key.service';
 import { ClientService } from './service/client/client.service';
 import { ChildService } from './service/child/child.service';
+import { TestController } from './controller/test/test.controller';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { ChildService } from './service/child/child.service';
     SignInController,
     OauthController,
     KeyController,
+    TestController,
   ],
   providers: [
     MemberService,
