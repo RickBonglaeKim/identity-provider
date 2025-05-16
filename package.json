@@ -6,17 +6,23 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    
     "db:pull:local": "bash ./.shell/drizzle.pull.local.sh",
     "db:pull:dev": "bash ./.shell/drizzle.pull.dev.sh",
-    "build:auth": "nest build client-auth",
+    
     "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
     "format:all": "prettier --write .",
-    "start": "nest start",
+
+    "build:auth": "nest build client-auth",
+
     "start:local:auth": "cross-env NODE_ENV=local nest start client-auth --watch",
-    "start:dev": "nest start --watch",
+    "start:dev:auth": "cross-env NODE_ENV=dev nest start client-auth --watch",
+
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/apps/identity-open_id-provider/main",
+    
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
