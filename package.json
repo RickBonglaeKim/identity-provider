@@ -8,7 +8,7 @@
   "scripts": {
     "db:pull:local": "bash ./.shell/drizzle.pull.local.sh",
     "db:pull:dev": "bash ./.shell/drizzle.pull.dev.sh",
-    "build": "nest build",
+    "build:auth": "nest build client-auth",
     "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
     "format:all": "prettier --write .",
     "start": "nest start",
