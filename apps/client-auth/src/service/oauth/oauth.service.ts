@@ -93,24 +93,21 @@ export class OauthService {
       length: 32,
       type: 'url-safe',
     });
-    const transaction = this.passportCacheRepository.getTransaction();
-    this.passportCacheRepository.deletePassportWithTransaction(
-      transaction,
-      passport,
-    );
-    this.authorizationCodeRepository.setAuthorizationCodeWithTransaction(
-      transaction,
-      code,
-      memberId.toString(),
-      memberDetailId.toString(),
-      data,
-    );
-    const executeResult =
-      await this.passportCacheRepository.executeTransaction(transaction);
+    // const transaction = this.passportCacheRepository.getTransaction();
+    const passportResult =
+      await this.passportCacheRepository.deletePassport(passport);
+    if (!passportResult.isSucceed) return;
+    const codeResult =
+      await this.authorizationCodeRepository.setAuthorizationCode(
+        code,
+        memberId.toString(),
+        memberDetailId.toString(),
+        data,
+      );
     this.logger.debug(
-      `createAuthorizationCode.executeResult -> ${JSON.stringify(executeResult.data)}`,
+      `createAuthorizationCode.codeResult -> ${JSON.stringify(codeResult)}`,
     );
-    if (executeResult.isSucceed) return code;
+    if (codeResult.isSucceed) return code;
   }
 
   async removeAuthorizationCode(code: string): Promise<boolean> {
