@@ -4,6 +4,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { SignupRequestCreate } from 'dto/interface/sign.up/request/sign.up.request.create.dto';
 import { SignupWithPhoneRequestCreate } from 'dto/interface/sign.up/request/phone/sign.up.phone.request.create.dto';
 import { MemberService } from '../member/member.service';
+import { SignMember } from '../../type/service/sign.service.type';
+import { ExceptionService } from '@app/exception/service/exception.service';
 
 @Injectable()
 export class SignupService {
@@ -12,10 +14,11 @@ export class SignupService {
   constructor(
     private readonly memberDetailRepository: MemberDetailRepository,
     private readonly memberService: MemberService,
+    private readonly exceptionService: ExceptionService,
   ) {}
 
   @Transactional()
-  async createSignup(data: SignupRequestCreate): Promise<number> {
+  async createSignup(data: SignupRequestCreate): Promise<SignMember> {
     const memberDetailData =
       await this.memberDetailRepository.selectMemberDetailByEmailAndMemberDetailIdIsNull(
         data.memberDetail.email,
@@ -35,13 +38,13 @@ export class SignupService {
       memberId = await this.memberService.createMember(data.member);
       memberDetailId = null;
     }
-    await this.memberService.createMemberDetail(
+    const createdMemberDetailId = await this.memberService.createMemberDetail(
       memberDetailId,
       memberId,
       data.memberDetail,
     );
 
-    return memberId;
+    return { memberId: memberId, memberDetailId: createdMemberDetailId };
   }
 
   @Transactional()
@@ -49,8 +52,13 @@ export class SignupService {
     data: SignupWithPhoneRequestCreate,
   ): Promise<void> {
     this.logger.debug(`createSignupWithPhone.data -> ${JSON.stringify(data)}`);
-    const memberId: number = await this.createSignup(data);
-    this.logger.debug(memberId);
-    await this.memberService.createMemberPhone(memberId, data.memberPhone);
+    const signMember = await this.createSignup(data);
+    if (!signMember) this.exceptionService.notInsertedEntity('sign up');
+    this.logger.debug(JSON.stringify(signMember));
+    data.memberPhone.memberDetailId = signMember!.memberDetailId;
+    await this.memberService.createMemberPhone(
+      signMember!.memberId,
+      data.memberPhone,
+    );
   }
 }

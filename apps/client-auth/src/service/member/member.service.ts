@@ -79,19 +79,10 @@ export class MemberService {
   ): Promise<number | undefined> {
     this.logger.debug(`createMemberPhone.memberId -> ${memberId}`);
     this.logger.debug(`createMemberPhone.data -> ${JSON.stringify(data)}`);
-    const memberPhoneData =
-      await this.memberPhoneRepository.selectMemberPhoneByMemberIdAndPhoneNumber(
-        memberId,
-        data.phoneNumber,
-      );
-    if (!memberPhoneData) this.exceptionService.notRecognizedError();
-    this.logger.debug(
-      `createMemberPhone.memberPhoneData -> ${JSON.stringify(memberPhoneData)}`,
-    );
-    if (memberPhoneData!.isSucceed) return;
 
     const memberPhoneResult =
       await this.memberPhoneRepository.insertMemberPhone({
+        memberDetailId: data.memberDetailId!,
         memberId: memberId,
         memberPhoneId: data.memberPhoneId,
         countryCallingCode: data.countryCallingCode,

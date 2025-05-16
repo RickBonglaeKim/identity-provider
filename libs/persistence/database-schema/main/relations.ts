@@ -96,6 +96,7 @@ export const memberDetailRelations = relations(memberDetail, ({one, many}) => ({
 		fields: [memberDetail.providerId],
 		references: [provider.id]
 	}),
+	memberPhones: many(memberPhone),
 }));
 
 export const providerRelations = relations(provider, ({many}) => ({
@@ -110,6 +111,10 @@ export const memberPhoneRelations = relations(memberPhone, ({one, many}) => ({
 	}),
 	memberPhones: many(memberPhone, {
 		relationName: "memberPhone_memberPhoneId_memberPhone_id"
+	}),
+	memberDetail: one(memberDetail, {
+		fields: [memberPhone.memberDetailId],
+		references: [memberDetail.id]
 	}),
 	member: one(member, {
 		fields: [memberPhone.memberId],
