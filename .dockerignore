@@ -1,0 +1,12 @@
+.github/
+.drizzle/
+.shell/
+.vscode/
+.git/
+dist/
+env/
+node_modules/
+.gitignore
+.gitmodules
+Dockerfile.*
+*.md
