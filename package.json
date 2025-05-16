@@ -16,7 +16,7 @@
     "build:auth": "nest build client-auth",
 
     "start:local:auth": "cross-env NODE_ENV=local nest start client-auth --watch",
-    "start:dev:auth": "cross-env NODE_ENV=dev nest start client-auth --watch",
+    "start:dev:auth": "cross-env NODE_ENV=local.dev nest start client-auth --watch",
 
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/apps/identity-open_id-provider/main",
