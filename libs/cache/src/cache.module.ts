@@ -12,7 +12,7 @@ const cache = {
   provide: VALKEY_CONNECTION,
   async useFactory(configService: ConfigService) {
     const environment = configService.getOrThrow<string>('NODE_ENV');
-    if (environment === 'development' || environment === 'production') {
+    if (environment === 'dev' || environment === 'prod') {
       return await GlideClusterClient.createClient({
         addresses: [
           {
