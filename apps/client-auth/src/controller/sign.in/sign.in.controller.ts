@@ -4,10 +4,10 @@ import {
   Controller,
   UseInterceptors,
   Logger,
-  Query,
   Res,
   HttpStatus,
   Post,
+  Body,
 } from '@nestjs/common';
 import { SigninService } from '../../service/sign.in/sign.in.service';
 import { Response } from 'express';
@@ -27,7 +27,7 @@ export class SignInController {
   @Post()
   async postSignin(
     @Res() response: Response,
-    @Query() dto: SigninRequestCreate,
+    @Body() dto: SigninRequestCreate,
   ): Promise<void> {
     const passport = await this.oauthService.findPassport(dto.passport);
     if (!passport) {
@@ -53,6 +53,8 @@ export class SignInController {
       response.status(HttpStatus.INTERNAL_SERVER_ERROR);
       return;
     }
+
+    // set cookie
 
     const passportJson = JSON.parse(passport) as OauthAuthorizeRequestCreate;
     let redirectUrl = `${passportJson.redirect_uri}?code=${authorizationCode}`;
