@@ -9,6 +9,7 @@ async function bootstrap() {
   app.useGlobalFilters(new ServiceExceptionFilter());
   app.useGlobalPipes(new ZodValidationPipe());
   app.useGlobalInterceptors(new LogInterceptor());
+  app.enableCors();
   await app.listen(process.env.port ?? 3000);
 }
 void bootstrap();
