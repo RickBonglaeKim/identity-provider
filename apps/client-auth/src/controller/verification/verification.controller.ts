@@ -5,7 +5,6 @@ import {
   HttpException,
   HttpStatus,
   Logger,
-  Param,
   Post,
   Query,
   UseInterceptors,
