@@ -57,7 +57,6 @@ export class OauthService {
     this.logger.debug(
       `verifyClientByClientIdAndClientSecret.verifiedResult -> ${JSON.stringify(verifiedResult)}`,
     );
-    if (!verifiedResult) this.exceptionService.notRecognizedError();
     if (!verifiedResult?.isSucceed) return false;
 
     return true;
@@ -74,7 +73,7 @@ export class OauthService {
     );
     this.logger.debug(`createPassport.result -> ${JSON.stringify(result)}`);
 
-    if (result) return passportKey;
+    if (result.isSucceed) return passportKey;
   }
 
   async findPassport(key: string): Promise<string | undefined> {

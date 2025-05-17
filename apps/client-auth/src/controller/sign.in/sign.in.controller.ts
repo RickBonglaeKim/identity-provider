@@ -15,7 +15,6 @@ import { OauthService } from '../../service/oauth/oauth.service';
 import { OauthAuthorizeRequestCreate } from 'dto/interface/oauth/authorize/request/oauth.authorize.request.create.dto';
 
 @Controller('signin')
-@UseInterceptors(TransformInterceptor)
 export class SignInController {
   private readonly logger = new Logger(SignInController.name);
 
@@ -62,7 +61,6 @@ export class SignInController {
 
     this.logger.debug(`getSignin.redirectUrl -> ${redirectUrl}`);
 
-    response.redirect(HttpStatus.TEMPORARY_REDIRECT, redirectUrl);
-    return;
+    response.redirect(redirectUrl);
   }
 }

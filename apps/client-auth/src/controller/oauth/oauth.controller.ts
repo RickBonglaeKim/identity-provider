@@ -61,14 +61,20 @@ export class OauthController {
 
     if (verifiedResult) {
       const passport = await this.oauthService.createPassport(dto);
+      this.logger.debug(`getAuthorize.passport -> ${!passport}`);
+
       if (!passport)
         redirectClient('server_error')('It fails to generate passport.')(null);
-      response.redirect(`${this.signUrl}?passport=${passport}`);
+
+      const url = `${this.signUrl}?passport=${passport}`;
+      this.logger.debug(`getAuthorize.url -> ${url}`);
+      response.redirect(HttpStatus.TEMPORARY_REDIRECT, url);
     } else {
       const redirectUri = redirectClient('invalid_request')(
         'Request parameters are incorrect.',
       )(null);
-      this.logger.debug(`verifiedResult: ${verifiedResult} -> ${redirectUri}`);
+      this.logger.debug(`getAuthorize.redirectUri -> ${redirectUri}`);
+      this.logger.debug(`getAuthorize.verifiedResult -> ${verifiedResult}`);
       response.redirect(HttpStatus.TEMPORARY_REDIRECT, redirectUri);
     }
   }
