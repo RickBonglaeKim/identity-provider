@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { HttpModule } from '@nestjs/axios';
 import { MainSchemaModule } from '@app/persistence/schema/main/main.schema.module';
 import { mainConnection } from '@app/persistence/persistence.connection.main';
 import { ClsModule } from 'nestjs-cls';
@@ -20,10 +21,12 @@ import { KeyController } from './controller/key/key.controller';
 import { KeyService } from './service/key/key.service';
 import { ClientService } from './service/client/client.service';
 import { ChildService } from './service/child/child.service';
-import { TestController } from './controller/test/test.controller';
+import { ProviderController } from './controller/provider/provider.controller';
+import { ProviderService } from './service/provider/provider.service';
 
 @Module({
   imports: [
+    HttpModule,
     MainSchemaModule,
     ExceptionModule,
     CryptoModule,
@@ -49,7 +52,7 @@ import { TestController } from './controller/test/test.controller';
     SignInController,
     OauthController,
     KeyController,
-    TestController,
+    ProviderController,
   ],
   providers: [
     MemberService,
@@ -59,6 +62,7 @@ import { TestController } from './controller/test/test.controller';
     KeyService,
     ClientService,
     ChildService,
+    ProviderService,
   ],
 })
 export class ClientAuthModule {}
