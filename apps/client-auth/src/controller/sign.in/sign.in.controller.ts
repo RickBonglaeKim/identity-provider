@@ -4,10 +4,10 @@ import {
   Controller,
   UseInterceptors,
   Logger,
-  Get,
   Query,
   Res,
   HttpStatus,
+  Post,
 } from '@nestjs/common';
 import { SigninService } from '../../service/sign.in/sign.in.service';
 import { Response } from 'express';
@@ -24,8 +24,8 @@ export class SignInController {
     private readonly oauthService: OauthService,
   ) {}
 
-  @Get()
-  async getSignin(
+  @Post()
+  async postSignin(
     @Res() response: Response,
     @Query() dto: SigninRequestCreate,
   ): Promise<void> {

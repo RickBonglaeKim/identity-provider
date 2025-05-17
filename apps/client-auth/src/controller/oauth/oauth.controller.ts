@@ -74,7 +74,7 @@ export class OauthController {
   }
 
   @Post('token')
-  async getToken(
+  async postToken(
     @Body() dto: OauthTokenRequestCreate,
   ): Promise<OauthTokenResponse> {
     this.logger.debug(`getToken.dto -> ${JSON.stringify(dto)}`);
