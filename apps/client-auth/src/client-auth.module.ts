@@ -23,6 +23,8 @@ import { ClientService } from './service/client/client.service';
 import { ChildService } from './service/child/child.service';
 import { ProviderController } from './controller/provider/provider.controller';
 import { ProviderService } from './service/provider/provider.service';
+import { VerificationController } from './controller/verification/verification.controller';
+import { VerificationService } from './service/verification/verification.service';
 
 @Module({
   imports: [
@@ -53,6 +55,7 @@ import { ProviderService } from './service/provider/provider.service';
     OauthController,
     KeyController,
     ProviderController,
+    VerificationController,
   ],
   providers: [
     MemberService,
@@ -63,6 +66,7 @@ import { ProviderService } from './service/provider/provider.service';
     ClientService,
     ChildService,
     ProviderService,
+    VerificationService,
   ],
 })
 export class ClientAuthModule {}

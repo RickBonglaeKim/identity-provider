@@ -9,8 +9,8 @@ import { OauthRepository } from '@app/persistence/schema/main/repository/oauth.r
 import { AuthorizationCodeCacheRepository } from '@app/cache/repository/authorization.code.cache.repository';
 import { IdTokenKeypairRepository } from '@app/persistence/schema/main/repository/id.token.keypair.repository';
 import * as type from '../../type/service/oauth.service.type';
-import { AuthorizationAccessTokenCacheRepository } from '@app/cache/repository/authorization.token.access.repository';
-import { AuthorizationRefreshTokenCacheRepository } from '@app/cache/repository/authorization.token.refresh.repository';
+import { AuthorizationAccessTokenCacheRepository } from '@app/cache/repository/authorization.token.access.cache.repository';
+import { AuthorizationRefreshTokenCacheRepository } from '@app/cache/repository/authorization.token.refresh.cache.repository';
 import { ChildResponse } from 'dto/interface/child/response/child.response.dto';
 import { MemberDetailResponse } from 'dto/interface/member.detail/member.detail.response.dto';
 import { MemberPhoneResponse } from 'dto/interface/member.phone/member.phone.response.dto';

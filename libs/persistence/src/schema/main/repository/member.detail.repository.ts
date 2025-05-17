@@ -1,9 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { MainSchemaService } from '../service/main.schema.service';
-import {
-  memberDetail,
-  provider,
-} from 'libs/persistence/database-schema/main/schema';
+import { memberDetail } from 'libs/persistence/database-schema/main/schema';
 import { ResponseEntity } from '@app/persistence/entity/response.entity';
 import { and, eq, isNull } from 'drizzle-orm';
 
