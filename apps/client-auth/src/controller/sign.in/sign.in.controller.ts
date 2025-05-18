@@ -9,8 +9,6 @@ import {
   Body,
   UseInterceptors,
   HttpException,
-  Get,
-  Query,
 } from '@nestjs/common';
 import { SigninService } from '../../service/sign.in/sign.in.service';
 import { Response } from 'express';
@@ -21,6 +19,7 @@ import * as cryptoJS from 'crypto-js';
 import { CookieValue } from '../../type/service/sign.service.type';
 
 @Controller('signin')
+// @UseInterceptors(TransformInterceptor)
 export class SignInController {
   private readonly logger = new Logger(SignInController.name);
   private readonly cookieEncryptionKey: string;
@@ -38,10 +37,10 @@ export class SignInController {
       this.configService.getOrThrow<number>('TOKEN_EXPIRE_IN');
   }
 
-  @Get()
+  @Post()
   async postSignin(
-    @Res({ passthrough: true }) response: Response,
-    @Query() dto: SigninRequestCreate,
+    @Res() response: Response,
+    @Body() dto: SigninRequestCreate,
   ): Promise<void> {
     const passport = await this.oauthService.findPassport(dto.passport);
     if (!passport) {
@@ -99,6 +98,6 @@ export class SignInController {
     if (passportJson.state) redirectUrl += `&state=${passportJson.state}`;
 
     this.logger.debug(`getSignin.redirectUrl -> ${redirectUrl}`);
-    response.redirect(HttpStatus.PERMANENT_REDIRECT, redirectUrl);
+    response.redirect(redirectUrl);
   }
 }
