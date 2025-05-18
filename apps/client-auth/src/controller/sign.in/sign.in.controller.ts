@@ -7,6 +7,10 @@ import {
   HttpStatus,
   Post,
   Body,
+  UseInterceptors,
+  HttpException,
+  Get,
+  Query,
 } from '@nestjs/common';
 import { SigninService } from '../../service/sign.in/sign.in.service';
 import { Response } from 'express';
@@ -34,40 +38,40 @@ export class SignInController {
       this.configService.getOrThrow<number>('TOKEN_EXPIRE_IN');
   }
 
-  @Post()
+  @Get()
   async postSignin(
-    @Res() response: Response,
-    @Body() dto: SigninRequestCreate,
+    @Res({ passthrough: true }) response: Response,
+    @Query() dto: SigninRequestCreate,
   ): Promise<void> {
     const passport = await this.oauthService.findPassport(dto.passport);
     if (!passport) {
-      response.status(251);
-      return;
+      response.status(251).send();
     }
 
     const member = await this.signinService.findMember(dto.email, dto.password);
     this.logger.debug(`getSignin.memberId -> ${JSON.stringify(member)}`);
     if (!member) {
-      response.status(252);
-      return;
+      response.status(252).send();
     }
 
     const authorizationCode = await this.oauthService.createAuthorizationCode(
-      member.memberId,
-      member.memberDetailId,
+      member!.memberId,
+      member!.memberDetailId,
       dto.passport,
-      passport,
+      passport!,
     );
 
     if (!authorizationCode) {
-      response.status(HttpStatus.INTERNAL_SERVER_ERROR);
-      return;
+      throw new HttpException(
+        'It fails to create authorization code.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
 
     // set cookie
     const cookieValue: CookieValue = {
-      memberId: member.memberId,
-      memberDetailId: member.memberDetailId,
+      memberId: member!.memberId,
+      memberDetailId: member!.memberDetailId,
       timestamp: Date.now(),
     };
     const encryptedCookieValue = cryptoJS.AES.encrypt(
@@ -90,12 +94,11 @@ export class SignInController {
       sameSite: 'none',
     });
 
-    const passportJson = JSON.parse(passport) as OauthAuthorizeRequestCreate;
+    const passportJson = JSON.parse(passport!) as OauthAuthorizeRequestCreate;
     let redirectUrl = `${passportJson.redirect_uri}?code=${authorizationCode}`;
     if (passportJson.state) redirectUrl += `&state=${passportJson.state}`;
 
     this.logger.debug(`getSignin.redirectUrl -> ${redirectUrl}`);
-
-    response.redirect(redirectUrl);
+    response.redirect(HttpStatus.PERMANENT_REDIRECT, redirectUrl);
   }
 }

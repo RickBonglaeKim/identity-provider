@@ -26,6 +26,7 @@ import { ProviderService } from './service/provider/provider.service';
 import { VerificationController } from './controller/verification/verification.controller';
 import { VerificationService } from './service/verification/verification.service';
 import { MemberController } from './controller/member/member.controller';
+import { TestController } from './controller/test/test.controller';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { MemberController } from './controller/member/member.controller';
     ProviderController,
     VerificationController,
     MemberController,
+    TestController,
   ],
   providers: [
     MemberService,

@@ -11,6 +11,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ZodValidationPipe());
   app.useGlobalInterceptors(new LogInterceptor());
   app.use(cookieParser());
+  // app.enableCors();
   app.enableCors({
     origin: '*',
     method: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',

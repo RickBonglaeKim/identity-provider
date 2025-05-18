@@ -38,7 +38,9 @@ export class MemberController {
     @Req() request: Request,
   ): Promise<MemberEntireRequestRead> {
     const encryptedCookieValue = request.cookies['iScreamArts-IDP'] as string;
-    this.logger.debug(`getEntireMember.signMember -> ${encryptedCookieValue}`);
+    this.logger.debug(
+      `getEntireMember.encryptedCookieValue -> ${encryptedCookieValue}`,
+    );
     const decryptedCookieValue = cryptoJS.AES.decrypt(
       encryptedCookieValue,
       this.cookieEncryptionKey,
