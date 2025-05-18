@@ -43,7 +43,6 @@ export class SignInController {
 
   @Post()
   async postSignin(
-    @Req() request: Request,
     @Res() response: Response,
     @Body() dto: SigninRequestCreate,
   ): Promise<string | void> {
@@ -77,30 +76,30 @@ export class SignInController {
     }
 
     // set cookie
-    const cookieValue: CookieValue = {
-      memberId: member.memberId,
-      memberDetailId: member.memberDetailId,
-      timestamp: Date.now(),
-    };
-    const encryptedCookieValue = cryptoJS.AES.encrypt(
-      JSON.stringify(cookieValue),
-      this.cookieEncryptionKey,
-    ).toString();
-    this.logger.debug(
-      `postSignin.encryptedCookieValue -> ${encryptedCookieValue}`,
-    );
-    this.logger.debug(
-      cryptoJS.AES.decrypt(
-        encryptedCookieValue,
-        this.cookieEncryptionKey,
-      ).toString(cryptoJS.enc.Utf8),
-    );
-    response.cookie('iScreamArts-IDP', encryptedCookieValue, {
-      maxAge: this.tokenExpirySeconds * 1000,
-      httpOnly: true,
-      secure: false,
-      sameSite: 'none',
-    });
+    // const cookieValue: CookieValue = {
+    //   memberId: member.memberId,
+    //   memberDetailId: member.memberDetailId,
+    //   timestamp: Date.now(),
+    // };
+    // const encryptedCookieValue = cryptoJS.AES.encrypt(
+    //   JSON.stringify(cookieValue),
+    //   this.cookieEncryptionKey,
+    // ).toString();
+    // this.logger.debug(
+    //   `postSignin.encryptedCookieValue -> ${encryptedCookieValue}`,
+    // );
+    // this.logger.debug(
+    //   cryptoJS.AES.decrypt(
+    //     encryptedCookieValue,
+    //     this.cookieEncryptionKey,
+    //   ).toString(cryptoJS.enc.Utf8),
+    // );
+    // response.cookie('iScreamArts-IDP', encryptedCookieValue, {
+    //   maxAge: this.tokenExpirySeconds * 1000,
+    //   httpOnly: true,
+    //   secure: false,
+    //   sameSite: 'none',
+    // });
 
     const passportJson = JSON.parse(passport) as OauthAuthorizeRequestCreate;
     let redirectUrl = `${passportJson.redirect_uri}?code=${authorizationCode}`;
