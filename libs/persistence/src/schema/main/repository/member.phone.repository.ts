@@ -3,6 +3,7 @@ import { MainSchemaService } from '../service/main.schema.service';
 import { memberPhone } from 'libs/persistence/database-schema/main/schema';
 import { ResponseEntity } from '@app/persistence/entity/response.entity';
 import { and, eq } from 'drizzle-orm';
+import { selectMemberPhoneByCountryCallingCodeAndPhoneNumber } from '@app/persistence/entity/member.entity';
 
 @Injectable()
 export class MemberPhoneRepository extends MainSchemaService {
@@ -101,10 +102,16 @@ export class MemberPhoneRepository extends MainSchemaService {
   async selectMemberPhoneByCountryCallingCodeAndPhoneNumber(
     countryCallingCode: string,
     phoneNumber: string,
-  ): Promise<ResponseEntity<(typeof memberPhone.$inferSelect)[]> | undefined> {
+  ): Promise<
+    | ResponseEntity<selectMemberPhoneByCountryCallingCodeAndPhoneNumber>
+    | undefined
+  > {
     try {
       const result = await this.mainTransaction.tx
-        .select()
+        .selectDistinct({
+          countryCallingCode: memberPhone.countryCallingCode,
+          phoneNumber: memberPhone.phoneNumber,
+        })
         .from(memberPhone)
         .where(
           and(
@@ -112,12 +119,19 @@ export class MemberPhoneRepository extends MainSchemaService {
             eq(memberPhone.phoneNumber, phoneNumber),
           ),
         );
-      if (result.length === 0) {
-        return new ResponseEntity<(typeof memberPhone.$inferSelect)[]>(false);
+      if (result.length > 1) {
+        throw new Error(
+          'The data searched by memberPhone.countryCallingCode and memberPhone.phoneNumber is duplicated.',
+        );
       }
-      return new ResponseEntity<(typeof memberPhone.$inferSelect)[]>(
+      if (result.length === 0) {
+        return new ResponseEntity<selectMemberPhoneByCountryCallingCodeAndPhoneNumber>(
+          false,
+        );
+      }
+      return new ResponseEntity<selectMemberPhoneByCountryCallingCodeAndPhoneNumber>(
         true,
-        result,
+        result[0],
       );
     } catch (error) {
       this.logger.error(error);

@@ -23,7 +23,7 @@ export class TransformInterceptor<T>
           request.headers['service-content-language'] || 'ko'
         ).toString();
         const response = new CommonResponse<T>(language);
-        response.resultData = data ? data : null;
+        response.resultData = typeof data === 'undefined' ? null : data;
         return response;
       }),
     );

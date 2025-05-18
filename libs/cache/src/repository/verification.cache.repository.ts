@@ -13,7 +13,7 @@ export class VerificationCacheRepository extends CacheService {
   private readonly prefix = 'verification';
   private createSetOption(): SetOptions {
     return {
-      expiry: { type: TimeUnit.Milliseconds, count: 1000 * 60 * 5 },
+      expiry: { type: TimeUnit.Milliseconds, count: 1000 * 60 * 3 },
       conditionalSet: 'onlyIfDoesNotExist',
       returnOldValue: false,
     };

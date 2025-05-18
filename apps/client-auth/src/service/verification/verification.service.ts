@@ -72,11 +72,22 @@ export class VerificationService {
   async setEmailVerificationCode(email: string): Promise<boolean> {
     const code = this.generateVerificationCode();
     this.logger.debug(`setEmailVerificationCode.code -> ${code}`);
-    const result = await this.verificationCacheRepository.setVerificationCode(
-      email,
-      code,
+    const checkResult =
+      await this.verificationCacheRepository.getVerificationCode(email);
+
+    if (
+      checkResult.isSucceed &&
+      !(await this.verificationCacheRepository.deleteVerificationCode(email))
+        .isSucceed
+    )
+      return false;
+
+    const codeResult =
+      await this.verificationCacheRepository.setVerificationCode(email, code);
+    this.logger.debug(
+      `setEmailVerificationCode.result -> ${JSON.stringify(codeResult)}`,
     );
-    return result.isSucceed;
+    return codeResult.isSucceed;
   }
 
   async getEmailVerificationCode(email: string): Promise<string | undefined> {

@@ -7,13 +7,17 @@ import {
   Logger,
   Post,
   Query,
+  Res,
   UseInterceptors,
 } from '@nestjs/common';
 import { VerificationService } from '../../service/verification/verification.service';
 import { PassportCacheRepository } from '@app/cache/repository/passport.cache.repository';
-import { VerificationPhoneRequestCreate } from 'dto/interface/verification/request/verification.phone.request.create.dto';
+import { VerificationPhoneRequestCreate } from 'dto/interface/verification/phone/request/verification.phone.request.create.dto';
 import { TransformInterceptor } from '@app/interceptor/transform.interceptor';
-import { VerificationEmailRequestCreate } from 'dto/interface/verification/request/verification.email.request.create.dto';
+import { VerificationEmailRequestCreate } from 'dto/interface/verification/email/request/verification.email.request.create.dto';
+import { Response } from 'express';
+import { VerificationEmailRequestRead } from 'dto/interface/verification/email/request/verification.email.request.read.dto';
+import { VerificationPhoneRequestRead } from 'dto/interface/verification/phone/request/verification.phone.request.read.dto';
 
 @Controller('verification')
 @UseInterceptors(TransformInterceptor)
@@ -27,30 +31,44 @@ export class VerificationController {
 
   @Get('phone')
   async getVerifyPhone(
+    @Res({ passthrough: true }) response: Response,
     @Query() dto: VerificationPhoneRequestCreate,
-  ): Promise<boolean> {
-    // const passportResult = await this.passportCacheRepository.getPassport(
-    //   dto.passport,
-    // );
-    // if (!passportResult.isSucceed)
-    //   throw new HttpException(
-    //     'The passport does not exist.',
-    //     HttpStatus.UNAUTHORIZED,
-    //   );
+  ): Promise<void> {
     const isVerified = await this.verificationService.verifyPhone(
       dto.countryCallingCode,
       dto.phoneNumber,
     );
-    return isVerified;
-  }
-
-  @Post('phone')
-  async postGeneratePhoneCode(@Body() dto: VerificationPhoneRequestCreate) {
+    this.logger.debug(`getVerifyPhone.isVerified -> ${isVerified}`);
+    if (!isVerified) {
+      response.status(251);
+      return;
+    }
     const isGenerated = await this.verificationService.setPhoneVerificationCode(
       dto.countryCallingCode,
       dto.phoneNumber,
     );
-    return isGenerated;
+    this.logger.debug(`getVerifyPhone.isGenerated -> ${isGenerated}`);
+    if (!isGenerated)
+      throw new HttpException(
+        'The verification code is not generated.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+  }
+
+  @Get('phone/code')
+  async getVerifyPhoneCode(
+    @Query() dto: VerificationPhoneRequestRead,
+  ): Promise<boolean> {
+    const result = await this.verificationService.getPhoneVerificationCode(
+      dto.countryCallingCode,
+      dto.phoneNumber,
+    );
+    if (!result)
+      throw new HttpException(
+        'The verification code does not exist.',
+        HttpStatus.GONE,
+      );
+    return dto.verificationCode === result;
   }
 
   @Get('phone/get')
@@ -62,35 +80,46 @@ export class VerificationController {
     if (!code)
       throw new HttpException(
         'The verification code does not exist.',
-        HttpStatus.UNAUTHORIZED,
+        HttpStatus.GONE,
       );
     return code;
   }
 
   @Get('email')
   async getVerifyEmail(
+    @Res({ passthrough: true }) response: Response,
     @Query() dto: VerificationEmailRequestCreate,
-  ): Promise<boolean> {
-    // const passportResult = await this.passportCacheRepository.getPassport(
-    //   dto.passport,
-    // );
-    // if (!passportResult.isSucceed)
-    //   throw new HttpException(
-    //     'The passport does not exist.',
-    //     HttpStatus.UNAUTHORIZED,
-    //   );
+  ): Promise<void> {
     const isVerified = await this.verificationService.verifyEmail(dto.email);
-    return isVerified;
-  }
-
-  @Post('email')
-  async postGenerateEmailCode(
-    @Body() dto: VerificationEmailRequestCreate,
-  ): Promise<boolean> {
+    this.logger.debug(`getVerifyEmail.isVerified -> ${isVerified}`);
+    if (!isVerified) {
+      response.status(251);
+      return;
+    }
     const isGenerated = await this.verificationService.setEmailVerificationCode(
       dto.email,
     );
-    return isGenerated;
+    this.logger.debug(`getVerifyEmail.isGenerated -> ${isGenerated}`);
+    if (!isGenerated)
+      throw new HttpException(
+        'The verification code is not generated.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+  }
+
+  @Get('email/code')
+  async getVerifyEmailCode(
+    @Query() dto: VerificationEmailRequestRead,
+  ): Promise<boolean> {
+    const result = await this.verificationService.getEmailVerificationCode(
+      dto.email,
+    );
+    if (!result)
+      throw new HttpException(
+        'The verification code does not exist.',
+        HttpStatus.GONE,
+      );
+    return dto.verificationCode === result;
   }
 
   @Get('email/get')
@@ -101,7 +130,7 @@ export class VerificationController {
     if (!code)
       throw new HttpException(
         'The verification code does not exist.',
-        HttpStatus.UNAUTHORIZED,
+        HttpStatus.GONE,
       );
     return code;
   }

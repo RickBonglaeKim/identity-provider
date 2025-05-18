@@ -2,7 +2,6 @@ import { TransformInterceptor } from '@app/interceptor/transform.interceptor';
 import { SigninRequestCreate } from 'dto/interface/sign.in/request/sign.in.request.create.dto';
 import {
   Controller,
-  UseInterceptors,
   Logger,
   Res,
   HttpStatus,
