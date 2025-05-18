@@ -10,6 +10,9 @@ import {
   UseInterceptors,
   HttpException,
   Redirect,
+  Get,
+  Query,
+  Req,
 } from '@nestjs/common';
 import { SigninService } from '../../service/sign.in/sign.in.service';
 import { Response } from 'express';
@@ -40,6 +43,7 @@ export class SignInController {
 
   @Post()
   async postSignin(
+    @Req() request: Request,
     @Res() response: Response,
     @Body() dto: SigninRequestCreate,
   ): Promise<string | void> {
@@ -104,6 +108,15 @@ export class SignInController {
 
     this.logger.debug(`getSignin.redirectUrl -> ${redirectUrl}`);
     return redirectUrl;
-    // response.redirect(308, redirectUrl);
+    // response.redirect(`/signin?redirectUrl=${redirectUrl}`);
+  }
+
+  @Get()
+  getSignin(
+    @Res() response: Response,
+    @Query('redirectUrl') redirectUrl: string,
+  ) {
+    this.logger.debug(`getSignin.redirectUrl -> ${redirectUrl}`);
+    response.redirect(HttpStatus.PERMANENT_REDIRECT, redirectUrl);
   }
 }
