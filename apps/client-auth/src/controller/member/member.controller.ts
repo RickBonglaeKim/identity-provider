@@ -10,6 +10,7 @@ import { CookieValue } from '../../type/service/sign.service.type';
 import { MemberEntireRepository } from '@app/persistence/schema/main/repository/member.entire.repository';
 import { MemberDetailPhoneRepository } from '@app/persistence/schema/main/repository/member.detail.phone.repository';
 import { ExceptionService } from '@app/exception/service/exception.service';
+import { MemberPhoneRepository } from '@app/persistence/schema/main/repository/member.phone.repository';
 
 @Controller('member')
 @UseInterceptors(TransformInterceptor)
@@ -24,33 +25,45 @@ export class MemberController {
     private readonly childService: ChildService,
     private readonly memberEntireRepository: MemberEntireRepository,
     private readonly memberDetailPhoneRepository: MemberDetailPhoneRepository,
+    private readonly memberPhoneRepository: MemberPhoneRepository,
   ) {
     this.cookieEncryptionKey = this.configService.getOrThrow<string>(
       'COOKIE_ENCRYPTION_KEY',
     );
   }
 
-  @Get('entire')
-  async getEntireMember(@Req() request: Request) {
-    const encryptedCookieValue = request.cookies['iScreamArts-IDP'] as string;
-    this.logger.debug(`getEntireMember.signMember -> ${encryptedCookieValue}`);
-    const decryptedCookieValue = cryptoJS.AES.decrypt(
-      encryptedCookieValue,
-      this.cookieEncryptionKey,
-    ).toString(cryptoJS.enc.Utf8);
-    const signMember = JSON.parse(decryptedCookieValue) as CookieValue;
-    this.logger.debug(
-      `getEntireMember.signMember -> ${JSON.stringify(signMember)}`,
-    );
+  // @Get('entire')
+  // async getEntireMember(@Req() request: Request): Promise<> {
+  //   const encryptedCookieValue = request.cookies['iScreamArts-IDP'] as string;
+  //   this.logger.debug(`getEntireMember.signMember -> ${encryptedCookieValue}`);
+  //   const decryptedCookieValue = cryptoJS.AES.decrypt(
+  //     encryptedCookieValue,
+  //     this.cookieEncryptionKey,
+  //   ).toString(cryptoJS.enc.Utf8);
+  //   const signMember = JSON.parse(decryptedCookieValue) as CookieValue;
+  //   this.logger.debug(
+  //     `getEntireMember.signMember -> ${JSON.stringify(signMember)}`,
+  //   );
 
-    const memberResult =
-      await this.memberEntireRepository.selectMemberAndMemberDetailAndProviderByMemberDetailId(
-        signMember.memberDetailId,
-      );
-    const memberDetailPhoneResult =
-      await this.memberDetailPhoneRepository.selectMemberDetailByMemberDetailId(
-        signMember.memberDetailId,
-      );
-    if (!memberDetailPhoneResult) this.exceptionService.notRecognizedError();
-  }
+  //   const memberResult =
+  //     await this.memberEntireRepository.selectMemberAndMemberDetailAndProviderByMemberDetailId(
+  //       signMember.memberDetailId,
+  //     );
+  //   if (!memberResult) this.exceptionService.notRecognizedError();
+  //   if (!memberResult?.isSucceed || memberResult.data)
+  //     this.exceptionService.notSelectedEntity('member');
+  //   const memberDetailPhoneResult =
+  //     await this.memberDetailPhoneRepository.selectMemberDetailByMemberDetailId(
+  //       signMember.memberDetailId,
+  //     );
+  //   if (!memberDetailPhoneResult) this.exceptionService.notRecognizedError();
+  //   if (!memberDetailPhoneResult?.isSucceed || !memberDetailPhoneResult.data)
+  //     this.exceptionService.notSelectedEntity('member_detail_phone');
+  //   const memberPhoneResult = this.memberPhoneRepository.selectMemberPhoneById(
+  //     memberDetailPhoneResult!.data!.memberPhoneId,
+  //   );
+
+  //   return 
+
+  // }
 }
