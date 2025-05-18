@@ -33,56 +33,56 @@ export class MemberController {
     );
   }
 
-  // @Get('entire')
-  // async getEntireMember(
-  //   @Req() request: Request,
-  // ): Promise<MemberEntireRequestRead> {
-  //   const encryptedCookieValue = request.cookies['iScreamArts-IDP'] as string;
-  //   this.logger.debug(`getEntireMember.signMember -> ${encryptedCookieValue}`);
-  //   const decryptedCookieValue = cryptoJS.AES.decrypt(
-  //     encryptedCookieValue,
-  //     this.cookieEncryptionKey,
-  //   ).toString(cryptoJS.enc.Utf8);
-  //   const signMember = JSON.parse(decryptedCookieValue) as CookieValue;
-  //   this.logger.debug(
-  //     `getEntireMember.signMember -> ${JSON.stringify(signMember)}`,
-  //   );
+  @Get('entire')
+  async getEntireMember(
+    @Req() request: Request,
+  ): Promise<MemberEntireRequestRead> {
+    const encryptedCookieValue = request.cookies['iScreamArts-IDP'] as string;
+    this.logger.debug(`getEntireMember.signMember -> ${encryptedCookieValue}`);
+    const decryptedCookieValue = cryptoJS.AES.decrypt(
+      encryptedCookieValue,
+      this.cookieEncryptionKey,
+    ).toString(cryptoJS.enc.Utf8);
+    const signMember = JSON.parse(decryptedCookieValue) as CookieValue;
+    this.logger.debug(
+      `getEntireMember.signMember -> ${JSON.stringify(signMember)}`,
+    );
 
-  //   const memberEntireResult =
-  //     await this.memberEntireRepository.selectMemberAndMemberDetailAndProviderByMemberDetailId(
-  //       signMember.memberDetailId,
-  //     );
-  //   if (!memberEntireResult) this.exceptionService.notRecognizedError();
-  //   if (!memberEntireResult?.isSucceed || memberEntireResult.data)
-  //     this.exceptionService.notSelectedEntity('member');
-  //   const memberDetailPhoneResult =
-  //     await this.memberDetailPhoneRepository.selectMemberDetailByMemberDetailId(
-  //       signMember.memberDetailId,
-  //     );
-  //   if (!memberDetailPhoneResult) this.exceptionService.notRecognizedError();
-  //   if (!memberDetailPhoneResult?.isSucceed || !memberDetailPhoneResult.data)
-  //     this.exceptionService.notSelectedEntity('member_detail_phone');
-  //   const memberPhoneResult =
-  //     await this.memberPhoneRepository.selectMemberPhoneById(
-  //       memberDetailPhoneResult!.data!.memberPhoneId,
-  //     );
-  //   if (!memberPhoneResult) this.exceptionService.notRecognizedError();
-  //   if (!memberPhoneResult?.isSucceed || !memberPhoneResult.data)
-  //     this.exceptionService.notSelectedEntity('member_phone');
+    const memberEntireResult =
+      await this.memberEntireRepository.selectMemberAndMemberDetailAndProviderByMemberDetailId(
+        signMember.memberDetailId,
+      );
+    if (!memberEntireResult) this.exceptionService.notRecognizedError();
+    if (!memberEntireResult?.isSucceed || memberEntireResult.data)
+      this.exceptionService.notSelectedEntity('member');
+    const memberDetailPhoneResult =
+      await this.memberDetailPhoneRepository.selectMemberDetailByMemberDetailId(
+        signMember.memberDetailId,
+      );
+    if (!memberDetailPhoneResult) this.exceptionService.notRecognizedError();
+    if (!memberDetailPhoneResult?.isSucceed || !memberDetailPhoneResult.data)
+      this.exceptionService.notSelectedEntity('member_detail_phone');
+    const memberPhoneResult =
+      await this.memberPhoneRepository.selectMemberPhoneById(
+        memberDetailPhoneResult!.data!.memberPhoneId,
+      );
+    if (!memberPhoneResult) this.exceptionService.notRecognizedError();
+    if (!memberPhoneResult?.isSucceed || !memberPhoneResult.data)
+      this.exceptionService.notSelectedEntity('member_phone');
 
-  //   const member = memberEntireResult!.data!;
-  //   const memberPhone = memberPhoneResult!.data!;
-  //   const phoneNumbers: { countryCallingCode: string; phoneNumber: string }[] =
-  //     [];
-  //   for (const phoneNumber of memberPhone)
+    const member = memberEntireResult!.data!;
+    const memberPhone = memberPhoneResult!.data!;
 
-  //   return new MemberEntireRequestRead(
-  //     member.createdAt,
-  //     member.isConsentedTermsAndConditions,
-  //     member.isConsentedCollectionAndUsePersonalData,
-  //     member.isConsentedMarketingUseAndInformationReceiving,
-  //     member.name,
-  //     member.email,
-  //   );
-  // }
+
+    return new MemberEntireRequestRead(
+      member.createdAt,
+      member.isConsentedTermsAndConditions === 1,
+      member.isConsentedCollectionAndUsePersonalData === 1,
+      member.isConsentedMarketingUseAndInformationReceiving === 1,
+      member.name,
+      member.email,
+      memberPhone.countryCallingCode,
+      memberPhone.phoneNumber,
+    );
+  }
 }
