@@ -153,10 +153,19 @@ export const memberDetail = mysqlTable("member_detail", {
 	primaryKey({ columns: [table.id], name: "member_detail_id"}),
 ]);
 
+export const memberDetailPhone = mysqlTable("member_detail_phone", {
+	memberDetailId: bigint("member_detail_id", { mode: "number" }).notNull().references(() => memberDetail.id),
+	memberPhoneId: bigint("member_phone_id", { mode: "number" }).notNull().references(() => memberPhone.id),
+	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
+	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
+},
+(table) => [
+	primaryKey({ columns: [table.memberDetailId, table.memberPhoneId], name: "member_detail_phone_member_detail_id_member_phone_id"}),
+]);
+
 export const memberPhone = mysqlTable("member_phone", {
 	id: bigint({ mode: "number" }).autoincrement().notNull(),
 	memberPhoneId: bigint("member_phone_id", { mode: "number" }),
-	memberDetailId: bigint("member_detail_id", { mode: "number" }).notNull().references(() => memberDetail.id),
 	memberId: bigint("member_id", { mode: "number" }).notNull().references(() => member.id),
 	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),

@@ -25,6 +25,9 @@ export class KeyService {
     const data = { privateKey, publicKey };
     const keypairResult =
       await this.idTokenKeypairRepository.insertIdTokenKeypair(data);
+    this.logger.debug(
+      `createKeypairJWK.keypairResult -> ${JSON.stringify(keypairResult)}`,
+    );
     if (!keypairResult) this.exceptionService.notRecognizedError();
     if (!keypairResult?.isSucceed) {
       this.exceptionService.notInsertedEntity('id token keypair');

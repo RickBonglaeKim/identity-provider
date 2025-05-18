@@ -10,6 +10,7 @@ import { IdTokenKeypairRepository } from './repository/id.token.keypair.reposito
 import { ClientMemberRepository } from './repository/client.member.repository';
 import { ClientRepository } from './repository/client.repository';
 import { ChildRepository } from './repository/child.repository';
+import { MemberDetailPhoneRepository } from './repository/member.detail.phone.repository';
 
 @Module({
   providers: [
@@ -19,6 +20,7 @@ import { ChildRepository } from './repository/child.repository';
     MemberRepository,
     MemberDetailRepository,
     MemberPhoneRepository,
+    MemberDetailPhoneRepository,
     OauthRepository,
     SignRepository,
     IdTokenKeypairRepository,
@@ -32,6 +34,7 @@ import { ChildRepository } from './repository/child.repository';
     MemberRepository,
     MemberDetailRepository,
     MemberPhoneRepository,
+    MemberDetailPhoneRepository,
     OauthRepository,
     SignRepository,
     IdTokenKeypairRepository,

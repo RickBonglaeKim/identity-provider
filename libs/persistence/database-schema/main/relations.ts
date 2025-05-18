@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { member, child, client, clientConsent, clientKeypair, clientMember, clientUri, code, memberConsent, memberDetail, provider, memberPhone, memberWithdrawal } from "./schema";
+import { member, child, client, clientConsent, clientKeypair, clientMember, clientUri, code, memberConsent, memberDetail, provider, memberDetailPhone, memberPhone, memberWithdrawal } from "./schema";
 
 export const childRelations = relations(child, ({one}) => ({
 	member: one(member, {
@@ -96,14 +96,26 @@ export const memberDetailRelations = relations(memberDetail, ({one, many}) => ({
 		fields: [memberDetail.providerId],
 		references: [provider.id]
 	}),
-	memberPhones: many(memberPhone),
+	memberDetailPhones: many(memberDetailPhone),
 }));
 
 export const providerRelations = relations(provider, ({many}) => ({
 	memberDetails: many(memberDetail),
 }));
 
+export const memberDetailPhoneRelations = relations(memberDetailPhone, ({one}) => ({
+	memberDetail: one(memberDetail, {
+		fields: [memberDetailPhone.memberDetailId],
+		references: [memberDetail.id]
+	}),
+	memberPhone: one(memberPhone, {
+		fields: [memberDetailPhone.memberPhoneId],
+		references: [memberPhone.id]
+	}),
+}));
+
 export const memberPhoneRelations = relations(memberPhone, ({one, many}) => ({
+	memberDetailPhones: many(memberDetailPhone),
 	memberPhone: one(memberPhone, {
 		fields: [memberPhone.memberPhoneId],
 		references: [memberPhone.id],
@@ -111,10 +123,6 @@ export const memberPhoneRelations = relations(memberPhone, ({one, many}) => ({
 	}),
 	memberPhones: many(memberPhone, {
 		relationName: "memberPhone_memberPhoneId_memberPhone_id"
-	}),
-	memberDetail: one(memberDetail, {
-		fields: [memberPhone.memberDetailId],
-		references: [memberDetail.id]
 	}),
 	member: one(member, {
 		fields: [memberPhone.memberId],

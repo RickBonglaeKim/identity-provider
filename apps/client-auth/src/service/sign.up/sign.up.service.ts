@@ -6,6 +6,7 @@ import { SignupWithPhoneRequestCreate } from 'dto/interface/sign.up/request/phon
 import { MemberService } from '../member/member.service';
 import { SignMember } from '../../type/service/sign.service.type';
 import { ExceptionService } from '@app/exception/service/exception.service';
+import { MemberDetailPhoneRepository } from '@app/persistence/schema/main/repository/member.detail.phone.repository';
 
 @Injectable()
 export class SignupService {
@@ -13,6 +14,7 @@ export class SignupService {
 
   constructor(
     private readonly memberDetailRepository: MemberDetailRepository,
+    private readonly memberDetailPhoneRepository: MemberDetailPhoneRepository,
     private readonly memberService: MemberService,
     private readonly exceptionService: ExceptionService,
   ) {}
@@ -54,11 +56,16 @@ export class SignupService {
     this.logger.debug(`createSignupWithPhone.data -> ${JSON.stringify(data)}`);
     const signMember = await this.createSignup(data);
     if (!signMember) this.exceptionService.notInsertedEntity('sign up');
+
     this.logger.debug(JSON.stringify(signMember));
-    data.memberPhone.memberDetailId = signMember!.memberDetailId;
-    await this.memberService.createMemberPhone(
+    const memberPhoneId = await this.memberService.createMemberPhone(
       signMember!.memberId,
       data.memberPhone,
     );
+
+    await this.memberDetailPhoneRepository.insertMemberDetail({
+      memberDetailId: signMember!.memberDetailId,
+      memberPhoneId: memberPhoneId,
+    });
   }
 }

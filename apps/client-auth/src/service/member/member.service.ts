@@ -76,13 +76,12 @@ export class MemberService {
   async createMemberPhone(
     memberId: number,
     data: MemberPhoneRequestCreate,
-  ): Promise<number | undefined> {
+  ): Promise<number> {
     this.logger.debug(`createMemberPhone.memberId -> ${memberId}`);
     this.logger.debug(`createMemberPhone.data -> ${JSON.stringify(data)}`);
 
     const memberPhoneResult =
       await this.memberPhoneRepository.insertMemberPhone({
-        memberDetailId: data.memberDetailId!,
         memberId: memberId,
         memberPhoneId: data.memberPhoneId,
         countryCallingCode: data.countryCallingCode,
