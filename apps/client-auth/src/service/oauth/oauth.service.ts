@@ -64,7 +64,7 @@ export class OauthService {
     );
     return {
       isVerified: verifiedResult!.isSucceed,
-      signCode: verifiedResult!.data!.signCode,
+      signCode: verifiedResult!.data?.signCode,
     };
   }
 

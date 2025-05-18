@@ -11,6 +11,7 @@ import { MemberEntireRepository } from '@app/persistence/schema/main/repository/
 import { MemberDetailPhoneRepository } from '@app/persistence/schema/main/repository/member.detail.phone.repository';
 import { ExceptionService } from '@app/exception/service/exception.service';
 import { MemberPhoneRepository } from '@app/persistence/schema/main/repository/member.phone.repository';
+import { MemberEntireRequestRead } from 'dto/interface/member.entire/response/member.entire.response.read.dto';
 
 @Controller('member')
 @UseInterceptors(TransformInterceptor)
@@ -33,7 +34,9 @@ export class MemberController {
   }
 
   // @Get('entire')
-  // async getEntireMember(@Req() request: Request): Promise<> {
+  // async getEntireMember(
+  //   @Req() request: Request,
+  // ): Promise<MemberEntireRequestRead> {
   //   const encryptedCookieValue = request.cookies['iScreamArts-IDP'] as string;
   //   this.logger.debug(`getEntireMember.signMember -> ${encryptedCookieValue}`);
   //   const decryptedCookieValue = cryptoJS.AES.decrypt(
@@ -45,12 +48,12 @@ export class MemberController {
   //     `getEntireMember.signMember -> ${JSON.stringify(signMember)}`,
   //   );
 
-  //   const memberResult =
+  //   const memberEntireResult =
   //     await this.memberEntireRepository.selectMemberAndMemberDetailAndProviderByMemberDetailId(
   //       signMember.memberDetailId,
   //     );
-  //   if (!memberResult) this.exceptionService.notRecognizedError();
-  //   if (!memberResult?.isSucceed || memberResult.data)
+  //   if (!memberEntireResult) this.exceptionService.notRecognizedError();
+  //   if (!memberEntireResult?.isSucceed || memberEntireResult.data)
   //     this.exceptionService.notSelectedEntity('member');
   //   const memberDetailPhoneResult =
   //     await this.memberDetailPhoneRepository.selectMemberDetailByMemberDetailId(
@@ -59,11 +62,27 @@ export class MemberController {
   //   if (!memberDetailPhoneResult) this.exceptionService.notRecognizedError();
   //   if (!memberDetailPhoneResult?.isSucceed || !memberDetailPhoneResult.data)
   //     this.exceptionService.notSelectedEntity('member_detail_phone');
-  //   const memberPhoneResult = this.memberPhoneRepository.selectMemberPhoneById(
-  //     memberDetailPhoneResult!.data!.memberPhoneId,
+  //   const memberPhoneResult =
+  //     await this.memberPhoneRepository.selectMemberPhoneById(
+  //       memberDetailPhoneResult!.data!.memberPhoneId,
+  //     );
+  //   if (!memberPhoneResult) this.exceptionService.notRecognizedError();
+  //   if (!memberPhoneResult?.isSucceed || !memberPhoneResult.data)
+  //     this.exceptionService.notSelectedEntity('member_phone');
+
+  //   const member = memberEntireResult!.data!;
+  //   const memberPhone = memberPhoneResult!.data!;
+  //   const phoneNumbers: { countryCallingCode: string; phoneNumber: string }[] =
+  //     [];
+  //   for (const phoneNumber of memberPhone)
+
+  //   return new MemberEntireRequestRead(
+  //     member.createdAt,
+  //     member.isConsentedTermsAndConditions,
+  //     member.isConsentedCollectionAndUsePersonalData,
+  //     member.isConsentedMarketingUseAndInformationReceiving,
+  //     member.name,
+  //     member.email,
   //   );
-
-  //   return 
-
   // }
 }

@@ -28,7 +28,7 @@ export type Keypair = {
 
 export type SignVerification = {
   isVerified: boolean;
-  signCode: string;
+  signCode: string | undefined;
 };
 
 export const IdTokenPayloadKey = {
