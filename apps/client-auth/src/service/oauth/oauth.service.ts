@@ -12,8 +12,8 @@ import * as type from '../../type/service/oauth.service.type';
 import { AuthorizationAccessTokenCacheRepository } from '@app/cache/repository/authorization.token.access.cache.repository';
 import { AuthorizationRefreshTokenCacheRepository } from '@app/cache/repository/authorization.token.refresh.cache.repository';
 import { ChildResponse } from 'dto/interface/child/response/child.response.dto';
-import { MemberDetailResponse } from 'dto/interface/member.detail/member.detail.response.dto';
-import { MemberPhoneResponse } from 'dto/interface/member.phone/member.phone.response.dto';
+import { MemberDetailResponseRead } from 'dto/interface/member.detail/response/member.detail.response.read.dto';
+import { MemberPhoneResponseRead } from 'dto/interface/member.phone/response/member.phone.response.read.dto';
 
 @Injectable()
 export class OauthService {
@@ -162,7 +162,11 @@ export class OauthService {
   }
 
   createIdTokenPayloadByScope(
-    memberGroup: [MemberDetailResponse, MemberPhoneResponse[], ChildResponse[]],
+    memberGroup: [
+      MemberDetailResponseRead,
+      MemberPhoneResponseRead[],
+      ChildResponse[],
+    ],
     scope: string,
   ): type.IdTokenPayload {
     const memberDetail = memberGroup[0];

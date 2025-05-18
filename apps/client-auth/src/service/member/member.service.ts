@@ -9,8 +9,8 @@ import { MemberDetailRequestCreate } from 'dto/interface/member.detail/request/m
 import { MemberPhoneRepository } from '@app/persistence/schema/main/repository/member.phone.repository';
 import { MemberPhoneRequestCreate } from 'dto/interface/member.phone/request/member.phone.request.create.dto';
 import { ClientMemberRepository } from '@app/persistence/schema/main/repository/client.member.repository';
-import { MemberDetailResponse } from 'dto/interface/member.detail/member.detail.response.dto';
-import { MemberPhoneResponse } from 'dto/interface/member.phone/member.phone.response.dto';
+import { MemberDetailResponseRead } from 'dto/interface/member.detail/response/member.detail.response.read.dto';
+import { MemberPhoneResponseRead } from 'dto/interface/member.phone/response/member.phone.response.read.dto';
 
 @Injectable()
 export class MemberService {
@@ -124,14 +124,14 @@ export class MemberService {
     return result?.data as number;
   }
 
-  async findMemberDetailById(id: number): Promise<MemberDetailResponse> {
+  async findMemberDetailById(id: number): Promise<MemberDetailResponseRead> {
     const result = await this.memberDetailRepository.selectMemberDetailById(id);
     if (!result) this.exceptionService.notRecognizedError();
     if (!result?.isSucceed || !result.data)
       this.exceptionService.notSelectedEntity('member detail');
 
     const data = result!.data!;
-    return new MemberDetailResponse(
+    return new MemberDetailResponseRead(
       data.id,
       data.memberDetailId,
       data.providerId,
@@ -143,14 +143,14 @@ export class MemberService {
     );
   }
 
-  async findMemberPhoneById(id: number): Promise<MemberPhoneResponse> {
+  async findMemberPhoneById(id: number): Promise<MemberPhoneResponseRead> {
     const result = await this.memberPhoneRepository.selectMemberPhoneById(id);
     if (!result) this.exceptionService.notRecognizedError();
     if (!result?.isSucceed || result.data)
       this.exceptionService.notSelectedEntity('member phone');
 
     const data = result!.data!;
-    return new MemberPhoneResponse(
+    return new MemberPhoneResponseRead(
       data.id,
       data.memberPhoneId,
       data.memberId,
@@ -161,18 +161,18 @@ export class MemberService {
 
   async findMemberPhoneByMemberId(
     memberId: number,
-  ): Promise<MemberPhoneResponse[]> {
+  ): Promise<MemberPhoneResponseRead[]> {
     const result =
       await this.memberPhoneRepository.selectMemberPhoneByMemberId(memberId);
 
-    const phoneNumbers: MemberPhoneResponse[] = [];
+    const phoneNumbers: MemberPhoneResponseRead[] = [];
 
     if (!result) this.exceptionService.notRecognizedError();
     if (!result?.isSucceed || !result.data) return phoneNumbers;
 
     for (const phoneNumber of result.data) {
       phoneNumbers.push(
-        new MemberPhoneResponse(
+        new MemberPhoneResponseRead(
           phoneNumber.id,
           phoneNumber.memberPhoneId,
           phoneNumber.memberId,
