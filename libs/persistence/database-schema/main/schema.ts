@@ -22,6 +22,7 @@ export const client = mysqlTable("client", {
 	clientId: varchar("client_id", { length: 32 }).notNull(),
 	clientSecret: varchar("client_secret", { length: 64 }).notNull(),
 	name: varchar({ length: 32 }).notNull(),
+	signCode: varchar("sign_code", { length: 16 }).notNull(),
 	note: varchar({ length: 256 }),
 },
 (table) => [

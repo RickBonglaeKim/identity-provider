@@ -6,7 +6,7 @@ import {
 } from 'libs/persistence/database-schema/main/schema';
 import { MainSchemaService } from '../service/main.schema.service';
 import { ResponseEntity } from '@app/persistence/entity/response.entity';
-import { verifyAuthorizationByClientIdAndClientSecretAndRedirectUri } from '@app/persistence/entity/oauth.entity';
+import { VerifyAuthorizationByClientIdAndClientSecretAndRedirectUri } from '@app/persistence/entity/oauth.entity';
 
 @Injectable()
 export class OauthRepository extends MainSchemaService {
@@ -16,12 +16,16 @@ export class OauthRepository extends MainSchemaService {
     clientId: string,
     redirectUri: string,
   ): Promise<
-    | ResponseEntity<verifyAuthorizationByClientIdAndClientSecretAndRedirectUri>
+    | ResponseEntity<VerifyAuthorizationByClientIdAndClientSecretAndRedirectUri>
     | undefined
   > {
     try {
       const result = await this.mainTransaction.tx
-        .select({ clientUriId: clientUri.id, clientId: client.id })
+        .select({
+          clientUriId: clientUri.id,
+          clientId: client.id,
+          signCode: client.signCode,
+        })
         .from(client)
         .innerJoin(clientUri, eq(clientUri.clientId, client.id))
         .where(
@@ -36,11 +40,11 @@ export class OauthRepository extends MainSchemaService {
         );
       }
       if (result.length === 0) {
-        return new ResponseEntity<verifyAuthorizationByClientIdAndClientSecretAndRedirectUri>(
+        return new ResponseEntity<VerifyAuthorizationByClientIdAndClientSecretAndRedirectUri>(
           false,
         );
       }
-      return new ResponseEntity<verifyAuthorizationByClientIdAndClientSecretAndRedirectUri>(
+      return new ResponseEntity<VerifyAuthorizationByClientIdAndClientSecretAndRedirectUri>(
         true,
         result[0],
       );

@@ -3,9 +3,11 @@ import {
   clientUri,
 } from 'libs/persistence/database-schema/main/schema';
 
-type verifyAuthorizationByClientIdAndClientSecretAndRedirectUriType = {
+type VerifyAuthorizationByClientIdAndClientSecretAndRedirectUriType = {
   clientUriId: typeof clientUri.$inferSelect.id;
   clientId: typeof client.$inferSelect.id;
+  signCode: typeof client.$inferSelect.signCode;
 };
-export type verifyAuthorizationByClientIdAndClientSecretAndRedirectUri =
-  Required<verifyAuthorizationByClientIdAndClientSecretAndRedirectUriType>;
+
+export type VerifyAuthorizationByClientIdAndClientSecretAndRedirectUri =
+  Required<VerifyAuthorizationByClientIdAndClientSecretAndRedirectUriType>;

@@ -26,6 +26,11 @@ export type Keypair = {
   publicKey: string;
 };
 
+export type SignVerification = {
+  isVerified: boolean;
+  signCode: string;
+};
+
 export const IdTokenPayloadKey = {
   name: 'name',
   email: 'email',

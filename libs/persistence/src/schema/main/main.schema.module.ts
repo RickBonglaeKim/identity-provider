@@ -11,6 +11,7 @@ import { ClientMemberRepository } from './repository/client.member.repository';
 import { ClientRepository } from './repository/client.repository';
 import { ChildRepository } from './repository/child.repository';
 import { MemberDetailPhoneRepository } from './repository/member.detail.phone.repository';
+import { MemberEntireRepository } from './repository/member.entire.repository';
 
 @Module({
   providers: [
@@ -21,6 +22,7 @@ import { MemberDetailPhoneRepository } from './repository/member.detail.phone.re
     MemberDetailRepository,
     MemberPhoneRepository,
     MemberDetailPhoneRepository,
+    MemberEntireRepository,
     OauthRepository,
     SignRepository,
     IdTokenKeypairRepository,
@@ -35,6 +37,7 @@ import { MemberDetailPhoneRepository } from './repository/member.detail.phone.re
     MemberDetailRepository,
     MemberPhoneRepository,
     MemberDetailPhoneRepository,
+    MemberEntireRepository,
     OauthRepository,
     SignRepository,
     IdTokenKeypairRepository,

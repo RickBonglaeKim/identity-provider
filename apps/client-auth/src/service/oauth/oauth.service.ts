@@ -14,6 +14,7 @@ import { AuthorizationRefreshTokenCacheRepository } from '@app/cache/repository/
 import { ChildResponse } from 'dto/interface/child/response/child.response.dto';
 import { MemberDetailResponseRead } from 'dto/interface/member.detail/response/member.detail.response.read.dto';
 import { MemberPhoneResponseRead } from 'dto/interface/member.phone/response/member.phone.response.read.dto';
+import { SignVerification } from '../../type/service/oauth.service.type';
 
 @Injectable()
 export class OauthService {
@@ -48,18 +49,23 @@ export class OauthService {
     };
   }
 
-  async verifyClient(clientId: string, redirectUri: string): Promise<boolean> {
+  async verifyClient(
+    clientId: string,
+    redirectUri: string,
+  ): Promise<SignVerification> {
     const verifiedResult =
       await this.oauthRepository.verifyAuthorizationByClientIdAndRedirectUri(
         clientId,
         redirectUri,
       );
+    if (!verifiedResult) this.exceptionService.notRecognizedError();
     this.logger.debug(
       `verifyClientByClientIdAndClientSecret.verifiedResult -> ${JSON.stringify(verifiedResult)}`,
     );
-    if (!verifiedResult?.isSucceed) return false;
-
-    return true;
+    return {
+      isVerified: verifiedResult!.isSucceed,
+      signCode: verifiedResult!.data!.signCode,
+    };
   }
 
   async createPassport(
