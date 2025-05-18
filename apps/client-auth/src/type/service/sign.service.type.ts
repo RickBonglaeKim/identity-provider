@@ -4,3 +4,7 @@ export type SignMember =
       memberDetailId: number;
     }
   | undefined;
+
+export type CookieValue = SignMember & {
+  timestamp: number;
+};

@@ -12,15 +12,27 @@ import { SigninService } from '../../service/sign.in/sign.in.service';
 import { Response } from 'express';
 import { OauthService } from '../../service/oauth/oauth.service';
 import { OauthAuthorizeRequestCreate } from 'dto/interface/oauth/authorize/request/oauth.authorize.request.create.dto';
+import { ConfigService } from '@nestjs/config';
+import * as cryptoJS from 'crypto-js';
+import { CookieValue } from '../../type/service/sign.service.type';
 
 @Controller('signin')
 export class SignInController {
   private readonly logger = new Logger(SignInController.name);
+  private readonly cookieEncryptionKey: string;
+  private readonly tokenExpirySeconds: number;
 
   constructor(
+    private readonly configService: ConfigService,
     private readonly signinService: SigninService,
     private readonly oauthService: OauthService,
-  ) {}
+  ) {
+    this.cookieEncryptionKey = this.configService.getOrThrow<string>(
+      'COOKIE_ENCRYPTION_KEY',
+    );
+    this.tokenExpirySeconds =
+      this.configService.getOrThrow<number>('TOKEN_EXPIRE_IN');
+  }
 
   @Post()
   async postSignin(
@@ -53,6 +65,30 @@ export class SignInController {
     }
 
     // set cookie
+    const cookieValue: CookieValue = {
+      memberId: member.memberId,
+      memberDetailId: member.memberDetailId,
+      timestamp: Date.now(),
+    };
+    const encryptedCookieValue = cryptoJS.AES.encrypt(
+      JSON.stringify(cookieValue),
+      this.cookieEncryptionKey,
+    ).toString();
+    this.logger.debug(
+      `postSignin.encryptedCookieValue -> ${encryptedCookieValue}`,
+    );
+    this.logger.debug(
+      cryptoJS.AES.decrypt(
+        encryptedCookieValue,
+        this.cookieEncryptionKey,
+      ).toString(cryptoJS.enc.Utf8),
+    );
+    response.cookie('iScreamArts-IDP', encryptedCookieValue, {
+      maxAge: this.tokenExpirySeconds * 1000,
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+    });
 
     const passportJson = JSON.parse(passport) as OauthAuthorizeRequestCreate;
     let redirectUrl = `${passportJson.redirect_uri}?code=${authorizationCode}`;

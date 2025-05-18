@@ -104,14 +104,12 @@ export class MemberService {
         clientId,
       );
     if (!clientMemberResult) this.exceptionService.notRecognizedError();
-
     //-----------------------------------------------------------------------------//
     // Must return existing id of client_member table, if the data exist.
     //-----------------------------------------------------------------------------//
     if (clientMemberResult?.isSucceed && clientMemberResult.data)
       return clientMemberResult.data.id;
     //-----------------------------------------------------------------------------//
-
     const result = await this.clientMemberRepository.insertClientMember({
       clientId,
       memberId,
@@ -182,4 +180,6 @@ export class MemberService {
     }
     return phoneNumbers;
   }
+
+  async findEntireMemberByMemberIdAndMemberDetailId() {}
 }

@@ -47,6 +47,4 @@ export class SigninService {
     }
     return memberResult;
   }
-
-  async createAuthCookie() {}
 }
