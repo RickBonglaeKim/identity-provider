@@ -20,7 +20,7 @@ import * as cryptoJS from 'crypto-js';
 import { CookieValue } from '../../type/service/sign.service.type';
 
 @Controller('signin')
-// @UseInterceptors(TransformInterceptor)
+@UseInterceptors(TransformInterceptor)
 export class SignInController {
   private readonly logger = new Logger(SignInController.name);
   private readonly cookieEncryptionKey: string;
@@ -39,32 +39,30 @@ export class SignInController {
   }
 
   @Post()
-  // @Redirect(
-  //   'http://localhost:3000/test/callback?code=yLR-zImjar_yiXmtyCJ04ddvk5FQHdkM&state=sldfk3gfy534F',
-  //   302,
-  // )
   async postSignin(
     @Res() response: Response,
     @Body() dto: SigninRequestCreate,
   ): Promise<void> {
     const passport = await this.oauthService.findPassport(dto.passport);
     if (!passport) {
-      this.logger.error(passport);
-      response.status(251).end();
+      this.logger.error(`passport -> ${passport}`);
+      response.status(251);
+      return;
     }
 
     const member = await this.signinService.findMember(dto.email, dto.password);
     this.logger.debug(`getSignin.memberId -> ${JSON.stringify(member)}`);
     if (!member) {
       this.logger.error(member);
-      response.status(252).end();
+      response.status(252);
+      return;
     }
 
     const authorizationCode = await this.oauthService.createAuthorizationCode(
-      member!.memberId,
-      member!.memberDetailId,
+      member.memberId,
+      member.memberDetailId,
       dto.passport,
-      passport!,
+      passport,
     );
 
     if (!authorizationCode) {
@@ -76,8 +74,8 @@ export class SignInController {
 
     // set cookie
     const cookieValue: CookieValue = {
-      memberId: member!.memberId,
-      memberDetailId: member!.memberDetailId,
+      memberId: member.memberId,
+      memberDetailId: member.memberDetailId,
       timestamp: Date.now(),
     };
     const encryptedCookieValue = cryptoJS.AES.encrypt(
@@ -100,7 +98,7 @@ export class SignInController {
       sameSite: 'none',
     });
 
-    const passportJson = JSON.parse(passport!) as OauthAuthorizeRequestCreate;
+    const passportJson = JSON.parse(passport) as OauthAuthorizeRequestCreate;
     let redirectUrl = `${passportJson.redirect_uri}?code=${authorizationCode}`;
     if (passportJson.state) redirectUrl += `&state=${passportJson.state}`;
 
