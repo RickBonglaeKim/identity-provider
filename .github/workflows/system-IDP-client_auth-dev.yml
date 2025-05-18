@@ -64,6 +64,7 @@ jobs:
             DATABASE_URI=${{ secrets.DATABASE_URI }}
             CACHE_HOST=${{ secrets.CACHE_HOST }}
             CACHE_PORT=${{ secrets.CACHE_PORT }}
+            COOKIE_ENCRYPTION_KEY=${{ secrets.COOKIE_ENCRYPTION_KEY }}
             DATABASE_IDLE_TIMEOUT=${{ vars.DATABASE_IDLE_TIMEOUT }}
             ID_TOKEN_ISS=${{ vars.ID_TOKEN_ISS }}
             LOG_CONNECTION_LIMIT=${{ vars.LOG_CONNECTION_LIMIT }}
