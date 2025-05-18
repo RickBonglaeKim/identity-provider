@@ -22,6 +22,13 @@ export class VerificationService {
     return cryptoRandomString({ length: 6, type: 'numeric' });
   }
 
+  private createPhoneVerificationKey(
+    countryCallingCode: string,
+    phoneNumber: string,
+  ): string {
+    return `${countryCallingCode}+${phoneNumber}`;
+  }
+
   async verifyPhone(
     countryCallingCode: string,
     phoneNumber: string,
@@ -42,8 +49,27 @@ export class VerificationService {
   ): Promise<boolean> {
     const code = this.generateVerificationCode();
     this.logger.debug(`setPhoneVerificationCode.code -> ${code}`);
+    const phoneVerificationKey = this.createPhoneVerificationKey(
+      countryCallingCode,
+      phoneNumber,
+    );
+    const checkResult =
+      await this.verificationCacheRepository.getVerificationCode(
+        phoneVerificationKey,
+      );
+
+    if (
+      checkResult.isSucceed &&
+      !(
+        await this.verificationCacheRepository.deleteVerificationCode(
+          phoneVerificationKey,
+        )
+      ).isSucceed
+    )
+      return false;
+
     const result = await this.verificationCacheRepository.setVerificationCode(
-      `${countryCallingCode}+${phoneNumber}`,
+      phoneVerificationKey,
       code,
     );
     return result.isSucceed;
@@ -56,7 +82,7 @@ export class VerificationService {
     const code = this.generateVerificationCode();
     this.logger.debug(`getPhoneVerificationCode.code -> ${code}`);
     const result = await this.verificationCacheRepository.getVerificationCode(
-      `${countryCallingCode}+${phoneNumber}`,
+      this.createPhoneVerificationKey(countryCallingCode, phoneNumber),
     );
     if (result.isSucceed) return result.data;
   }

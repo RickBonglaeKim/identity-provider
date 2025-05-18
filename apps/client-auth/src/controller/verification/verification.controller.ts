@@ -18,6 +18,7 @@ import { VerificationEmailRequestCreate } from 'dto/interface/verification/email
 import { Response } from 'express';
 import { VerificationEmailRequestRead } from 'dto/interface/verification/email/request/verification.email.request.read.dto';
 import { VerificationPhoneRequestRead } from 'dto/interface/verification/phone/request/verification.phone.request.read.dto';
+import trimPhoneNumber from '../../util/trim.phoneNumber';
 
 @Controller('verification')
 @UseInterceptors(TransformInterceptor)
@@ -36,7 +37,7 @@ export class VerificationController {
   ): Promise<void> {
     const isVerified = await this.verificationService.verifyPhone(
       dto.countryCallingCode,
-      dto.phoneNumber,
+      trimPhoneNumber(dto.phoneNumber),
     );
     this.logger.debug(`getVerifyPhone.isVerified -> ${isVerified}`);
     if (!isVerified) {
@@ -45,7 +46,7 @@ export class VerificationController {
     }
     const isGenerated = await this.verificationService.setPhoneVerificationCode(
       dto.countryCallingCode,
-      dto.phoneNumber,
+      trimPhoneNumber(dto.phoneNumber),
     );
     this.logger.debug(`getVerifyPhone.isGenerated -> ${isGenerated}`);
     if (!isGenerated)
@@ -61,7 +62,7 @@ export class VerificationController {
   ): Promise<boolean> {
     const result = await this.verificationService.getPhoneVerificationCode(
       dto.countryCallingCode,
-      dto.phoneNumber,
+      trimPhoneNumber(dto.phoneNumber),
     );
     if (!result)
       throw new HttpException(
@@ -75,7 +76,7 @@ export class VerificationController {
   async getPhoneVerifiedCode(@Query() dto: VerificationPhoneRequestCreate) {
     const code = await this.verificationService.getPhoneVerificationCode(
       dto.countryCallingCode,
-      dto.phoneNumber,
+      trimPhoneNumber(dto.phoneNumber),
     );
     if (!code)
       throw new HttpException(
