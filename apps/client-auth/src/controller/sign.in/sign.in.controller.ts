@@ -9,6 +9,7 @@ import {
   Body,
   UseInterceptors,
   HttpException,
+  Redirect,
 } from '@nestjs/common';
 import { SigninService } from '../../service/sign.in/sign.in.service';
 import { Response } from 'express';
@@ -38,19 +39,25 @@ export class SignInController {
   }
 
   @Post()
+  // @Redirect(
+  //   'http://localhost:3000/test/callback?code=yLR-zImjar_yiXmtyCJ04ddvk5FQHdkM&state=sldfk3gfy534F',
+  //   302,
+  // )
   async postSignin(
     @Res() response: Response,
     @Body() dto: SigninRequestCreate,
   ): Promise<void> {
     const passport = await this.oauthService.findPassport(dto.passport);
     if (!passport) {
-      response.status(251).send();
+      this.logger.error(passport);
+      response.status(251).end();
     }
 
     const member = await this.signinService.findMember(dto.email, dto.password);
     this.logger.debug(`getSignin.memberId -> ${JSON.stringify(member)}`);
     if (!member) {
-      response.status(252).send();
+      this.logger.error(member);
+      response.status(252).end();
     }
 
     const authorizationCode = await this.oauthService.createAuthorizationCode(
@@ -98,6 +105,6 @@ export class SignInController {
     if (passportJson.state) redirectUrl += `&state=${passportJson.state}`;
 
     this.logger.debug(`getSignin.redirectUrl -> ${redirectUrl}`);
-    response.redirect(redirectUrl);
+    response.redirect(308, redirectUrl);
   }
 }
