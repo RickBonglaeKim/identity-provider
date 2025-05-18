@@ -42,7 +42,7 @@ export class SignInController {
   async postSignin(
     @Res() response: Response,
     @Body() dto: SigninRequestCreate,
-  ): Promise<void> {
+  ): Promise<string | void> {
     const passport = await this.oauthService.findPassport(dto.passport);
     if (!passport) {
       this.logger.error(`passport -> ${passport}`);
@@ -94,7 +94,7 @@ export class SignInController {
     response.cookie('iScreamArts-IDP', encryptedCookieValue, {
       maxAge: this.tokenExpirySeconds * 1000,
       httpOnly: true,
-      secure: true,
+      secure: false,
       sameSite: 'none',
     });
 
@@ -103,6 +103,7 @@ export class SignInController {
     if (passportJson.state) redirectUrl += `&state=${passportJson.state}`;
 
     this.logger.debug(`getSignin.redirectUrl -> ${redirectUrl}`);
-    response.redirect(308, redirectUrl);
+    return redirectUrl;
+    // response.redirect(308, redirectUrl);
   }
 }

@@ -11,12 +11,11 @@ async function bootstrap() {
   app.useGlobalPipes(new ZodValidationPipe());
   app.useGlobalInterceptors(new LogInterceptor());
   app.use(cookieParser());
-  app.enableCors();
-  // app.enableCors({
-  //   origin: '*',
-  //   method: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-  //   credentials: true,
-  // });
+  app.enableCors({
+    origin: '*',
+    method: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+  });
   await app.listen(process.env.port ?? 3000);
 }
 void bootstrap();
