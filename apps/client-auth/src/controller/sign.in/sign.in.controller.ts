@@ -23,7 +23,7 @@ import * as cryptoJS from 'crypto-js';
 import { CookieValue } from '../../type/service/sign.service.type';
 
 @Controller('signin')
-// @UseInterceptors(TransformInterceptor)
+@UseInterceptors(TransformInterceptor)
 export class SignInController {
   private readonly logger = new Logger(SignInController.name);
   private readonly cookieEncryptionKey: string;
@@ -43,9 +43,9 @@ export class SignInController {
 
   @Post()
   async postSignin(
-    @Res() response: Response,
+    @Res({ passthrough: true }) response: Response,
     @Body() dto: SigninRequestCreate,
-  ): Promise<string | void> {
+  ): Promise<void> {
     const passport = await this.oauthService.findPassport(dto.passport);
     if (!passport) {
       this.logger.error(`passport -> ${passport}`);
@@ -76,46 +76,45 @@ export class SignInController {
     }
 
     // set cookie
-    // const cookieValue: CookieValue = {
-    //   memberId: member.memberId,
-    //   memberDetailId: member.memberDetailId,
-    //   timestamp: Date.now(),
-    // };
-    // const encryptedCookieValue = cryptoJS.AES.encrypt(
-    //   JSON.stringify(cookieValue),
-    //   this.cookieEncryptionKey,
-    // ).toString();
-    // this.logger.debug(
-    //   `postSignin.encryptedCookieValue -> ${encryptedCookieValue}`,
-    // );
-    // this.logger.debug(
-    //   cryptoJS.AES.decrypt(
-    //     encryptedCookieValue,
-    //     this.cookieEncryptionKey,
-    //   ).toString(cryptoJS.enc.Utf8),
-    // );
-    // response.cookie('iScreamArts-IDP', encryptedCookieValue, {
-    //   maxAge: this.tokenExpirySeconds * 1000,
-    //   httpOnly: true,
-    //   secure: false,
-    //   sameSite: 'none',
-    // });
+    const cookieValue: CookieValue = {
+      memberId: member.memberId,
+      memberDetailId: member.memberDetailId,
+      timestamp: Date.now(),
+    };
+    const encryptedCookieValue = cryptoJS.AES.encrypt(
+      JSON.stringify(cookieValue),
+      this.cookieEncryptionKey,
+    ).toString();
+    this.logger.debug(
+      `postSignin.encryptedCookieValue -> ${encryptedCookieValue}`,
+    );
+    this.logger.debug(
+      cryptoJS.AES.decrypt(
+        encryptedCookieValue,
+        this.cookieEncryptionKey,
+      ).toString(cryptoJS.enc.Utf8),
+    );
+    response.cookie('iScreamArts-IDP', encryptedCookieValue, {
+      maxAge: this.tokenExpirySeconds * 1000,
+      httpOnly: true,
+      secure: false,
+      sameSite: 'none',
+    });
 
     const passportJson = JSON.parse(passport) as OauthAuthorizeRequestCreate;
     let redirectUrl = `${passportJson.redirect_uri}?code=${authorizationCode}`;
     if (passportJson.state) redirectUrl += `&state=${passportJson.state}`;
-
     this.logger.debug(`getSignin.redirectUrl -> ${redirectUrl}`);
-    return;
-    // response.redirect(`/signin?redirectUrl=${redirectUrl}`);
+    response.redirect(`/signin?redirectUrl=${redirectUrl}`);
   }
 
-  // @Get()
-  // getSignin(
-  //   @Res() response: Response,
-  //   @Query('redirectUrl') redirectUrl: string,
-  // ) {
-  //   this.logger.debug(`getSignin.redirectUrl -> ${redirectUrl}`);
-  //   response.redirect(HttpStatus.PERMANENT_REDIRECT, redirectUrl);
-  // }
+  @Get()
+  getSignin(
+    @Res() response: Response,
+    @Query('redirectUrl') redirectUrl: string,
+  ) {
+    this.logger.debug(`getSignin.redirectUrl -> ${redirectUrl}`);
+    response.redirect(HttpStatus.PERMANENT_REDIRECT, redirectUrl);
+    return;
+  }
 }

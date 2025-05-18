@@ -1,11 +1,11 @@
 {
   "workbench.colorCustomizations": {
-    "titleBar.activeBackground": "#ffff009c",
-    "statusBar.background": "#ffff009c"
+    "titleBar.activeBackground": "#00aa00b4",
+    "statusBar.background": "#00aa00b4"
   },
   "rest-client.environmentVariables": {
     "$shared": {
-      "host": "https://system-idp-auth.dev.iscreamarts.com"
+      "host": "http://localhost:3000"
     }
   },
   "cSpell.words": [
