@@ -23,7 +23,7 @@ import * as cryptoJS from 'crypto-js';
 import { CookieValue } from '../../type/service/sign.service.type';
 
 @Controller('signin')
-@UseInterceptors(TransformInterceptor)
+// @UseInterceptors(TransformInterceptor)
 export class SignInController {
   private readonly logger = new Logger(SignInController.name);
   private readonly cookieEncryptionKey: string;
@@ -106,7 +106,7 @@ export class SignInController {
     if (passportJson.state) redirectUrl += `&state=${passportJson.state}`;
 
     this.logger.debug(`getSignin.redirectUrl -> ${redirectUrl}`);
-    return redirectUrl;
+    return;
     // response.redirect(`/signin?redirectUrl=${redirectUrl}`);
   }
 
