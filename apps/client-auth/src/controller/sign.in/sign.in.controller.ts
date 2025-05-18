@@ -111,12 +111,12 @@ export class SignInController {
     // response.redirect(`/signin?redirectUrl=${redirectUrl}`);
   }
 
-  @Get()
-  getSignin(
-    @Res() response: Response,
-    @Query('redirectUrl') redirectUrl: string,
-  ) {
-    this.logger.debug(`getSignin.redirectUrl -> ${redirectUrl}`);
-    response.redirect(HttpStatus.PERMANENT_REDIRECT, redirectUrl);
-  }
+  // @Get()
+  // getSignin(
+  //   @Res() response: Response,
+  //   @Query('redirectUrl') redirectUrl: string,
+  // ) {
+  //   this.logger.debug(`getSignin.redirectUrl -> ${redirectUrl}`);
+  //   response.redirect(HttpStatus.PERMANENT_REDIRECT, redirectUrl);
+  // }
 }
