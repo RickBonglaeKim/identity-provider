@@ -7,13 +7,20 @@ import * as cookieParser from 'cookie-parser';
 import * as fs from 'fs';
 
 async function bootstrap() {
-  const httpsOptions = {
-    key: fs.readFileSync('./cert/localhost-key.pem'),
-    cert: fs.readFileSync('./cert/localhost.pem'),
-  };
-  const app = await NestFactory.create(ClientAuthModule, {
-    httpsOptions: process.env.NODE_ENV === 'local' ? httpsOptions : undefined,
-  });
+  let httpsOptions:
+    | {
+        key: Buffer<ArrayBufferLike>;
+        cert: Buffer<ArrayBufferLike>;
+      }
+    | undefined;
+  if (process.env.NODE_ENV === 'local') {
+    httpsOptions = {
+      key: fs.readFileSync('./cert/localhost-key.pem'),
+      cert: fs.readFileSync('./cert/localhost.pem'),
+    };
+  }
+
+  const app = await NestFactory.create(ClientAuthModule, { httpsOptions });
   app.useGlobalFilters(new ServiceExceptionFilter());
   app.useGlobalPipes(new ZodValidationPipe());
   app.useGlobalInterceptors(new LogInterceptor());
