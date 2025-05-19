@@ -98,7 +98,7 @@ export class SignInController {
     response.cookie('iScreamArts-IDP', encryptedCookieValue, {
       maxAge: this.tokenExpirySeconds * 1000,
       httpOnly: true,
-      secure: false,
+      secure: true,
       sameSite: 'none',
     });
 

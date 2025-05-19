@@ -11,13 +11,15 @@ async function bootstrap() {
     key: fs.readFileSync('./cert/localhost-key.pem'),
     cert: fs.readFileSync('./cert/localhost.pem'),
   };
-  const app = await NestFactory.create(ClientAuthModule, { httpsOptions });
+  const app = await NestFactory.create(ClientAuthModule, {
+    httpsOptions: process.env.NODE_ENV === 'local' ? httpsOptions : undefined,
+  });
   app.useGlobalFilters(new ServiceExceptionFilter());
   app.useGlobalPipes(new ZodValidationPipe());
   app.useGlobalInterceptors(new LogInterceptor());
   app.use(cookieParser());
   app.enableCors({
-    origin: ['https://dev-oauth.artbonbon.co.kr'],
+    origin: ['https://dev-oauth.artbonbon.co.kr', 'https://localhost:3000'],
     method: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
