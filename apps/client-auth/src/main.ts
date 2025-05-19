@@ -4,15 +4,20 @@ import { ServiceExceptionFilter } from '@app/exception/filter/service.exception.
 import { LogInterceptor } from '@app/interceptor/log.interceptor';
 import { ZodValidationPipe } from 'nestjs-zod';
 import * as cookieParser from 'cookie-parser';
+import * as fs from 'fs';
 
 async function bootstrap() {
-  const app = await NestFactory.create(ClientAuthModule);
+  const httpsOptions = {
+    key: fs.readFileSync('./cert/localhost-key.pem'),
+    cert: fs.readFileSync('./cert/localhost.pem'),
+  };
+  const app = await NestFactory.create(ClientAuthModule, { httpsOptions });
   app.useGlobalFilters(new ServiceExceptionFilter());
   app.useGlobalPipes(new ZodValidationPipe());
   app.useGlobalInterceptors(new LogInterceptor());
   app.use(cookieParser());
   app.enableCors({
-    origin: '*',
+    origin: ['https://dev-oauth.artbonbon.co.kr'],
     method: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });

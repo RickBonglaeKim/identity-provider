@@ -21,6 +21,7 @@ import { OauthAuthorizeRequestCreate } from 'dto/interface/oauth/authorize/reque
 import { ConfigService } from '@nestjs/config';
 import * as cryptoJS from 'crypto-js';
 import { CookieValue } from '../../type/service/sign.service.type';
+import { retry } from 'rxjs';
 
 @Controller('signin')
 @UseInterceptors(TransformInterceptor)
@@ -45,7 +46,7 @@ export class SignInController {
   async postSignin(
     @Res({ passthrough: true }) response: Response,
     @Body() dto: SigninRequestCreate,
-  ): Promise<void> {
+  ): Promise<void | string> {
     const passport = await this.oauthService.findPassport(dto.passport);
     if (!passport) {
       this.logger.error(`passport -> ${passport}`);
@@ -105,7 +106,8 @@ export class SignInController {
     let redirectUrl = `${passportJson.redirect_uri}?code=${authorizationCode}`;
     if (passportJson.state) redirectUrl += `&state=${passportJson.state}`;
     this.logger.debug(`getSignin.redirectUrl -> ${redirectUrl}`);
-    response.redirect(`/signin?redirectUrl=${redirectUrl}`);
+    return redirectUrl;
+    // response.redirect(`/signin?redirectUrl=${redirectUrl}`);
   }
 
   @Get()
@@ -115,6 +117,5 @@ export class SignInController {
   ) {
     this.logger.debug(`getSignin.redirectUrl -> ${redirectUrl}`);
     response.redirect(HttpStatus.PERMANENT_REDIRECT, redirectUrl);
-    return;
   }
 }
