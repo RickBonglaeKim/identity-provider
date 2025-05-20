@@ -11,7 +11,7 @@ import { MemberEntireRepository } from '@app/persistence/schema/main/repository/
 import { MemberDetailPhoneRepository } from '@app/persistence/schema/main/repository/member.detail.phone.repository';
 import { ExceptionService } from '@app/exception/service/exception.service';
 import { MemberPhoneRepository } from '@app/persistence/schema/main/repository/member.phone.repository';
-import { MemberEntireRequestRead } from 'dto/interface/member.entire/response/member.entire.response.read.dto';
+import { MemberEntireResponseRead } from 'dto/interface/member.entire/response/member.entire.response.read.dto';
 
 @Controller('member')
 @UseInterceptors(TransformInterceptor)
@@ -33,59 +33,63 @@ export class MemberController {
     );
   }
 
-  // @Get('entire')
-  // async getEntireMember(
-  //   @Req() request: Request,
-  // ): Promise<MemberEntireRequestRead> {
-  //   const encryptedCookieValue = request.cookies['iScreamArts-IDP'] as string;
-  //   this.logger.debug(
-  //     `getEntireMember.encryptedCookieValue -> ${encryptedCookieValue}`,
-  //   );
-  //   const decryptedCookieValue = cryptoJS.AES.decrypt(
-  //     encryptedCookieValue,
-  //     this.cookieEncryptionKey,
-  //   ).toString(cryptoJS.enc.Utf8);
-  //   const signMember = JSON.parse(decryptedCookieValue) as CookieValue;
-  //   this.logger.debug(
-  //     `getEntireMember.signMember -> ${JSON.stringify(signMember)}`,
-  //   );
+  @Get('entire')
+  async getEntireMember(
+    @Req() request: Request,
+  ): Promise<MemberEntireResponseRead> {
+    const encryptedCookieValue = request.cookies['iScreamArts-IDP'] as string;
+    this.logger.debug(
+      `getEntireMember.encryptedCookieValue -> ${encryptedCookieValue}`,
+    );
+    const decryptedCookieValue = cryptoJS.AES.decrypt(
+      encryptedCookieValue,
+      this.cookieEncryptionKey,
+    ).toString(cryptoJS.enc.Utf8);
+    const signMember = JSON.parse(decryptedCookieValue) as CookieValue;
+    this.logger.debug(
+      `getEntireMember.signMember -> ${JSON.stringify(signMember)}`,
+    );
 
-  //   const memberEntireResult =
-  //     await this.memberEntireRepository.selectMemberAndMemberDetailAndProviderByMemberDetailId(
-  //       signMember.memberDetailId,
-  //     );
-  //   this.logger.debug(JSON.stringify(memberEntireResult));
-  //   if (!memberEntireResult) this.exceptionService.notRecognizedError();
-  //   if (!memberEntireResult?.isSucceed || !memberEntireResult.data)
-  //     this.exceptionService.notSelectedEntity('member');
-  //   const memberDetailPhoneResult =
-  //     await this.memberDetailPhoneRepository.selectMemberDetailByMemberDetailId(
-  //       signMember.memberDetailId,
-  //     );
-  //   if (!memberDetailPhoneResult) this.exceptionService.notRecognizedError();
-  //   if (!memberDetailPhoneResult?.isSucceed || !memberDetailPhoneResult.data)
-  //     this.exceptionService.notSelectedEntity('member_detail_phone');
-  //   const memberPhoneResult =
-  //     await this.memberPhoneRepository.selectMemberPhoneById(
-  //       memberDetailPhoneResult!.data!.memberPhoneId,
-  //     );
-  //   if (!memberPhoneResult) this.exceptionService.notRecognizedError();
-  //   if (!memberPhoneResult?.isSucceed || !memberPhoneResult.data)
-  //     this.exceptionService.notSelectedEntity('member_phone');
+    const memberEntireResult =
+      await this.memberEntireRepository.selectMemberAndMemberDetailAndProviderByMemberDetailId(
+        signMember.memberDetailId,
+      );
+    this.logger.debug(JSON.stringify(memberEntireResult));
+    if (!memberEntireResult) this.exceptionService.notRecognizedError();
+    if (!memberEntireResult?.isSucceed || !memberEntireResult.data)
+      this.exceptionService.notSelectedEntity('member');
+    const memberDetailPhoneResult =
+      await this.memberDetailPhoneRepository.selectMemberDetailByMemberDetailId(
+        signMember.memberDetailId,
+      );
+    if (!memberDetailPhoneResult) this.exceptionService.notRecognizedError();
+    if (!memberDetailPhoneResult?.isSucceed || !memberDetailPhoneResult.data)
+      this.exceptionService.notSelectedEntity('member_detail_phone');
+    const memberPhoneResult =
+      await this.memberPhoneRepository.selectMemberPhoneById(
+        memberDetailPhoneResult!.data!.memberPhoneId,
+      );
+    if (!memberPhoneResult) this.exceptionService.notRecognizedError();
 
-  //   const member = memberEntireResult!.data!;
-  //   const memberPhone = memberPhoneResult!.data!;
+    const member = memberEntireResult!.data!;
+    const memberPhone = memberPhoneResult!.data;
 
+    let phone: { countryCallingCode: string; phoneNumber: string } | null =
+      null;
+    if (memberPhone)
+      phone = {
+        countryCallingCode: memberPhone.countryCallingCode,
+        phoneNumber: memberPhone.phoneNumber,
+      };
 
-  //   return new MemberEntireRequestRead(
-  //     member.createdAt,
-  //     member.isConsentedTermsAndConditions === 1,
-  //     member.isConsentedCollectionAndUsePersonalData === 1,
-  //     member.isConsentedMarketingUseAndInformationReceiving === 1,
-  //     member.name,
-  //     member.email,
-  //     // memberPhone.countryCallingCode,
-  //     // memberPhone.phoneNumber,
-  //   );
-  // }
+    return new MemberEntireResponseRead(
+      member.createdAt,
+      member.isConsentedTermsAndConditions === 1,
+      member.isConsentedCollectionAndUsePersonalData === 1,
+      member.isConsentedMarketingUseAndInformationReceiving === 1,
+      member.name,
+      member.email,
+      phone,
+    );
+  }
 }
