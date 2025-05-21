@@ -21,10 +21,8 @@ export class LogInterceptor implements NestInterceptor {
     const handlerName = context.getHandler().name;
     const loggerContext = `${controllerName}-${handlerName}`;
 
-    if (controllerName === 'HomeController' && times < 5) {
+    if (controllerName === 'HomeController') {
       times++;
-    }
-    if (controllerName === 'HomeController' && times > 5) {
       return next.handle();
     }
 
