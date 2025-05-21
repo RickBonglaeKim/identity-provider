@@ -24,6 +24,26 @@ export class ChildRepository extends MainSchemaService {
     }
   }
 
+  async updateChildById(
+    data: typeof child.$inferInsert,
+    id: number,
+  ): Promise<ResponseEntity<number> | undefined> {
+    try {
+      const result = (
+        await this.mainTransaction.tx
+          .update(child)
+          .set(data)
+          .where(eq(child.id, id))
+      )[0];
+      if (result.affectedRows === 0) {
+        return new ResponseEntity<number>(false);
+      }
+      return new ResponseEntity<number>(true, result.affectedRows);
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
   async selectChildById(
     id: number,
   ): Promise<ResponseEntity<typeof child.$inferSelect> | undefined> {
