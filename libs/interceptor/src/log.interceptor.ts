@@ -15,17 +15,23 @@ export class LogInterceptor implements NestInterceptor {
   ): Observable<any> | Promise<Observable<any>> {
     const request = context.switchToHttp().getRequest<Request>();
     const response = context.switchToHttp().getResponse<Response>();
-    const loggerContext = `${context.getClass().name}-${context.getHandler().name}`;
+    const controllerName = context.getClass().name;
+    const handlerName = context.getHandler().name;
+    const loggerContext = `${controllerName}-${handlerName}`;
+
+    if (controllerName === 'HomeController') {
+      return next.handle();
+    }
 
     const logger = new Logger(loggerContext);
     logger.log(
-      ` | REQUEST --> METHOD : ${request.method} , URL : ${request.url} , BODY : ${JSON.stringify(request.body, null, 2)}`,
+      ` | REQUEST --> METHOD : ${request.method} , URL : ${request.url} , BODY : ${JSON.stringify(request.body)}`,
     );
 
     return next.handle().pipe(
       tap((observable) => {
         logger.log(
-          ` | RESPONSE --> STATUS_CODE : ${response.statusCode} , BODY : ${JSON.stringify(observable, null, 2)}`,
+          ` | RESPONSE --> STATUS_CODE : ${response.statusCode} , BODY : ${JSON.stringify(observable)}`,
         );
       }),
     );
