@@ -1,6 +1,5 @@
 import { TransformInterceptor } from '@app/interceptor/transform.interceptor';
 import { Controller, Get, Logger, Req, UseInterceptors } from '@nestjs/common';
-import { OauthController } from '../oauth/oauth.controller';
 import { ConfigService } from '@nestjs/config';
 import { ChildService } from '../../service/child/child.service';
 import { MemberService } from '../../service/member/member.service';

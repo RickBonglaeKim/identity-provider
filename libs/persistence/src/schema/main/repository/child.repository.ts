@@ -25,8 +25,8 @@ export class ChildRepository extends MainSchemaService {
   }
 
   async updateChildById(
-    data: typeof child.$inferInsert,
     id: number,
+    data: typeof child.$inferInsert,
   ): Promise<ResponseEntity<number> | undefined> {
     try {
       const result = (
@@ -43,7 +43,6 @@ export class ChildRepository extends MainSchemaService {
       this.logger.error(error);
     }
   }
-
   async selectChildById(
     id: number,
   ): Promise<ResponseEntity<typeof child.$inferSelect> | undefined> {

@@ -21,6 +21,14 @@ export class ChildService {
     return result!.data!;
   }
 
+  async updateChildById(id: number, data: ChildRequestCreate): Promise<number> {
+    const result = await this.childRepository.updateChildById(id, data);
+    if (!result) this.exceptionService.notRecognizedError();
+    if (!result?.isSucceed || !result.data)
+      this.exceptionService.notUpdatedEntity('child');
+    return result!.data!;
+  }
+
   async findChildByMemberId(memberId: number): Promise<ChildResponse[]> {
     const result = await this.childRepository.selectChildByMemberId(memberId);
 
