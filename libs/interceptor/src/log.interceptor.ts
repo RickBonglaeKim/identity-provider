@@ -8,6 +8,8 @@ import { Request, Response } from 'express';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
+let times = 0;
+
 export class LogInterceptor implements NestInterceptor {
   intercept(
     context: ExecutionContext,
@@ -19,7 +21,10 @@ export class LogInterceptor implements NestInterceptor {
     const handlerName = context.getHandler().name;
     const loggerContext = `${controllerName}-${handlerName}`;
 
-    if (controllerName === 'HomeController') {
+    if (controllerName === 'HomeController' && times < 5) {
+      times++;
+    }
+    if (controllerName === 'HomeController' && times > 5) {
       return next.handle();
     }
 
