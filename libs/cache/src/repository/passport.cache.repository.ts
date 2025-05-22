@@ -1,11 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CacheService } from '@app/cache/service/cache.service';
-import {
-  Decoder,
-  SetOptions,
-  TimeUnit,
-  Transaction,
-} from '@valkey/valkey-glide';
+import { Decoder, SetOptions, TimeUnit } from '@valkey/valkey-glide';
 import { CacheResponseEntity } from '../entity/cache.response.entity';
 
 @Injectable()
@@ -30,15 +25,6 @@ export class PassportCacheRepository extends CacheService {
     return new CacheResponseEntity<string>(false);
   }
 
-  setPassportWithTransaction(
-    transaction: Transaction,
-    key: string,
-    data: string,
-  ): Transaction {
-    key = `${this.prefix}:${key}`;
-    return transaction.set(key, data, this.createSetOption());
-  }
-
   async getPassport(key: string): Promise<CacheResponseEntity<string>> {
     key = `${this.prefix}:${key}`;
     const result = await this.cache.get(key, { decoder: Decoder.String });
@@ -50,13 +36,5 @@ export class PassportCacheRepository extends CacheService {
     key = `${this.prefix}:${key}`;
     const result: number = await this.cache.del([key]);
     return new CacheResponseEntity<number>(result === 1, result);
-  }
-
-  deletePassportWithTransaction(
-    transaction: Transaction,
-    key: string,
-  ): Transaction {
-    key = `${this.prefix}:${key}`;
-    return transaction.del([key]);
   }
 }

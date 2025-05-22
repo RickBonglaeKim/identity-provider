@@ -98,13 +98,13 @@ export class OauthService {
       length: 32,
       type: 'url-safe',
     });
-    // const transaction = this.passportCacheRepository.getTransaction();
     const passportResult =
       await this.passportCacheRepository.deletePassport(passportKey);
     if (!passportResult.isSucceed) return;
+    const key = this.authorizationCodeRepository.createKey(code);
     const codeResult =
       await this.authorizationCodeRepository.setAuthorizationCode(
-        code,
+        key,
         memberId.toString(),
         memberDetailId.toString(),
         data,
@@ -241,12 +241,15 @@ export class OauthService {
     data: OauthAuthorizeRequestCreate,
   ): Promise<string | undefined> {
     const accessToken = cryptoRandomString({ length: 256, type: 'base64' });
+    const key = this.authorizationAccessTokenCacheRepository.createKey(
+      memberId,
+      memberDetailId,
+    );
     const result =
       await this.authorizationAccessTokenCacheRepository.setAccessToken(
-        accessToken,
-        memberId.toString(),
-        memberDetailId.toString(),
+        key,
         clientMemberId.toString(),
+        accessToken,
         JSON.stringify(data),
       );
     if (result) return accessToken;
@@ -259,12 +262,15 @@ export class OauthService {
     data: OauthAuthorizeRequestCreate,
   ): Promise<string | undefined> {
     const refreshToken = cryptoRandomString({ length: 512, type: 'base64' });
+    const key = this.authorizationRefreshTokenCacheRepository.createKey(
+      memberId,
+      memberDetailId,
+    );
     const result =
       await this.authorizationRefreshTokenCacheRepository.setRefreshToken(
-        refreshToken,
-        memberId.toString(),
-        memberDetailId.toString(),
+        key,
         clientMemberId.toString(),
+        refreshToken,
         JSON.stringify(data),
       );
     if (result) return refreshToken;

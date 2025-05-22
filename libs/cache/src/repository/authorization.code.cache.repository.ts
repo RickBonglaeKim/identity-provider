@@ -19,13 +19,16 @@ export class AuthorizationCodeCacheRepository extends CacheService {
     };
   }
 
+  createKey(code: string): string {
+    return `${this.prefix}:${code}`;
+  }
+
   async setAuthorizationCode(
-    code: string,
+    key: string,
     memberId: string,
     memberDetailId: string,
     data: string,
   ): Promise<CacheResponseEntity<number>> {
-    const key = `${this.prefix}:${code}`;
     const setResult = await this.cache.hset(key, [
       { field: this.fields.memberId, value: memberId },
       { field: this.fields.memberDetailId, value: memberDetailId },
@@ -39,23 +42,6 @@ export class AuthorizationCodeCacheRepository extends CacheService {
     if (setResult > 0 && expireResult)
       return new CacheResponseEntity<number>(true, setResult);
     return new CacheResponseEntity<number>(false);
-  }
-
-  setAuthorizationCodeWithTransaction(
-    transaction: Transaction,
-    code: string,
-    memberId: string,
-    memberDetailId: string,
-    data: string,
-  ): Transaction {
-    const key = `${this.prefix}:${code}`;
-    return transaction
-      .hset(key, [
-        { field: this.fields.memberId, value: memberId },
-        { field: this.fields.memberDetailId, value: memberDetailId },
-        { field: this.fields.data, value: data },
-      ])
-      .expire(key, this.expirySeconds, this.createExpireOption());
   }
 
   async getMemberIdInAuthorizationCode(
@@ -97,13 +83,5 @@ export class AuthorizationCodeCacheRepository extends CacheService {
     const key = `${this.prefix}:${code}`;
     const result = await this.cache.del([key]);
     return new CacheResponseEntity<number>(result === 1, result);
-  }
-
-  deleteAuthorizationCodeWithTransaction(
-    transaction: Transaction,
-    code: string,
-  ): Transaction {
-    const key = `${this.prefix}:${code}`;
-    return transaction.del([key]);
   }
 }

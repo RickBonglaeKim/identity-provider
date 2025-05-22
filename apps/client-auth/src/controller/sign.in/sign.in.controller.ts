@@ -138,6 +138,7 @@ export class SignInController {
     let redirectUrl = `${passportJson.redirect_uri}?code=${authorizationCode}`;
     if (passportJson.state) redirectUrl += `&state=${passportJson.state}`;
     this.logger.debug(`getSignin.redirectUrl -> ${redirectUrl}`);
+
     response.redirect(redirectUrl);
     return;
   }

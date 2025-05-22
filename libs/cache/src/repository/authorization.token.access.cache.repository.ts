@@ -1,11 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CacheService } from '@app/cache/service/cache.service';
-import {
-  Decoder,
-  ExpireOptions,
-  GlideClient,
-  Transaction,
-} from '@valkey/valkey-glide';
+import { Decoder, ExpireOptions, GlideClient } from '@valkey/valkey-glide';
 import { CacheResponseEntity } from '../entity/cache.response.entity';
 import { ConfigService } from '@nestjs/config';
 import { VALKEY_CONNECTION } from '../cache-connection-symbol';
@@ -15,9 +10,8 @@ export class AuthorizationAccessTokenCacheRepository extends CacheService {
   private readonly expirySeconds: number;
   private readonly prefix: string = 'accessToken';
   private readonly fields = {
-    memberId: 'memberId',
-    memberDetailId: 'memberDetailId',
     clientMemberId: 'clientMemberId',
+    accessToken: 'accessToken',
     data: 'data',
   };
 
@@ -36,18 +30,19 @@ export class AuthorizationAccessTokenCacheRepository extends CacheService {
     };
   }
 
+  createKey(memberId: number, memberDetailId: number) {
+    return `${this.prefix}:${memberId}:${memberDetailId}`;
+  }
+
   async setAccessToken(
-    token: string,
-    memberId: string,
-    memberDetailId: string,
+    key: string,
     clientMemberId: string,
+    accessToken: string,
     data: string,
   ): Promise<CacheResponseEntity<number>> {
-    const key = `${this.prefix}:${token}`;
     const setResult = await this.cache.hset(key, [
-      { field: this.fields.memberId, value: memberId },
-      { field: this.fields.memberDetailId, value: memberDetailId },
       { field: this.fields.clientMemberId, value: clientMemberId },
+      { field: this.fields.accessToken, value: accessToken },
       { field: this.fields.data, value: data },
     ]);
     const expireResult = await this.cache.expire(
@@ -60,52 +55,22 @@ export class AuthorizationAccessTokenCacheRepository extends CacheService {
     return new CacheResponseEntity<number>(false);
   }
 
-  setAccessTokenWithTransaction(
-    transaction: Transaction,
-    token: string,
-    memberId: string,
-    memberDetailId: string,
-    clientMemberId: string,
-    data: string,
-  ): Transaction {
-    const key = `${this.prefix}:${token}`;
-    return transaction
-      .hset(key, [
-        { field: this.fields.memberId, value: memberId },
-        { field: this.fields.memberDetailId, value: memberDetailId },
-        { field: this.fields.clientMemberId, value: clientMemberId },
-        { field: this.fields.data, value: data },
-      ])
-      .expire(key, this.expirySeconds, this.createExpireOption());
-  }
-
-  async getMemberIdInAccessToken(
-    token: string,
-  ): Promise<CacheResponseEntity<string>> {
-    const key = `${this.prefix}:${token}`;
-    const result = await this.cache.hget(key, this.fields.memberId, {
-      decoder: Decoder.String,
-    });
-    if (result) return new CacheResponseEntity<string>(true, result.toString());
-    return new CacheResponseEntity<string>(false);
-  }
-
-  async getMemberDetailIdInAccessToken(
-    token: string,
-  ): Promise<CacheResponseEntity<string>> {
-    const key = `${this.prefix}:${token}`;
-    const result = await this.cache.hget(key, this.fields.memberDetailId, {
-      decoder: Decoder.String,
-    });
-    if (result) return new CacheResponseEntity<string>(true, result.toString());
-    return new CacheResponseEntity<string>(false);
-  }
-
   async getClientMemberIdInAccessToken(
     token: string,
   ): Promise<CacheResponseEntity<string>> {
     const key = `${this.prefix}:${token}`;
     const result = await this.cache.hget(key, this.fields.clientMemberId, {
+      decoder: Decoder.String,
+    });
+    if (result) return new CacheResponseEntity<string>(true, result.toString());
+    return new CacheResponseEntity<string>(false);
+  }
+
+  async getTokenInAccessToken(
+    token: string,
+  ): Promise<CacheResponseEntity<string>> {
+    const key = `${this.prefix}:${token}`;
+    const result = await this.cache.hget(key, this.fields.accessToken, {
       decoder: Decoder.String,
     });
     if (result) return new CacheResponseEntity<string>(true, result.toString());
@@ -127,13 +92,5 @@ export class AuthorizationAccessTokenCacheRepository extends CacheService {
     const key = `${this.prefix}:${token}`;
     const result = await this.cache.del([key]);
     return new CacheResponseEntity<number>(result === 1, result);
-  }
-
-  deleteAccessTokenWithTransaction(
-    transaction: Transaction,
-    token: string,
-  ): Transaction {
-    const key = `${this.prefix}:${token}`;
-    return transaction.del([key]);
   }
 }
