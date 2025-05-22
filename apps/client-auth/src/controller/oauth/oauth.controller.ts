@@ -63,8 +63,9 @@ export class OauthController {
       const passport = await this.oauthService.createPassport(dto);
       this.logger.debug(`getAuthorize.passport -> ${!passport}`);
 
-      if (!passport)
+      if (!passport) {
         redirectClient('server_error')('It fails to generate passport.')(null);
+      }
 
       const url = `${this.signUrl}?passport=${passport}&client=${verifiedResult.signCode}`;
       this.logger.debug(`getAuthorize.url -> ${url}`);

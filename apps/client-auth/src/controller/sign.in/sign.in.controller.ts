@@ -7,6 +7,10 @@ import {
   Post,
   Body,
   UseInterceptors,
+  Get,
+  HttpStatus,
+  Query,
+  Param,
 } from '@nestjs/common';
 import { SigninService } from '../../service/sign.in/sign.in.service';
 import { Response } from 'express';
@@ -41,14 +45,14 @@ export class SignInController {
     this.signUrl = this.configService.getOrThrow<string>('SIGN_URL');
   }
 
-  @Post('check')
-  async postSigninCheck(
+  @Post()
+  async postSignin(
     @Res({ passthrough: true }) response: Response,
     @Body() dto: SigninRequestCreate,
   ): Promise<void | string> {
     const passport = await this.oauthService.findPassport(dto.passport);
     if (!passport) {
-      this.logger.error(`passport -> ${passport}`);
+      this.logger.error(`The passport does not exist in the cache.`);
       response.status(251);
       return;
     }
@@ -56,7 +60,7 @@ export class SignInController {
     const member = await this.signinService.findMember(dto.email, dto.password);
     this.logger.debug(`getSignin.memberId -> ${JSON.stringify(member)}`);
     if (!member) {
-      this.logger.error(member);
+      this.logger.error(`The member does not exist in the database.`);
       response.status(252);
       return;
     }
@@ -70,47 +74,57 @@ export class SignInController {
       }),
       this.memberKeyEncryptionKey,
     ).toString();
+    this.logger.debug(`postSignin.memberKey -> ${memberKey}`);
+    const decryptedMemberValue = cryptoJS.AES.decrypt(
+      memberKey,
+      this.memberKeyEncryptionKey,
+    ).toString(cryptoJS.enc.Utf8);
+    this.logger.debug(
+      `postSignin.decryptedMemberValue -> ${decryptedMemberValue}`,
+    );
 
-    return memberKey;
+    return encodeURIComponent(memberKey);
   }
 
-  @Post()
-  async postSignin(
+  @Get('/:memberKey')
+  async getSignin(
     @Res() response: Response,
-    @Body() memberKey: string,
+    @Param('memberKey') memberKey: string,
   ): Promise<void> {
+    this.logger.debug(`getSignin.memberKey -> ${memberKey}`);
     const memberValue = cryptoJS.AES.decrypt(
-      memberKey,
-      this.cookieEncryptionKey,
+      decodeURIComponent(memberKey),
+      this.memberKeyEncryptionKey,
     ).toString(cryptoJS.enc.Utf8);
+    this.logger.debug(`getSignin.memberValue -> ${memberValue}`);
     if (!memberValue) {
       response.redirect(`${this.signUrl}?error=access_denied`);
-      return;
     }
 
     const { memberId, memberDetailId, passportKey, timestamp } = JSON.parse(
       memberValue,
     ) as MemberKey;
-    if (timestamp + 1000 * 100 < Date.now()) {
-      response.redirect(`${this.signUrl}?error=access_denied`);
-      return;
-    }
+    this.logger.debug(`getSignin.memberId -> ${memberId}`);
+    this.logger.debug(`getSignin.memberDetailId -> ${memberDetailId}`);
+    this.logger.debug(`getSignin.passportKey -> ${passportKey}`);
+    this.logger.debug(`getSignin.timestamp -> ${timestamp}`);
+    // if (timestamp + 1000 * 100 < Date.now()) {
+    //   response.redirect(`${this.signUrl}?error=access_denied`);
+    // }
 
     const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
       response.redirect(`${this.signUrl}?error=unauthorized_client`);
-      return;
     }
 
     const authorizationCode = await this.oauthService.createAuthorizationCode(
       memberId,
       memberDetailId,
       passportKey,
-      passport,
+      passport!,
     );
     if (!authorizationCode) {
       response.redirect(`${this.signUrl}?error=server_error`);
-      return;
     }
 
     // set cookie
@@ -124,7 +138,7 @@ export class SignInController {
       this.cookieEncryptionKey,
     ).toString();
     this.logger.debug(
-      `postSignin.encryptedCookieValue -> ${encryptedCookieValue}`,
+      `getSignin.encryptedCookieValue -> ${encryptedCookieValue}`,
     );
 
     response.cookie('iScreamArts-IDP', encryptedCookieValue, {
@@ -134,12 +148,11 @@ export class SignInController {
       sameSite: 'none',
     });
 
-    const passportJson = JSON.parse(passport) as OauthAuthorizeRequestCreate;
+    const passportJson = JSON.parse(passport!) as OauthAuthorizeRequestCreate;
     let redirectUrl = `${passportJson.redirect_uri}?code=${authorizationCode}`;
     if (passportJson.state) redirectUrl += `&state=${passportJson.state}`;
     this.logger.debug(`getSignin.redirectUrl -> ${redirectUrl}`);
 
-    response.redirect(redirectUrl);
-    return;
+    response.redirect(HttpStatus.TEMPORARY_REDIRECT, redirectUrl);
   }
 }
