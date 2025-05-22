@@ -8,3 +8,8 @@ export type SignMember =
 export type CookieValue = SignMember & {
   timestamp: number;
 };
+
+export type MemberKey = SignMember & {
+  passportKey: string;
+  timestamp: number;
+};

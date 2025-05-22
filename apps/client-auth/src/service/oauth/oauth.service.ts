@@ -91,7 +91,7 @@ export class OauthService {
   async createAuthorizationCode(
     memberId: number,
     memberDetailId: number,
-    passport: string,
+    passportKey: string,
     data: string,
   ): Promise<string | undefined> {
     const code = cryptoRandomString({
@@ -100,7 +100,7 @@ export class OauthService {
     });
     // const transaction = this.passportCacheRepository.getTransaction();
     const passportResult =
-      await this.passportCacheRepository.deletePassport(passport);
+      await this.passportCacheRepository.deletePassport(passportKey);
     if (!passportResult.isSucceed) return;
     const codeResult =
       await this.authorizationCodeRepository.setAuthorizationCode(

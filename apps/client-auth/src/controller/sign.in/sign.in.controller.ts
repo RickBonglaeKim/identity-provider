@@ -4,15 +4,9 @@ import {
   Controller,
   Logger,
   Res,
-  HttpStatus,
   Post,
   Body,
   UseInterceptors,
-  HttpException,
-  Redirect,
-  Get,
-  Query,
-  Req,
 } from '@nestjs/common';
 import { SigninService } from '../../service/sign.in/sign.in.service';
 import { Response } from 'express';
@@ -20,15 +14,16 @@ import { OauthService } from '../../service/oauth/oauth.service';
 import { OauthAuthorizeRequestCreate } from 'dto/interface/oauth/authorize/request/oauth.authorize.request.create.dto';
 import { ConfigService } from '@nestjs/config';
 import * as cryptoJS from 'crypto-js';
-import { CookieValue } from '../../type/service/sign.service.type';
-import { retry } from 'rxjs';
+import { CookieValue, MemberKey } from '../../type/service/sign.service.type';
 
 @Controller('signin')
 @UseInterceptors(TransformInterceptor)
 export class SignInController {
   private readonly logger = new Logger(SignInController.name);
   private readonly cookieEncryptionKey: string;
+  private readonly memberKeyEncryptionKey: string;
   private readonly tokenExpirySeconds: number;
+  private readonly signUrl: string;
 
   constructor(
     private readonly configService: ConfigService,
@@ -38,12 +33,16 @@ export class SignInController {
     this.cookieEncryptionKey = this.configService.getOrThrow<string>(
       'COOKIE_ENCRYPTION_KEY',
     );
+    this.memberKeyEncryptionKey = this.configService.getOrThrow<string>(
+      'MEMBER_KEY_ENCRYPTION_KEY',
+    );
     this.tokenExpirySeconds =
       this.configService.getOrThrow<number>('TOKEN_EXPIRE_IN');
+    this.signUrl = this.configService.getOrThrow<string>('SIGN_URL');
   }
 
-  @Post()
-  async postSignin(
+  @Post('check')
+  async postSigninCheck(
     @Res({ passthrough: true }) response: Response,
     @Body() dto: SigninRequestCreate,
   ): Promise<void | string> {
@@ -62,24 +61,62 @@ export class SignInController {
       return;
     }
 
+    const memberKey = cryptoJS.AES.encrypt(
+      JSON.stringify({
+        memberId: member.memberId,
+        memberDetailId: member.memberDetailId,
+        passportKey: dto.passport,
+        timestamp: Date.now(),
+      }),
+      this.memberKeyEncryptionKey,
+    ).toString();
+
+    return memberKey;
+  }
+
+  @Post()
+  async postSignin(
+    @Res() response: Response,
+    @Body() memberKey: string,
+  ): Promise<void> {
+    const memberValue = cryptoJS.AES.decrypt(
+      memberKey,
+      this.cookieEncryptionKey,
+    ).toString(cryptoJS.enc.Utf8);
+    if (!memberValue) {
+      response.redirect(`${this.signUrl}?error=access_denied`);
+      return;
+    }
+
+    const { memberId, memberDetailId, passportKey, timestamp } = JSON.parse(
+      memberValue,
+    ) as MemberKey;
+    if (timestamp + 1000 * 100 < Date.now()) {
+      response.redirect(`${this.signUrl}?error=access_denied`);
+      return;
+    }
+
+    const passport = await this.oauthService.findPassport(passportKey);
+    if (!passport) {
+      response.redirect(`${this.signUrl}?error=unauthorized_client`);
+      return;
+    }
+
     const authorizationCode = await this.oauthService.createAuthorizationCode(
-      member.memberId,
-      member.memberDetailId,
-      dto.passport,
+      memberId,
+      memberDetailId,
+      passportKey,
       passport,
     );
-
     if (!authorizationCode) {
-      throw new HttpException(
-        'It fails to create authorization code.',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      response.redirect(`${this.signUrl}?error=server_error`);
+      return;
     }
 
     // set cookie
     const cookieValue: CookieValue = {
-      memberId: member.memberId,
-      memberDetailId: member.memberDetailId,
+      memberId,
+      memberDetailId,
       timestamp: Date.now(),
     };
     const encryptedCookieValue = cryptoJS.AES.encrypt(
@@ -89,12 +126,7 @@ export class SignInController {
     this.logger.debug(
       `postSignin.encryptedCookieValue -> ${encryptedCookieValue}`,
     );
-    this.logger.debug(
-      cryptoJS.AES.decrypt(
-        encryptedCookieValue,
-        this.cookieEncryptionKey,
-      ).toString(cryptoJS.enc.Utf8),
-    );
+
     response.cookie('iScreamArts-IDP', encryptedCookieValue, {
       maxAge: this.tokenExpirySeconds * 1000,
       httpOnly: true,
@@ -106,16 +138,7 @@ export class SignInController {
     let redirectUrl = `${passportJson.redirect_uri}?code=${authorizationCode}`;
     if (passportJson.state) redirectUrl += `&state=${passportJson.state}`;
     this.logger.debug(`getSignin.redirectUrl -> ${redirectUrl}`);
-    return redirectUrl;
-    // response.redirect(`/signin?redirectUrl=${redirectUrl}`);
-  }
-
-  @Get()
-  getSignin(
-    @Res() response: Response,
-    @Query('redirectUrl') redirectUrl: string,
-  ) {
-    this.logger.debug(`getSignin.redirectUrl -> ${redirectUrl}`);
-    response.redirect(HttpStatus.PERMANENT_REDIRECT, redirectUrl);
+    response.redirect(redirectUrl);
+    return;
   }
 }
