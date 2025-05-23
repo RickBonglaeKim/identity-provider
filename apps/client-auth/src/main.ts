@@ -26,7 +26,12 @@ async function bootstrap() {
   app.useGlobalInterceptors(new LogInterceptor());
   app.use(cookieParser());
   app.enableCors({
-    origin: ['https://dev-oauth.artbonbon.co.kr', 'https://localhost:3000'],
+    origin: [
+      'https://dev-oauth.artbonbon.co.kr',
+      'https://localhost:3000',
+      'https://kauth.kakao.com',
+      'https://nid.naver.com',
+    ],
     method: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });

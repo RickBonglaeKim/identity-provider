@@ -18,36 +18,16 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@app/cache": [
-        "libs/cache/src"
-      ],
-      "@app/cache/*": [
-        "libs/cache/src/*"
-      ],
-      "@app/crypto": [
-        "libs/crypto/src"
-      ],
-      "@app/crypto/*": [
-        "libs/crypto/src/*"
-      ],
-      "@app/exception": [
-        "libs/exception/src"
-      ],
-      "@app/exception/*": [
-        "libs/exception/src/*"
-      ],
-      "@app/interceptor": [
-        "libs/interceptor/src"
-      ],
-      "@app/interceptor/*": [
-        "libs/interceptor/src/*"
-      ],
-      "@app/persistence": [
-        "libs/persistence/src"
-      ],
-      "@app/persistence/*": [
-        "libs/persistence/src/*"
-      ]
+      "@app/cache": ["libs/cache/src"],
+      "@app/cache/*": ["libs/cache/src/*"],
+      "@app/crypto": ["libs/crypto/src"],
+      "@app/crypto/*": ["libs/crypto/src/*"],
+      "@app/exception": ["libs/exception/src"],
+      "@app/exception/*": ["libs/exception/src/*"],
+      "@app/interceptor": ["libs/interceptor/src"],
+      "@app/interceptor/*": ["libs/interceptor/src/*"],
+      "@app/persistence": ["libs/persistence/src"],
+      "@app/persistence/*": ["libs/persistence/src/*"]
     }
   }
 }
