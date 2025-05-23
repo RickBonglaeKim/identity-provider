@@ -310,4 +310,16 @@ export class OauthService {
     const result = await this.authorizationTokenCacheRepository.setExpiry(key);
     return result;
   }
+
+  async removeAuthorizationToken(
+    memberId: number,
+    memberDetailId: number,
+  ): Promise<boolean> {
+    const key = this.authorizationTokenCacheRepository.createKey(
+      memberId,
+      memberDetailId,
+    );
+    const result = await this.authorizationTokenCacheRepository.delete(key);
+    return result.isSucceed;
+  }
 }

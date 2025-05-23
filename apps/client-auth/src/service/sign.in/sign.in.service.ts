@@ -28,7 +28,7 @@ export class SigninService {
       this.logger.error('No member found with the given email');
       return undefined;
     }
-    
+
     this.logger.debug(
       `findMember.id -> ${id}, findMember.password -> ${password}`,
       `findMember.signinResult -> ${JSON.stringify(signinResult)}`,
@@ -46,17 +46,17 @@ export class SigninService {
         this.logger.error('Member or password is undefined');
         continue;
       }
-      
+
       const isVerifiedPassword = await this.hashService.compareHash(
         password,
         member.password,
       );
-      
+
       this.logger.debug(
         `findMember.signinResult.data -> ${JSON.stringify(member)}`,
         `findMember.isVerifiedPassword -> ${isVerifiedPassword}`,
       );
-      
+
       if (isVerifiedPassword) {
         memberResult = {
           memberId: member.memberId,
@@ -65,7 +65,7 @@ export class SigninService {
         break;
       }
     }
-    
+
     return memberResult;
   }
 }

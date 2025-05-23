@@ -27,6 +27,7 @@ import { VerificationController } from './controller/verification/verification.c
 import { VerificationService } from './service/verification/verification.service';
 import { MemberController } from './controller/member/member.controller';
 import { TestController } from './controller/test/test.controller';
+import { SignOutController } from './controller/sign.out/sign.out.controller';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { TestController } from './controller/test/test.controller';
     HomeController,
     SignupController,
     SignInController,
+    SignOutController,
     OauthController,
     KeyController,
     ProviderController,
