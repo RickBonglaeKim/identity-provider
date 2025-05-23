@@ -86,11 +86,11 @@ export class OauthController {
   async postToken(
     @Body() dto: OauthTokenRequestCreate,
   ): Promise<OauthTokenResponse> {
-    this.logger.debug(`getToken.dto -> ${JSON.stringify(dto)}`);
+    this.logger.debug(`postToken.dto -> ${JSON.stringify(dto)}`);
     const authorizationData =
       await this.oauthService.findDataInAuthorizationCode(dto.code);
     this.logger.debug(
-      `getToken.authorizationData -> ${JSON.stringify(authorizationData)}`,
+      `postToken.authorizationData -> ${JSON.stringify(authorizationData)}`,
     );
 
     if (!authorizationData)
@@ -148,6 +148,8 @@ export class OauthController {
 
     const idTokenKeypair = await this.oauthService.findIdTokenKeypair();
     const idToken = await this.oauthService.issueIdToken(
+      memberId,
+      memberDetailId,
       idTokenKeypair.privateKey,
       client_id,
       this.idTokenISS,
@@ -155,15 +157,18 @@ export class OauthController {
       Math.floor(Date.now() / 1000) + this.tokenExpirySeconds,
       idTokenPayload,
     );
-    this.logger.debug(`getToken.idToken -> ${idToken}`);
+    this.logger.debug(`postToken.idToken -> ${idToken}`);
+    if (!idToken)
+      throw new HttpException(
+        'It fails to issue the id token.',
+        HttpStatus.UNAUTHORIZED,
+      );
 
     const accessToken = await this.oauthService.issueAccessToken(
       memberId,
       memberDetailId,
-      clientMemberId,
-      authorizationData,
     );
-    this.logger.debug(`getToken.accessToken -> ${accessToken}`);
+    this.logger.debug(`postToken.accessToken -> ${accessToken}`);
     if (!accessToken)
       throw new HttpException(
         'It fails to issue the access token.',
@@ -173,13 +178,51 @@ export class OauthController {
     const refreshToken = await this.oauthService.issueRefreshToken(
       memberId,
       memberDetailId,
-      clientMemberId,
-      authorizationData,
     );
-    this.logger.debug(`getToken.refreshToken -> ${refreshToken}`);
+    this.logger.debug(`postToken.refreshToken -> ${refreshToken}`);
     if (!refreshToken)
       throw new HttpException(
         'It fails to issue the refresh token.',
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    const clientMemberIdResult = await this.oauthService.createClientMemberId(
+      memberId,
+      memberDetailId,
+      clientMemberId,
+    );
+    this.logger.debug(
+      `postToken.clientMemberIdResult -> ${clientMemberIdResult}`,
+    );
+    if (!clientMemberIdResult)
+      throw new HttpException(
+        'It fails to create the client_member_id.',
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    const authorizationDataResult =
+      await this.oauthService.createAuthorizationData(
+        memberId,
+        memberDetailId,
+        JSON.stringify(authorizationData),
+      );
+    this.logger.debug(
+      `postToken.authorizationDataResult -> ${authorizationDataResult}`,
+    );
+    if (!authorizationDataResult)
+      throw new HttpException(
+        'It fails to create the authorization data.',
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    const expiryResult = await this.oauthService.setExpiry(
+      memberId,
+      memberDetailId,
+    );
+    this.logger.debug(`postToken.expiryResult -> ${expiryResult}`);
+    if (!expiryResult)
+      throw new HttpException(
+        'It fails to set the expiry.',
         HttpStatus.UNAUTHORIZED,
       );
 

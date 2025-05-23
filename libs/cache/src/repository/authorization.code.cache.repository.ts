@@ -44,9 +44,7 @@ export class AuthorizationCodeCacheRepository extends CacheService {
     return new CacheResponseEntity<number>(false);
   }
 
-  async getMemberIdInAuthorizationCode(
-    code: string,
-  ): Promise<CacheResponseEntity<string>> {
+  async getMemberId(code: string): Promise<CacheResponseEntity<string>> {
     const key = `${this.prefix}:${code}`;
     const result = await this.cache.hget(key, this.fields.memberId, {
       decoder: Decoder.String,
@@ -55,9 +53,7 @@ export class AuthorizationCodeCacheRepository extends CacheService {
     return new CacheResponseEntity<string>(false);
   }
 
-  async getMemberDetailIdInAuthorizationCode(
-    code: string,
-  ): Promise<CacheResponseEntity<string>> {
+  async getMemberDetailId(code: string): Promise<CacheResponseEntity<string>> {
     const key = `${this.prefix}:${code}`;
     const result = await this.cache.hget(key, this.fields.memberDetailId, {
       decoder: Decoder.String,
@@ -66,9 +62,7 @@ export class AuthorizationCodeCacheRepository extends CacheService {
     return new CacheResponseEntity<string>(false);
   }
 
-  async getDataInAuthorizationCode(
-    code: string,
-  ): Promise<CacheResponseEntity<string>> {
+  async getData(code: string): Promise<CacheResponseEntity<string>> {
     const key = `${this.prefix}:${code}`;
     const result = await this.cache.hget(key, this.fields.data, {
       decoder: Decoder.String,

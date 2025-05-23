@@ -5,9 +5,8 @@ import { VALKEY_CONNECTION } from './cache-connection-symbol';
 import { CheckCacheRepository } from './repository/check.cache.repository';
 import { PassportCacheRepository } from './repository/passport.cache.repository';
 import { AuthorizationCodeCacheRepository } from './repository/authorization.code.cache.repository';
-import { AuthorizationAccessTokenCacheRepository } from './repository/authorization.token.access.cache.repository';
-import { AuthorizationRefreshTokenCacheRepository } from './repository/authorization.token.refresh.cache.repository';
 import { VerificationCacheRepository } from './repository/verification.cache.repository';
+import { AuthorizationTokenCacheRepository } from './repository/authorization.token.token.cache.repository';
 
 const cache = {
   provide: VALKEY_CONNECTION,
@@ -49,16 +48,14 @@ const cache = {
     CheckCacheRepository,
     PassportCacheRepository,
     AuthorizationCodeCacheRepository,
-    AuthorizationAccessTokenCacheRepository,
-    AuthorizationRefreshTokenCacheRepository,
+    AuthorizationTokenCacheRepository,
     VerificationCacheRepository,
   ],
   exports: [
     CheckCacheRepository,
     PassportCacheRepository,
     AuthorizationCodeCacheRepository,
-    AuthorizationAccessTokenCacheRepository,
-    AuthorizationRefreshTokenCacheRepository,
+    AuthorizationTokenCacheRepository,
     VerificationCacheRepository,
   ],
 })
