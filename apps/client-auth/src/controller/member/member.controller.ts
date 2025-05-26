@@ -1,16 +1,25 @@
 import { TransformInterceptor } from '@app/interceptor/transform.interceptor';
-import { Controller, Get, Logger, Req, UseInterceptors } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Logger,
+  Req,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ChildService } from '../../service/child/child.service';
 import { MemberService } from '../../service/member/member.service';
 import * as cryptoJS from 'crypto-js';
 import { Request } from 'express';
-import { CookieValue } from '../../type/service/sign.service.type';
+import { SignCookie } from '../../type/service/sign.service.type';
 import { MemberEntireRepository } from '@app/persistence/schema/main/repository/member.entire.repository';
 import { MemberDetailPhoneRepository } from '@app/persistence/schema/main/repository/member.detail.phone.repository';
 import { ExceptionService } from '@app/exception/service/exception.service';
 import { MemberPhoneRepository } from '@app/persistence/schema/main/repository/member.phone.repository';
 import { MemberEntireResponseRead } from 'dto/interface/member.entire/response/member.entire.response.read.dto';
+import { SignInfo } from '../../decorator/sign.decorator';
+import { SignGuard } from '../../guard/sign.guard';
 
 @Controller('member')
 @UseInterceptors(TransformInterceptor)
@@ -32,6 +41,13 @@ export class MemberController {
     );
   }
 
+  @Get('test')
+  @UseGuards(SignGuard)
+  getTest(@SignInfo() signCookie: SignCookie): void {
+    this.logger.debug(`getTest.signCookie -> ${JSON.stringify(signCookie)}`);
+    return;
+  }
+
   @Get('entire')
   async getEntireMember(
     @Req() request: Request,
@@ -44,14 +60,14 @@ export class MemberController {
       encryptedCookieValue,
       this.cookieEncryptionKey,
     ).toString(cryptoJS.enc.Utf8);
-    const signMember = JSON.parse(decryptedCookieValue) as CookieValue;
+    const signCookie = JSON.parse(decryptedCookieValue) as SignCookie;
     this.logger.debug(
-      `getEntireMember.signMember -> ${JSON.stringify(signMember)}`,
+      `getEntireMember.signCookie -> ${JSON.stringify(signCookie)}`,
     );
 
     const memberEntireResult =
       await this.memberEntireRepository.selectMemberAndMemberDetailAndProviderByMemberDetailId(
-        signMember.memberDetailId,
+        signCookie.memberDetailId,
       );
     this.logger.debug(JSON.stringify(memberEntireResult));
     if (!memberEntireResult) this.exceptionService.notRecognizedError();
@@ -59,7 +75,7 @@ export class MemberController {
       this.exceptionService.notSelectedEntity('member');
     const memberDetailPhoneResult =
       await this.memberDetailPhoneRepository.selectMemberDetailByMemberDetailId(
-        signMember.memberDetailId,
+        signCookie.memberDetailId,
       );
     if (!memberDetailPhoneResult) this.exceptionService.notRecognizedError();
     if (!memberDetailPhoneResult?.isSucceed || !memberDetailPhoneResult.data)
