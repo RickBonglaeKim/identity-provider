@@ -9,7 +9,6 @@ import {
   UseInterceptors,
   Get,
   HttpStatus,
-  Query,
   Param,
 } from '@nestjs/common';
 import { SigninService } from '../../service/sign.in/sign.in.service';
@@ -18,7 +17,7 @@ import { OauthService } from '../../service/oauth/oauth.service';
 import { OauthAuthorizeRequestCreate } from 'dto/interface/oauth/authorize/request/oauth.authorize.request.create.dto';
 import { ConfigService } from '@nestjs/config';
 import * as cryptoJS from 'crypto-js';
-import { CookieValue, MemberKey } from '../../type/service/sign.service.type';
+import { MemberKey, SignCookie } from '../../type/service/sign.service.type';
 
 @Controller('signin')
 @UseInterceptors(TransformInterceptor)
@@ -27,6 +26,7 @@ export class SignInController {
   private readonly cookieEncryptionKey: string;
   private readonly memberKeyEncryptionKey: string;
   private readonly tokenExpirySeconds: number;
+  private readonly cookieName: string;
   private readonly signUrl: string;
 
   constructor(
@@ -42,6 +42,7 @@ export class SignInController {
     );
     this.tokenExpirySeconds =
       this.configService.getOrThrow<number>('TOKEN_EXPIRE_IN');
+    this.cookieName = this.configService.getOrThrow<string>('COOKIE_NAME');
     this.signUrl = this.configService.getOrThrow<string>('SIGN_URL');
   }
 
@@ -128,20 +129,20 @@ export class SignInController {
     }
 
     // set cookie
-    const cookieValue: CookieValue = {
+    const signCookie: SignCookie = {
       memberId,
       memberDetailId,
       timestamp: Date.now(),
     };
     const encryptedCookieValue = cryptoJS.AES.encrypt(
-      JSON.stringify(cookieValue),
+      JSON.stringify(signCookie),
       this.cookieEncryptionKey,
     ).toString();
     this.logger.debug(
       `getSignin.encryptedCookieValue -> ${encryptedCookieValue}`,
     );
 
-    response.cookie('iScreamArts-IDP', encryptedCookieValue, {
+    response.cookie(this.cookieName, encryptedCookieValue, {
       maxAge: this.tokenExpirySeconds * 1000,
       httpOnly: true,
       secure: true,

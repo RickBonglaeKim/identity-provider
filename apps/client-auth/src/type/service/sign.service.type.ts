@@ -5,7 +5,7 @@ export type SignMember =
     }
   | undefined;
 
-export type CookieValue = SignMember & {
+export type SignCookie = SignMember & {
   timestamp: number;
 };
 

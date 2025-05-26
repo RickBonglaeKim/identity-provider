@@ -1,24 +1,26 @@
 import { Controller, Get, Logger, Req, Res, Query } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Request, Response } from 'express';
-import * as cryptoJS from 'crypto-js';
-import { CookieValue } from '../../type/service/sign.service.type';
+import { SignCookie } from '../../type/service/sign.service.type';
 import { OauthService } from '../../service/oauth/oauth.service';
+import * as cryptoJS from 'crypto-js';
 
 @Controller('signout')
 export class SignOutController {
   private readonly logger = new Logger(SignOutController.name);
-  private readonly cookieEncryptionKey: string;
   private readonly signUrl: string;
+  private readonly cookieName: string;
+  private readonly cookieEncryptionKey: string;
 
   constructor(
     private readonly configService: ConfigService,
     private readonly oauthService: OauthService,
   ) {
+    this.signUrl = this.configService.getOrThrow<string>('SIGN_URL');
+    this.cookieName = this.configService.getOrThrow<string>('COOKIE_NAME');
     this.cookieEncryptionKey = this.configService.getOrThrow<string>(
       'COOKIE_ENCRYPTION_KEY',
     );
-    this.signUrl = this.configService.getOrThrow<string>('SIGN_URL');
   }
 
   @Get()
@@ -28,35 +30,42 @@ export class SignOutController {
     @Query('return') returnUrl: string,
   ): Promise<void> {
     try {
-      const encryptedCookieValue = request.cookies['iScreamArts-IDP'] as string;
-      if (!encryptedCookieValue) throw new Error('The cookie does not exist.');
+      const encryptedCookieValue = request.cookies[this.cookieName] as
+        | string
+        | undefined;
       this.logger.debug(
         `getSignout.encryptedCookieValue -> ${encryptedCookieValue}`,
       );
+      if (!encryptedCookieValue) throw new Error('The cookie does not exist.');
 
       const decryptedCookieValue = cryptoJS.AES.decrypt(
         encryptedCookieValue,
         this.cookieEncryptionKey,
       ).toString(cryptoJS.enc.Utf8);
-      const signMember = JSON.parse(decryptedCookieValue) as CookieValue;
-      if (!signMember) throw new Error('The cookie is invalid.');
+      const signCookie = JSON.parse(decryptedCookieValue) as SignCookie;
       this.logger.debug(
-        `getSignout.signMember -> ${JSON.stringify(signMember)}`,
+        `getSignout.signCookie -> ${JSON.stringify(signCookie)}`,
       );
+      if (!signCookie) throw new Error('The signCookie does not parsed.');
 
       const removedResult = await this.oauthService.removeAuthorizationToken(
-        signMember.memberId,
-        signMember.memberDetailId,
+        signCookie.memberId,
+        signCookie.memberDetailId,
       );
       if (!removedResult) throw new Error('The cookie is not removed.');
 
-      response.clearCookie('iScreamArts-IDP', {
-        maxAge: 0,
-        expires: new Date(0),
+      response.clearCookie(this.cookieName, {
+        maxAge: -1,
+        expires: new Date(-1),
       });
-    } catch (error) {
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : 'Unknown error occurred';
+      this.logger.error(`getSignout.error -> ${message}`);
+    } finally {
       if (returnUrl) response.redirect(returnUrl);
-      response.redirect(this.signUrl);
+      // response.redirect(this.signUrl);
+      response.redirect('/');
     }
   }
 }
