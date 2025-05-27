@@ -7,6 +7,18 @@ export type OauthError =
   | 'server_error'
   | 'temporarily_unavailable';
 
+export type OauthInternalError =
+  | 'invalid_code'
+  | 'invalid_state'
+  | 'invalid_kakao'
+  | 'invalid_naver'
+  | 'invalid_google'
+  | 'invalid_apple'
+  | 'invalid_member'
+  | 'invalid_passport'
+  | 'phone_duplication'
+  | 'email_duplication';
+
 export type OauthErrorDescription = string | null;
 
 export type OauthErrorUri = string | null;

@@ -11,8 +11,8 @@ import {
   NaverTokenResponse,
   NaverUserMeResponse,
   Naver,
-  Providers,
 } from '../../type/service/provider.service.type';
+import { PROVIDER } from 'dto/enum/provider.enum';
 
 @Injectable()
 export class ProviderService {
@@ -53,10 +53,10 @@ export class ProviderService {
         kakaoAccount.phone_number,
       );
       return {
-        provider: Providers.Kakao,
+        provider: PROVIDER.KAKAO,
         id: userInfo.id.toString(),
-        name: kakaoAccount.name || '',
-        email: kakaoAccount.email || '',
+        name: kakaoAccount.name,
+        email: kakaoAccount.email,
         phone: {
           countryCallingCode,
           phoneNumber,
@@ -126,10 +126,10 @@ export class ProviderService {
         naverAccount.mobile_e164,
       );
       return {
-        provider: Providers.Naver,
+        provider: PROVIDER.NAVER,
         id: naverAccount.id,
-        name: naverAccount.name || '',
-        email: naverAccount.email || '',
+        name: naverAccount.name,
+        email: naverAccount.email,
         phone: {
           countryCallingCode,
           phoneNumber,

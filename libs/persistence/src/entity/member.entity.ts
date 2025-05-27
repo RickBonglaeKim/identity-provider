@@ -12,10 +12,11 @@ type SelectMemberPhoneByCountryCallingCodeAndPhoneNumberType = {
 export type SelectMemberPhoneByCountryCallingCodeAndPhoneNumber =
   Required<SelectMemberPhoneByCountryCallingCodeAndPhoneNumberType>;
 
-type SelectMemberDetailByEmailType = {
+type SelectMemberDetailByDistinctEmailType = {
   email: typeof memberDetail.$inferSelect.email;
 };
-export type SelectMemberDetailByEmail = Required<SelectMemberDetailByEmailType>;
+export type SelectMemberDetailByDistinctEmail =
+  Required<SelectMemberDetailByDistinctEmailType>;
 
 type SelectMemberAndMemberDetailAndProviderByMemberDetailIdType = {
   createdAt: typeof member.$inferSelect.createdAt;

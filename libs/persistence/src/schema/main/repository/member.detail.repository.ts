@@ -3,7 +3,7 @@ import { MainSchemaService } from '../service/main.schema.service';
 import { memberDetail } from 'libs/persistence/database-schema/main/schema';
 import { ResponseEntity } from '@app/persistence/entity/response.entity';
 import { and, eq, isNull } from 'drizzle-orm';
-import { SelectMemberDetailByEmail } from '@app/persistence/entity/member.entity';
+import { SelectMemberDetailByDistinctEmail } from '@app/persistence/entity/member.entity';
 
 @Injectable()
 export class MemberDetailRepository extends MainSchemaService {
@@ -78,9 +78,9 @@ export class MemberDetailRepository extends MainSchemaService {
     }
   }
 
-  async selectMemberDetailByEmail(
+  async selectMemberDetailByDistinctEmail(
     email: string,
-  ): Promise<ResponseEntity<SelectMemberDetailByEmail> | undefined> {
+  ): Promise<ResponseEntity<SelectMemberDetailByDistinctEmail> | undefined> {
     try {
       const result = await this.mainTransaction.tx
         .selectDistinct({ email: memberDetail.email })
@@ -92,9 +92,12 @@ export class MemberDetailRepository extends MainSchemaService {
         );
       }
       if (result.length === 0) {
-        return new ResponseEntity<SelectMemberDetailByEmail>(false);
+        return new ResponseEntity<SelectMemberDetailByDistinctEmail>(false);
       }
-      return new ResponseEntity<SelectMemberDetailByEmail>(true, result[0]);
+      return new ResponseEntity<SelectMemberDetailByDistinctEmail>(
+        true,
+        result[0],
+      );
     } catch (error) {
       this.logger.error(error);
     }

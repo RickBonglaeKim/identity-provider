@@ -9,3 +9,10 @@ type verifyMemberByEmailType = {
   password: typeof memberDetail.$inferSelect.password;
 };
 export type verifyMemberByEmail = Required<verifyMemberByEmailType>;
+
+export type verifyMemberByEmailAndPassword = Omit<
+  verifyMemberByEmailType,
+  'password'
+>;
+
+export type verifyMemberByPassword = Omit<verifyMemberByEmailType, 'password'>;

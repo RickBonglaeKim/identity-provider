@@ -1,9 +1,7 @@
-export type SignMember =
-  | {
-      memberId: number;
-      memberDetailId: number;
-    }
-  | undefined;
+export type SignMember = {
+  memberId: number;
+  memberDetailId: number;
+};
 
 export type SignCookie = SignMember & {
   timestamp: number;

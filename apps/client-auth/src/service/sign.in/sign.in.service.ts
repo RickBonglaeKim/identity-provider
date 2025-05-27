@@ -21,12 +21,12 @@ export class SigninService {
   ): Promise<SignMember | undefined> {
     const signinResult = await this.signRepository.verifyMemberByEmail(id);
     if (!signinResult) {
-      this.logger.error('Signin result is undefined');
-      return undefined;
+      this.logger.debug('Signin result is undefined');
+      return;
     }
     if (!signinResult.isSucceed || !signinResult.data) {
-      this.logger.error('No member found with the given email');
-      return undefined;
+      this.logger.debug('No member found with the given email');
+      return;
     }
 
     this.logger.debug(
@@ -36,14 +36,14 @@ export class SigninService {
 
     const members = signinResult.data;
     if (!Array.isArray(members)) {
-      this.logger.error('Signin result data is not an array');
-      return undefined;
+      this.logger.debug('Signin result data is not an array');
+      return;
     }
 
     let memberResult: SignMember | undefined;
     for (const member of members) {
       if (!member || !member.password) {
-        this.logger.error('Member or password is undefined');
+        this.logger.debug('Member or password is undefined');
         continue;
       }
 
@@ -67,5 +67,54 @@ export class SigninService {
     }
 
     return memberResult;
+  }
+
+  async findMemberByEmailAndPassword(
+    email: string,
+    password: string, // ID of provider (Kakao, Naver, Google, Apple, etc.)
+  ): Promise<SignMember | undefined> {
+    const signinResult =
+      await this.signRepository.verifyMemberByEmailAndPassword(email, password);
+    if (!signinResult) {
+      this.logger.debug('Signin result is undefined');
+      return;
+    }
+    if (!signinResult.isSucceed || !signinResult.data) {
+      this.logger.debug('No member found with the given email and password');
+      return;
+    }
+
+    this.logger.debug(
+      `findMemberByEmailAndPassword.signinResult -> ${JSON.stringify(signinResult)}`,
+    );
+
+    return {
+      memberId: signinResult.data.memberId,
+      memberDetailId: signinResult.data.memberDetailId,
+    };
+  }
+
+  async findMemberByProvider(
+    providerPassword: string,
+  ): Promise<SignMember | undefined> {
+    const signinResult =
+      await this.signRepository.verifyMemberByPassword(providerPassword);
+    if (!signinResult) {
+      this.logger.debug('Signin result is undefined');
+      return;
+    }
+    if (!signinResult.isSucceed || !signinResult.data) {
+      this.logger.debug('No member found with the given provider password');
+      return;
+    }
+
+    this.logger.debug(
+      `findMemberByProvider.signinResult -> ${JSON.stringify(signinResult)}`,
+    );
+
+    return {
+      memberId: signinResult.data.memberId,
+      memberDetailId: signinResult.data.memberDetailId,
+    };
   }
 }
