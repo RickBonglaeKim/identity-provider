@@ -86,12 +86,8 @@ export class ProviderController {
     if (providerData.name) signupUrl += `&name=${providerData.name}`;
     if (providerData.email) signupUrl += `&email=${providerData.email}`;
     if (providerData.phone) {
-      signupUrl += `&phone=${makePhoneNumber(
-        providerData.phone.countryCallingCode,
-        providerData.phone.phoneNumber,
-      )}`;
+      signupUrl += `&countryCallingCode=${providerData.phone.countryCallingCode}&phoneNumber=${providerData.phone.phoneNumber}`;
     }
-
     return signupUrl;
   }
 
