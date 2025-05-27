@@ -28,13 +28,21 @@ export class SignInController {
   private readonly logger = new Logger(SignInController.name);
   private readonly cookieEncryptionKey: string;
   private readonly memberKeyEncryptionKey: string;
+  
+  private readonly passportExpirySeconds: number;
   private readonly tokenExpirySeconds: number;
-  private readonly cookieName: string;
+
+  private readonly IDPcookieName: string;
+  private readonly redirectCookieName: string;
+
   private readonly signinUrl: string;
-  private readonly kakao_client_id: string;
-  private readonly kakao_redirect_uri: string;
-  private readonly naver_client_id: string;
-  private readonly naver_redirect_uri: string;
+
+  private readonly kakaoClientId: string;
+  private readonly kakaoRedirectUri: string;
+
+  private readonly naverClientId: string;
+  private readonly naverClientSecret: string;
+  private readonly naverRedirectUri: string;
 
   constructor(
     private readonly configService: ConfigService,
@@ -47,13 +55,27 @@ export class SignInController {
     this.memberKeyEncryptionKey = this.configService.getOrThrow<string>(
       'MEMBER_KEY_ENCRYPTION_KEY',
     );
+    this.passportExpirySeconds =
+      this.configService.getOrThrow<number>('PASSPORT_EXPIRE_IN');
     this.tokenExpirySeconds =
       this.configService.getOrThrow<number>('TOKEN_EXPIRE_IN');
-    this.cookieName = this.configService.getOrThrow<string>('IDP_COOKIE_NAME');
+    this.IDPcookieName =
+      this.configService.getOrThrow<string>('IDP_COOKIE_NAME');
+    this.redirectCookieName = this.configService.getOrThrow<string>(
+      'REDIRECT_COOKIE_NAME',
+    );
     this.signinUrl = this.configService.getOrThrow<string>('SIGN_IN_URL');
-    this.kakao_client_id =
+    this.kakaoClientId =
       this.configService.getOrThrow<string>('KAKAO_CLIENT_ID');
-    this.configService.getOrThrow<string>('KAKAO_REDIRECT_URI');
+    this.kakaoRedirectUri =
+      this.configService.getOrThrow<string>('KAKAO_REDIRECT_URI');
+    this.naverClientId =
+      this.configService.getOrThrow<string>('NAVER_CLIENT_ID');
+    this.naverClientSecret = this.configService.getOrThrow<string>(
+      'NAVER_CLIENT_SECRET',
+    );
+    this.naverRedirectUri =
+      this.configService.getOrThrow<string>('NAVER_REDIRECT_URI');
   }
 
   private setCookie(
@@ -169,7 +191,7 @@ export class SignInController {
       `getSignin.encryptedCookieValue -> ${encryptedCookieValue}`,
     );
 
-    response.cookie(this.cookieName, encryptedCookieValue, {
+    response.cookie(this.IDPcookieName, encryptedCookieValue, {
       maxAge: this.tokenExpirySeconds * 1000,
       httpOnly: true,
       secure: true,
@@ -197,25 +219,35 @@ export class SignInController {
     const { redirect_uri } = JSON.parse(
       passport!,
     ) as OauthAuthorizeRequestCreate;
-    this.setCookie(response, this.cookieName, redirect_uri, {
-      maxAge: this.tokenExpirySeconds * 1000,
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
+    this.setCookie(response, this.redirectCookieName, redirect_uri, {
+      maxAge: this.passportExpirySeconds * 1000,
+      signed: true,
     });
     this.logger.debug(`getSigninKakao.passportKey -> ${passportKey}`);
-    const url: string = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${this.kakao_client_id}&redirect_uri=${this.kakao_redirect_uri}&state=${passportKey}`;
+    const url: string = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${this.kakaoClientId}&redirect_uri=${this.kakaoRedirectUri}&state=${passportKey}`;
     this.logger.debug(`getSigninKakao.url -> ${url}`);
     response.redirect(HttpStatus.PERMANENT_REDIRECT, url);
   }
 
   @Get('/provider/naver')
-  getSigninNaver(
+  async getSigninNaver(
     @Res() response: Response,
-    @Query('passport') passport: string,
+    @Query('passport') passportKey: string,
   ) {
-    this.logger.debug(`getSigninNaver.passport -> ${passport}`);
-    const url: string = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${this.naver_client_id}&redirect_uri=${this.naver_redirect_uri}&state=${passport}`;
+    const passport = await this.oauthService.findPassport(passportKey);
+    if (!passport) {
+      const error: OauthError = 'access_denied';
+      response.redirect(`${this.signinUrl}?error=${error}`);
+    }
+    const { redirect_uri } = JSON.parse(
+      passport!,
+    ) as OauthAuthorizeRequestCreate;
+    this.setCookie(response, this.redirectCookieName, redirect_uri, {
+      maxAge: this.passportExpirySeconds * 1000,
+      signed: true,
+    });
+    this.logger.debug(`getSigninNaver.passportKey -> ${passportKey}`);
+    const url: string = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${this.naverClientId}&redirect_uri=${this.naverRedirectUri}&state=${passportKey}`;
     this.logger.debug(`getSigninNaver.url -> ${url}`);
     response.redirect(HttpStatus.PERMANENT_REDIRECT, url);
   }

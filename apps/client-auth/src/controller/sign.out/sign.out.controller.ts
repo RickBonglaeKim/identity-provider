@@ -9,7 +9,7 @@ import * as cryptoJS from 'crypto-js';
 export class SignOutController {
   private readonly logger = new Logger(SignOutController.name);
   private readonly signinUrl: string;
-  private readonly cookieName: string;
+  private readonly IDPcookieName: string;
   private readonly cookieEncryptionKey: string;
 
   constructor(
@@ -17,7 +17,8 @@ export class SignOutController {
     private readonly oauthService: OauthService,
   ) {
     this.signinUrl = this.configService.getOrThrow<string>('SIGN_IN_URL');
-    this.cookieName = this.configService.getOrThrow<string>('IDP_COOKIE_NAME');
+    this.IDPcookieName =
+      this.configService.getOrThrow<string>('IDP_COOKIE_NAME');
     this.cookieEncryptionKey = this.configService.getOrThrow<string>(
       'COOKIE_ENCRYPTION_KEY',
     );
@@ -30,7 +31,7 @@ export class SignOutController {
     @Query('return') returnUrl: string,
   ): Promise<void> {
     try {
-      const encryptedCookieValue = request.cookies[this.cookieName] as
+      const encryptedCookieValue = request.cookies[this.IDPcookieName] as
         | string
         | undefined;
       this.logger.debug(
@@ -54,7 +55,7 @@ export class SignOutController {
       );
       if (!removedResult) throw new Error('The cookie is not removed.');
 
-      response.clearCookie(this.cookieName, {
+      response.clearCookie(this.IDPcookieName, {
         maxAge: -1,
         expires: new Date(-1),
       });

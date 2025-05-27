@@ -21,11 +21,11 @@ declare module 'express' {
 @Injectable()
 export class SignGuard implements CanActivate {
   private readonly logger = new Logger(SignGuard.name);
-  private readonly cookieName: string;
+  private readonly IDPcookieName: string;
   private readonly cookieEncryptionKey: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.cookieName = this.configService.getOrThrow<string>('IDP_COOKIE_NAME');
+    this.IDPcookieName = this.configService.getOrThrow<string>('IDP_COOKIE_NAME');
     this.cookieEncryptionKey = this.configService.getOrThrow<string>(
       'COOKIE_ENCRYPTION_KEY',
     );
@@ -39,7 +39,7 @@ export class SignGuard implements CanActivate {
         `SignGuard.canActivate.cookieEncryptionKey -> ${this.cookieEncryptionKey}`,
       );
       const request = context.switchToHttp().getRequest<Request>();
-      const encryptedCookieValue = request.cookies[this.cookieName] as
+      const encryptedCookieValue = request.cookies[this.IDPcookieName] as
         | string
         | undefined;
       this.logger.debug(

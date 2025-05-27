@@ -1,6 +1,6 @@
-import { Controller, Get, Query, Redirect, Res } from '@nestjs/common';
+import { Controller, Get, Query, Redirect, Req, Res } from '@nestjs/common';
 import { ProviderService } from '../../service/provider/provider.service';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OauthInternalError } from '../../type/service/oauth.service.type';
@@ -17,6 +17,7 @@ export class ProviderController {
   private readonly logger = new Logger(ProviderController.name);
   private readonly signinUrl: string;
   private readonly signupUrl: string;
+  private readonly redirectCookieName: string;
 
   constructor(
     private readonly providerService: ProviderService,
@@ -26,21 +27,18 @@ export class ProviderController {
   ) {
     this.signinUrl = this.configService.getOrThrow<string>('SIGN_IN_URL');
     this.signupUrl = this.configService.getOrThrow<string>('SIGN_UP_URL');
+    this.redirectCookieName = this.configService.getOrThrow<string>(
+      'REDIRECT_COOKIE_NAME',
+    );
   }
 
   private combineAuthorizationErrorUrl(
-    signinUrl: string,
+    url: string,
     code?: string,
     state?: string,
-    error?: string,
-    error_description?: string,
   ): string | undefined {
-    if (error) {
-      signinUrl += `&error=${error}&error_description=${error_description}`;
-      return signinUrl;
-    }
-    if (!code) return this.combineErrorUrl(signinUrl, 'invalid_code');
-    if (!state) return this.combineErrorUrl(signinUrl, 'invalid_state');
+    if (!code) return this.combineErrorUrl(url, 'invalid_code');
+    if (!state) return this.combineErrorUrl(url, 'invalid_state');
     return;
   }
 
@@ -67,6 +65,18 @@ export class ProviderController {
     return redirectUrl;
   }
 
+  private combineRedirectUrlWithError(
+    request: Request,
+    error: string,
+    errorDescription?: string,
+  ): string {
+    let url = request.signedCookies[this.redirectCookieName] as string;
+    this.logger.debug(`combineRedirectUrlWithError.url -> ${url}`);
+    url += `?error=${error}`;
+    if (errorDescription) url += `&error_description=${errorDescription}`;
+    return url;
+  }
+
   private combineSignupUrl(
     providerId: Providers,
     passportKey: string,
@@ -87,6 +97,7 @@ export class ProviderController {
 
   @Get('kakao')
   async getKakao(
+    @Req() request: Request,
     @Res() response: Response,
     @Query('code') code?: string,
     @Query('state') state?: string,
@@ -99,24 +110,27 @@ export class ProviderController {
       `getKakao.error -> ${error}`,
       `getKakao.error_description -> ${error_description}`,
     );
+
+    if (error) {
+      response.redirect(
+        this.combineRedirectUrlWithError(request, error, error_description),
+      );
+    }
+
     let signinUrl = `${this.signinUrl}?provider=${PROVIDER.KAKAO}`;
+
     const signinErrorUrl = this.combineAuthorizationErrorUrl(
       signinUrl,
       code,
       state,
-      error,
-      error_description,
     );
-    if (signinErrorUrl) {
-      response.redirect(signinErrorUrl);
-    }
+    if (signinErrorUrl) response.redirect(signinErrorUrl);
 
     const passportKey = state!;
 
     const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
-      const error: OauthInternalError = 'invalid_passport';
-      response.redirect(`${signinUrl}&error=${error}`);
+      response.redirect(this.combineErrorUrl(signinUrl, 'invalid_passport'));
     }
     signinUrl += `&passport=${passport}`;
     const authorizationData = JSON.parse(
@@ -125,8 +139,7 @@ export class ProviderController {
 
     const kakao = await this.providerService.connectKakao(code!);
     if (!kakao) {
-      const error: OauthInternalError = 'invalid_kakao';
-      response.redirect(`${signinUrl}&error=${error}`);
+      response.redirect(this.combineErrorUrl(signinUrl, 'invalid_kakao'));
     }
 
     const member = await this.signinService.findMemberByProvider(
@@ -139,25 +152,24 @@ export class ProviderController {
         passportKey,
         passport!,
       );
-      let redirectUrl = `${authorizationData.redirect_uri}?code=${authorizationCode}`;
-      if (authorizationData.state) {
-        redirectUrl += `&state=${authorizationData.state}`;
-      }
       response.redirect(
         this.combineRedirectUrl(
-          redirectUrl,
+          authorizationData.redirect_uri,
           authorizationCode!,
           authorizationData.state,
         ),
       );
     }
 
-    const signupUrl = this.combineSignupUrl(PROVIDER.KAKAO, passportKey, kakao);
-    response.redirect(signupUrl);
+    // The member searched by Kakao does not exist in the database.
+    response.redirect(
+      this.combineSignupUrl(PROVIDER.KAKAO, passportKey, kakao),
+    );
   }
 
   @Get('naver')
   async getNaver(
+    @Req() request: Request,
     @Res() response: Response,
     @Query('code') code?: string,
     @Query('state') state?: string,
@@ -170,24 +182,27 @@ export class ProviderController {
       `getNaver.error -> ${error}`,
       `getNaver.error_description -> ${error_description}`,
     );
+
+    if (error) {
+      response.redirect(
+        this.combineRedirectUrlWithError(request, error, error_description),
+      );
+    }
+
     let signinUrl = `${this.signinUrl}?provider=${PROVIDER.NAVER}`;
+
     const signinErrorUrl = this.combineAuthorizationErrorUrl(
       signinUrl,
       code,
       state,
-      error,
-      error_description,
     );
-    if (signinErrorUrl) {
-      response.redirect(signinErrorUrl);
-    }
+    if (signinErrorUrl) response.redirect(signinErrorUrl);
 
     const passportKey = state!;
 
     const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
-      const error: OauthInternalError = 'invalid_passport';
-      response.redirect(`${signinUrl}&error=${error}`);
+      response.redirect(this.combineErrorUrl(signinUrl, 'invalid_passport'));
     }
     signinUrl += `&passport=${passport}`;
     const authorizationData = JSON.parse(
@@ -196,8 +211,7 @@ export class ProviderController {
 
     const naver = await this.providerService.connectNaver(code!);
     if (!naver) {
-      const error: OauthInternalError = 'invalid_naver';
-      response.redirect(`${signinUrl}&error=${error}`);
+      response.redirect(this.combineErrorUrl(signinUrl, 'invalid_naver'));
     }
 
     const member = await this.signinService.findMemberByProvider(
@@ -210,15 +224,18 @@ export class ProviderController {
         passportKey,
         passport!,
       );
-      let redirectUrl = `${authorizationData.redirect_uri}?code=${authorizationCode}`;
-      if (authorizationData.state) {
-        redirectUrl += `&state=${authorizationData.state}`;
-      }
-      response.redirect(redirectUrl);
+      response.redirect(
+        this.combineRedirectUrl(
+          authorizationData.redirect_uri,
+          authorizationCode!,
+          authorizationData.state,
+        ),
+      );
     }
 
-    const signupUrl = this.combineSignupUrl(PROVIDER.NAVER, passportKey, naver);
-    response.redirect(signupUrl);
+    response.redirect(
+      this.combineSignupUrl(PROVIDER.NAVER, passportKey, naver),
+    );
   }
 
   @Get('google')
