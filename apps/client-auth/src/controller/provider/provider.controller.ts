@@ -161,7 +161,7 @@ export class ProviderController {
       );
     }
 
-    // The member searched by Kakao does not exist in the database.
+    // The member searched by the Kakao does not exist in the database.
     response.redirect(
       this.combineSignupUrl(PROVIDER.KAKAO, passportKey, kakao),
     );
@@ -233,6 +233,7 @@ export class ProviderController {
       );
     }
 
+    // The member searched by the Naver does not exist in the database.
     response.redirect(
       this.combineSignupUrl(PROVIDER.NAVER, passportKey, naver),
     );

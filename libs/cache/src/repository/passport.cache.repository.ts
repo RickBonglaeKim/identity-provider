@@ -1,14 +1,32 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CacheService } from '@app/cache/service/cache.service';
-import { Decoder, SetOptions, TimeUnit } from '@valkey/valkey-glide';
+import {
+  Decoder,
+  GlideClient,
+  SetOptions,
+  TimeUnit,
+} from '@valkey/valkey-glide';
 import { CacheResponseEntity } from '../entity/cache.response.entity';
+import { ConfigService } from '@nestjs/config';
+import { VALKEY_CONNECTION } from '../cache-connection-symbol';
 
 @Injectable()
 export class PassportCacheRepository extends CacheService {
   private readonly prefix = 'passport';
+  private readonly expirySeconds: number;
+
+  constructor(
+    @Inject(VALKEY_CONNECTION) _cache: GlideClient,
+    private readonly configService: ConfigService,
+  ) {
+    super(_cache);
+    this.expirySeconds =
+      this.configService.getOrThrow<number>('PASSPORT_EXPIRE_IN');
+  }
+
   private createSetOption(): SetOptions {
     return {
-      expiry: { type: TimeUnit.Milliseconds, count: 1000 * 60 * 60 },
+      expiry: { type: TimeUnit.Seconds, count: this.expirySeconds },
       conditionalSet: 'onlyIfDoesNotExist',
       returnOldValue: false,
     };
