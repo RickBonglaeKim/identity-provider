@@ -137,6 +137,7 @@ export const memberDetail = mysqlTable("member_detail", {
 	memberDetailId: bigint("member_detail_id", { mode: "number" }),
 	providerId: bigint("provider_id", { mode: "number" }).notNull().references(() => provider.id),
 	memberId: bigint("member_id", { mode: "number" }).notNull().references(() => member.id),
+	memberProviderKey: varchar("member_provider_key", { length: 128 }).notNull(),
 	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	name: varchar({ length: 32 }).notNull(),
@@ -152,6 +153,7 @@ export const memberDetail = mysqlTable("member_detail", {
 			name: "id_member_detail"
 		}),
 	primaryKey({ columns: [table.id], name: "member_detail_id"}),
+	unique("member_detail_ix__member_provider_key").on(table.memberProviderKey),
 ]);
 
 export const memberDetailPhone = mysqlTable("member_detail_phone", {
