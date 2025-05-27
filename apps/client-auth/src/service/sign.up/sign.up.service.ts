@@ -59,12 +59,12 @@ export class SignupService {
 
     this.logger.debug(JSON.stringify(signMember));
     const memberPhoneId = await this.memberService.createMemberPhone(
-      signMember!.memberId,
+      signMember.memberId,
       data.memberPhone,
     );
 
     await this.memberDetailPhoneRepository.insertMemberDetail({
-      memberDetailId: signMember!.memberDetailId,
+      memberDetailId: signMember.memberDetailId,
       memberPhoneId: memberPhoneId,
     });
   }
