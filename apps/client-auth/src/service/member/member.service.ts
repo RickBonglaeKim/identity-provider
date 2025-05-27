@@ -56,13 +56,12 @@ export class MemberService {
       `createMemberDetail -> compared result is ${await this.hashService.compareHash(data.password, hashPassword)}`,
     );
 
-    const memberProviderKey = cryptoRandomString({ length: 64, type: 'hex' });
     const memberDetailResult =
       await this.memberDetailRepository.insertMemberDetail({
         providerId: data.providerId,
         memberDetailId: memberDetailId,
         memberId: memberId,
-        memberProviderKey: `${data.providerId}.${memberProviderKey}`,
+        memberProviderKey: data.memberProviderKey!,
         name: data.name,
         email: data.email,
         password: hashPassword,

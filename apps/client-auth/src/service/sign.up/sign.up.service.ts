@@ -8,6 +8,8 @@ import { SignMember } from '../../type/service/sign.service.type';
 import { ExceptionService } from '@app/exception/service/exception.service';
 import { MemberDetailPhoneRepository } from '@app/persistence/schema/main/repository/member.detail.phone.repository';
 import { MemberPhoneRepository } from '@app/persistence/schema/main/repository/member.phone.repository';
+import { PROVIDER } from 'dto/enum/provider.enum';
+import cryptoRandomString from 'crypto-random-string';
 
 @Injectable()
 export class SignupService {
@@ -65,6 +67,11 @@ export class SignupService {
       `createSignup.memberDetailData -> ${JSON.stringify(memberDetailData)}`,
     );
     if (memberDetailData?.isSucceed) return;
+
+    if (data.memberDetail.providerId === PROVIDER.I_SCREAM_ART) {
+      const key = cryptoRandomString({ length: 64, type: 'hex' });
+      data.memberDetail.memberProviderKey = `${data.memberDetail.providerId}.${key}`;
+    }
 
     const memberId = await this.memberService.createMember(data.member);
     const memberDetailId = await this.memberService.createMemberDetail(

@@ -82,7 +82,7 @@ export class ProviderController {
     passportKey: string,
     providerData: ProviderData,
   ): string {
-    let signupUrl = `${this.signupUrl}?provider=${providerId}&passport=${passportKey}&id=${providerData.id}`;
+    let signupUrl = `${this.signupUrl}?provider=${providerId}&passport=${passportKey}&memberProviderKey=${providerData.id}`;
     if (providerData.name) signupUrl += `&name=${providerData.name}`;
     if (providerData.email) signupUrl += `&email=${providerData.email}`;
     if (providerData.phone) {
