@@ -2,30 +2,148 @@ import { TransformInterceptor } from '@app/interceptor/transform.interceptor';
 import {
   Controller,
   Get,
+  Provider,
   Query,
   Redirect,
   Res,
   UseInterceptors,
 } from '@nestjs/common';
 import { ProviderService } from '../../service/provider/provider.service';
-
+import { Response } from 'express';
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { OauthInternalError } from '../../type/service/oauth.service.type';
+import { OauthService } from '../../service/oauth/oauth.service';
+import { OauthAuthorizeRequestCreate } from 'dto/interface/oauth/authorize/request/oauth.authorize.request.create.dto';
+import { SigninService } from '../../service/sign.in/sign.in.service';
+import { PROVIDER, Providers } from 'dto/enum/provider.enum';
+import makeProviderPassword from '../../util/make.ProviderPassword';
+import makePhoneNumber from '../../util/make.phoneNumber';
+import { ProviderData } from '../../type/service/provider.service.type';
 
 @Controller('provider')
 export class ProviderController {
   private readonly logger = new Logger(ProviderController.name);
+  private readonly signinUrl: string;
+  private readonly signupUrl: string;
 
   constructor(
     private readonly providerService: ProviderService,
     private readonly configService: ConfigService,
-  ) {}
+    private readonly oauthService: OauthService,
+    private readonly signinService: SigninService,
+  ) {
+    this.signinUrl = this.configService.getOrThrow<string>('SIGN_IN_URL');
+    this.signupUrl = this.configService.getOrThrow<string>('SIGN_UP_URL');
+  }
 
-  @UseInterceptors(TransformInterceptor)
+  private validateAuthorizationParameters(
+    signinUrl: string,
+    code?: string,
+    state?: string,
+    error?: string,
+    error_description?: string,
+  ): string | undefined {
+    if (error) {
+      signinUrl += `&error=${error}&error_description=${error_description}`;
+    }
+    if (!code) {
+      const error: OauthInternalError = 'invalid_code';
+      signinUrl += `&error=${error}`;
+    }
+    if (!state) {
+      const error: OauthInternalError = 'invalid_state';
+      signinUrl += `&error=${error}`;
+    }
+
+    return signinUrl;
+  }
+
+  private validateSignupUrlWithParameters(
+    providerId: Providers,
+    passportKey: string,
+    providerData: ProviderData,
+  ): string {
+    let signupUrl = `${this.signupUrl}?provider=${providerId}&passport=${passportKey}&id=${providerData.id}`;
+    if (providerData.name) signupUrl += `&name=${providerData.name}`;
+    if (providerData.email) signupUrl += `&email=${providerData.email}`;
+    if (providerData.phone) {
+      signupUrl += `&phone=${makePhoneNumber(
+        providerData.phone.countryCallingCode,
+        providerData.phone.phoneNumber,
+      )}`;
+    }
+
+    return signupUrl;
+  }
+
   @Get('kakao')
-  async getKakao(@Query('code') code: string) {
-    this.logger.debug('getKakao', code);
-    return await this.providerService.connectKakao(code);
+  async getKakao(
+    @Res() response: Response,
+    @Query('code') code?: string,
+    @Query('state') state?: string,
+    @Query('error') error?: string,
+    @Query('error_description') error_description?: string,
+  ): Promise<void> {
+    this.logger.debug(
+      `getKakao.code -> ${code}`,
+      `getKakao.state -> ${state}`,
+      `getKakao.error -> ${error}`,
+      `getKakao.error_description -> ${error_description}`,
+    );
+    let signinUrl = `${this.signinUrl}?provider=${PROVIDER.KAKAO}`;
+    const signinErrorUrl = this.validateAuthorizationParameters(
+      signinUrl,
+      code,
+      state,
+      error,
+      error_description,
+    );
+    if (signinErrorUrl) {
+      response.redirect(signinErrorUrl);
+    }
+
+    const passportKey = state!;
+
+    const passport = await this.oauthService.findPassport(passportKey);
+    if (!passport) {
+      const error: OauthInternalError = 'invalid_passport';
+      response.redirect(`${signinUrl}&error=${error}`);
+    }
+    signinUrl += `&passport=${passport}`;
+    const authorizationData = JSON.parse(
+      passport!,
+    ) as OauthAuthorizeRequestCreate;
+
+    const kakao = await this.providerService.connectKakao(code!);
+    if (!kakao) {
+      const error: OauthInternalError = 'invalid_kakao';
+      response.redirect(`${signinUrl}&error=${error}`);
+    }
+
+    const member = await this.signinService.findMemberByProvider(
+      makeProviderPassword(PROVIDER.KAKAO, kakao.id),
+    );
+    if (member) {
+      const authorizationCode = await this.oauthService.createAuthorizationCode(
+        member.memberId,
+        member.memberDetailId,
+        passportKey,
+        passport!,
+      );
+      let redirectUrl = `${authorizationData.redirect_uri}?code=${authorizationCode}`;
+      if (authorizationData.state) {
+        redirectUrl += `&state=${authorizationData.state}`;
+      }
+      response.redirect(redirectUrl);
+    }
+
+    const signupUrl = this.validateSignupUrlWithParameters(
+      PROVIDER.KAKAO,
+      passportKey,
+      kakao,
+    );
+    response.redirect(signupUrl);
   }
 
   @UseInterceptors(TransformInterceptor)

@@ -3,11 +3,14 @@ import { MainSchemaService } from '../service/main.schema.service';
 import {
   member,
   memberDetail,
-  provider,
 } from 'libs/persistence/database-schema/main/schema';
 import { ResponseEntity } from '@app/persistence/entity/response.entity';
 import { and, eq } from 'drizzle-orm';
-import { verifyMemberByEmail } from '@app/persistence/entity/sign.entity';
+import {
+  verifyMemberByEmail,
+  verifyMemberByEmailAndPassword,
+  verifyMemberByPassword,
+} from '@app/persistence/entity/sign.entity';
 
 @Injectable()
 export class SignRepository extends MainSchemaService {
@@ -16,6 +19,7 @@ export class SignRepository extends MainSchemaService {
   async verifyMemberByEmail(
     email: string,
   ): Promise<ResponseEntity<verifyMemberByEmail[]> | undefined> {
+    const PROVIDER_ID = 101; // 아이스크림아트 (provider table)
     try {
       const result = await this.mainTransaction.tx
         .select({
@@ -25,11 +29,67 @@ export class SignRepository extends MainSchemaService {
         })
         .from(memberDetail)
         .innerJoin(member, eq(member.id, memberDetail.memberId))
-        .where(and(eq(memberDetail.email, email)));
+        .where(
+          and(
+            eq(memberDetail.email, email),
+            eq(memberDetail.providerId, PROVIDER_ID),
+          ),
+        );
       if (result.length === 0) {
         return new ResponseEntity<verifyMemberByEmail[]>(false);
       }
       return new ResponseEntity<verifyMemberByEmail[]>(true, result);
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
+  async verifyMemberByEmailAndPassword(
+    email: string,
+    password: string,
+  ): Promise<ResponseEntity<verifyMemberByEmailAndPassword> | undefined> {
+    try {
+      const result = await this.mainTransaction.tx
+        .select({
+          memberId: member.id,
+          memberDetailId: memberDetail.id,
+        })
+        .from(memberDetail)
+        .innerJoin(member, eq(member.id, memberDetail.memberId))
+        .where(
+          and(
+            eq(memberDetail.email, email),
+            eq(memberDetail.password, password),
+          ),
+        );
+      if (result.length === 0) {
+        return new ResponseEntity<verifyMemberByEmailAndPassword>(false);
+      }
+      return new ResponseEntity<verifyMemberByEmailAndPassword>(
+        true,
+        result[0],
+      );
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
+  async verifyMemberByPassword(
+    password: string,
+  ): Promise<ResponseEntity<verifyMemberByPassword> | undefined> {
+    try {
+      const result = await this.mainTransaction.tx
+        .select({
+          memberId: member.id,
+          memberDetailId: memberDetail.id,
+        })
+        .from(memberDetail)
+        .innerJoin(member, eq(member.id, memberDetail.memberId))
+        .where(and(eq(memberDetail.password, password)));
+      if (result.length === 0) {
+        return new ResponseEntity<verifyMemberByPassword>(false);
+      }
+      return new ResponseEntity<verifyMemberByPassword>(true, result[0]);
     } catch (error) {
       this.logger.error(error);
     }

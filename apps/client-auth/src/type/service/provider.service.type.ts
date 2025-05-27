@@ -1,15 +1,9 @@
-export enum Providers {
-  Kakao = 301,
-  Naver = 302,
-  Google = 401,
-  Apple = 402,
-}
+import { PROVIDER, Providers } from 'dto/enum/provider.enum';
 
-type ProviderData = {
-  provider: Providers;
+export type ProviderData = {
   id: string;
-  name: string;
-  email: string;
+  name?: string;
+  email?: string;
   phone:
     | {
         countryCallingCode: string;
@@ -19,19 +13,19 @@ type ProviderData = {
 };
 
 export type Kakao = ProviderData & {
-  provider: Providers.Kakao;
+  provider: typeof PROVIDER.KAKAO;
 };
 
 export type Naver = ProviderData & {
-  provider: Providers.Naver;
+  provider: typeof PROVIDER.NAVER;
 };
 
 export type Google = ProviderData & {
-  provider: Providers.Google;
+  provider: typeof PROVIDER.GOOGLE;
 };
 
 export type Apple = ProviderData & {
-  provider: Providers.Apple;
+  provider: typeof PROVIDER.APPLE;
 };
 
 export type TokenResponse = {

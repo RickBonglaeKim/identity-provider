@@ -8,7 +8,7 @@ import * as cryptoJS from 'crypto-js';
 @Controller('signout')
 export class SignOutController {
   private readonly logger = new Logger(SignOutController.name);
-  private readonly signUrl: string;
+  private readonly signinUrl: string;
   private readonly cookieName: string;
   private readonly cookieEncryptionKey: string;
 
@@ -16,7 +16,7 @@ export class SignOutController {
     private readonly configService: ConfigService,
     private readonly oauthService: OauthService,
   ) {
-    this.signUrl = this.configService.getOrThrow<string>('SIGN_URL');
+    this.signinUrl = this.configService.getOrThrow<string>('SIGN_IN_URL');
     this.cookieName = this.configService.getOrThrow<string>('COOKIE_NAME');
     this.cookieEncryptionKey = this.configService.getOrThrow<string>(
       'COOKIE_ENCRYPTION_KEY',
@@ -64,8 +64,7 @@ export class SignOutController {
       this.logger.error(`getSignout.error -> ${message}`);
     } finally {
       if (returnUrl) response.redirect(returnUrl);
-      // response.redirect(this.signUrl);
-      response.redirect('/');
+      response.redirect(this.signinUrl);
     }
   }
 }

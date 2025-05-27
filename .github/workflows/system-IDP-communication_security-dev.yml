@@ -72,7 +72,8 @@ jobs:
             MAIN_MAX_IDLE=${{ vars.MAIN_MAX_IDLE }}
             NODE_ENV=${{ vars.NODE_ENV }}
             REFRESH_TOKEN_EXPIRE_IN=${{ vars.REFRESH_TOKEN_EXPIRE_IN }}
-            SIGN_URL=${{ vars.SIGN_URL }}
+            SIGN_IN_URL=${{ vars.SIGN_IN_URL }}
+            SIGN_UP_URL=${{ vars.SIGN_UP_URL }}
             TOKEN_EXPIRE_IN=${{ vars.TOKEN_EXPIRE_IN }}
    
       - name: Deploy Amazon ECS task definition
