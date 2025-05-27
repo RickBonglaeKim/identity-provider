@@ -4,8 +4,10 @@ import {
   Controller,
   Logger,
   Post,
+  Res,
   UseInterceptors,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { SignupService } from '../../service/sign.up/sign.up.service';
 import { SignupRequestCreate } from 'dto/interface/sign.up/request/sign.up.request.create.dto';
 import { SignupWithPhoneRequestCreate } from 'dto/interface/sign.up/request/phone/sign.up.phone.request.create.dto';
@@ -18,15 +20,27 @@ export class SignupController {
   constructor(private readonly signupService: SignupService) {}
 
   @Post()
-  async postSignup(@Body() dto: SignupRequestCreate): Promise<void> {
+  async postSignup(
+    @Res({ passthrough: true }) response: Response,
+    @Body() dto: SignupRequestCreate,
+  ): Promise<void> {
     this.logger.debug('postSignup');
-    await this.signupService.createSignup(dto);
+    const result = await this.signupService.createSignupWithoutDuplication(dto);
+    if (!result) {
+      response.status(251);
+      return;
+    }
   }
 
   @Post('/phone')
   async postSignupWithPhone(
+    @Res({ passthrough: true }) response: Response,
     @Body() dto: SignupWithPhoneRequestCreate,
   ): Promise<void> {
-    await this.signupService.createSignupWithPhone(dto);
+    const result = await this.signupService.createSignupWithPhone(dto);
+    if (!result) {
+      response.status(251);
+      return;
+    }
   }
 }

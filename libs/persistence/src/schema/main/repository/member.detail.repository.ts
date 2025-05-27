@@ -78,6 +78,31 @@ export class MemberDetailRepository extends MainSchemaService {
     }
   }
 
+  async selectMemberDetailByEmail(
+    email: string,
+  ): Promise<ResponseEntity<typeof memberDetail.$inferSelect> | undefined> {
+    try {
+      const result = await this.mainTransaction.tx
+        .select()
+        .from(memberDetail)
+        .where(eq(memberDetail.email, email));
+      if (result.length > 1) {
+        throw new Error(
+          'The data searched by memberDetail.email is duplicated.',
+        );
+      }
+      if (result.length === 0) {
+        return new ResponseEntity<typeof memberDetail.$inferSelect>(false);
+      }
+      return new ResponseEntity<typeof memberDetail.$inferSelect>(
+        true,
+        result[0],
+      );
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
   async selectMemberDetailByDistinctEmail(
     email: string,
   ): Promise<ResponseEntity<SelectMemberDetailByDistinctEmail> | undefined> {

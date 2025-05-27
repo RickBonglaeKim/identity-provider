@@ -8,7 +8,7 @@ import { ResponseEntity } from '@app/persistence/entity/response.entity';
 export class MemberDetailPhoneRepository extends MainSchemaService {
   private readonly logger = new Logger(MemberDetailPhoneRepository.name);
 
-  async insertMemberDetail(
+  async insertMemberDetailPhone(
     data: typeof memberDetailPhone.$inferInsert,
   ): Promise<ResponseEntity<number> | undefined> {
     try {

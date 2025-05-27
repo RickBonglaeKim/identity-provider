@@ -99,7 +99,7 @@ export class MemberPhoneRepository extends MainSchemaService {
     }
   }
 
-  async selectMemberPhoneByCountryCallingCodeAndPhoneNumber(
+  async selectMemberPhoneByDistinctCountryCallingCodeAndPhoneNumber(
     countryCallingCode: string,
     phoneNumber: string,
   ): Promise<
@@ -130,6 +130,37 @@ export class MemberPhoneRepository extends MainSchemaService {
         );
       }
       return new ResponseEntity<SelectMemberPhoneByCountryCallingCodeAndPhoneNumber>(
+        true,
+        result[0],
+      );
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
+  async selectMemberPhoneByCountryCallingCodeAndPhoneNumber(
+    countryCallingCode: string,
+    phoneNumber: string,
+  ): Promise<ResponseEntity<typeof memberPhone.$inferSelect> | undefined> {
+    try {
+      const result = await this.mainTransaction.tx
+        .select()
+        .from(memberPhone)
+        .where(
+          and(
+            eq(memberPhone.countryCallingCode, countryCallingCode),
+            eq(memberPhone.phoneNumber, phoneNumber),
+          ),
+        );
+      if (result.length > 1) {
+        throw new Error(
+          'The data searched by memberPhone.countryCallingCode and memberPhone.phoneNumber is duplicated.',
+        );
+      }
+      if (result.length === 0) {
+        return new ResponseEntity<typeof memberPhone.$inferSelect>(false);
+      }
+      return new ResponseEntity<typeof memberPhone.$inferSelect>(
         true,
         result[0],
       );
