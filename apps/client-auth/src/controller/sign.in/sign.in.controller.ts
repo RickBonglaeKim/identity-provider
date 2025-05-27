@@ -98,7 +98,7 @@ export class SignInController {
   ): Promise<void | string> {
     const passport = await this.oauthService.findPassport(dto.passport);
     if (!passport) {
-      this.logger.error(`The passport does not exist in the cache.`);
+      this.logger.debug(`The passport does not exist in the cache.`);
       response.status(251);
       return;
     }
@@ -106,7 +106,7 @@ export class SignInController {
     const member = await this.signinService.findMember(dto.email, dto.password);
     this.logger.debug(`getSignin.memberId -> ${JSON.stringify(member)}`);
     if (!member) {
-      this.logger.error(`The member does not exist in the database.`);
+      this.logger.debug(`The member does not exist in the database.`);
       response.status(252);
       return;
     }

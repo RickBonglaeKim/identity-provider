@@ -34,7 +34,7 @@ export class VerificationService {
     phoneNumber: string,
   ): Promise<boolean> {
     const result =
-      await this.memberPhoneRepository.selectMemberPhoneByCountryCallingCodeAndPhoneNumber(
+      await this.memberPhoneRepository.selectMemberPhoneByDistinctCountryCallingCodeAndPhoneNumber(
         countryCallingCode,
         phoneNumber,
       );

@@ -11,6 +11,7 @@ import { MemberPhoneRequestCreate } from 'dto/interface/member.phone/request/mem
 import { ClientMemberRepository } from '@app/persistence/schema/main/repository/client.member.repository';
 import { MemberDetailResponseRead } from 'dto/interface/member.detail/response/member.detail.response.read.dto';
 import { MemberPhoneResponseRead } from 'dto/interface/member.phone/response/member.phone.response.read.dto';
+import cryptoRandomString from 'crypto-random-string';
 
 @Injectable()
 export class MemberService {
@@ -55,11 +56,13 @@ export class MemberService {
       `createMemberDetail -> compared result is ${await this.hashService.compareHash(data.password, hashPassword)}`,
     );
 
+    const memberProviderKey = cryptoRandomString({ length: 64, type: 'hex' });
     const memberDetailResult =
       await this.memberDetailRepository.insertMemberDetail({
         providerId: data.providerId,
         memberDetailId: memberDetailId,
         memberId: memberId,
+        memberProviderKey: `${data.providerId}.${memberProviderKey}`,
         name: data.name,
         email: data.email,
         password: hashPassword,

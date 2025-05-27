@@ -7,6 +7,7 @@ import { MemberService } from '../member/member.service';
 import { SignMember } from '../../type/service/sign.service.type';
 import { ExceptionService } from '@app/exception/service/exception.service';
 import { MemberDetailPhoneRepository } from '@app/persistence/schema/main/repository/member.detail.phone.repository';
+import { MemberPhoneRepository } from '@app/persistence/schema/main/repository/member.phone.repository';
 
 @Injectable()
 export class SignupService {
@@ -15,6 +16,7 @@ export class SignupService {
   constructor(
     private readonly memberDetailRepository: MemberDetailRepository,
     private readonly memberDetailPhoneRepository: MemberDetailPhoneRepository,
+    private readonly memberPhoneRepository: MemberPhoneRepository,
     private readonly memberService: MemberService,
     private readonly exceptionService: ExceptionService,
   ) {}
@@ -49,13 +51,46 @@ export class SignupService {
     return { memberId: memberId, memberDetailId: createdMemberDetailId };
   }
 
+  async createSignupWithoutDuplication(
+    data: SignupRequestCreate,
+  ): Promise<SignMember | undefined> {
+    this.logger.debug(
+      `createSignupWithoutDuplication.data -> ${JSON.stringify(data)}`,
+    );
+    const memberDetailData =
+      await this.memberDetailRepository.selectMemberDetailByEmail(
+        data.memberDetail.email,
+      );
+    this.logger.debug(
+      `createSignup.memberDetailData -> ${JSON.stringify(memberDetailData)}`,
+    );
+    if (memberDetailData?.isSucceed) return;
+
+    const memberId = await this.memberService.createMember(data.member);
+    const memberDetailId = await this.memberService.createMemberDetail(
+      null,
+      memberId,
+      data.memberDetail,
+    );
+
+    return { memberId: memberId, memberDetailId: memberDetailId };
+  }
+
   @Transactional()
   async createSignupWithPhone(
     data: SignupWithPhoneRequestCreate,
-  ): Promise<void> {
+  ): Promise<boolean> {
     this.logger.debug(`createSignupWithPhone.data -> ${JSON.stringify(data)}`);
-    const signMember = await this.createSignup(data);
-    if (!signMember) this.exceptionService.notInsertedEntity('sign up');
+
+    const memberPhoneData =
+      await this.memberPhoneRepository.selectMemberPhoneByCountryCallingCodeAndPhoneNumber(
+        data.memberPhone.countryCallingCode,
+        data.memberPhone.phoneNumber,
+      );
+    if (memberPhoneData?.isSucceed) return false;
+
+    const signMember = await this.createSignupWithoutDuplication(data);
+    if (!signMember) return false;
 
     this.logger.debug(JSON.stringify(signMember));
     const memberPhoneId = await this.memberService.createMemberPhone(
@@ -63,9 +98,11 @@ export class SignupService {
       data.memberPhone,
     );
 
-    await this.memberDetailPhoneRepository.insertMemberDetail({
+    await this.memberDetailPhoneRepository.insertMemberDetailPhone({
       memberDetailId: signMember.memberDetailId,
       memberPhoneId: memberPhoneId,
     });
+
+    return true;
   }
 }
