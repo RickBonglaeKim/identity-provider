@@ -28,7 +28,7 @@ export class SignInController {
   private readonly logger = new Logger(SignInController.name);
   private readonly cookieEncryptionKey: string;
   private readonly memberKeyEncryptionKey: string;
-  
+
   private readonly passportExpirySeconds: number;
   private readonly tokenExpirySeconds: number;
 
@@ -147,6 +147,7 @@ export class SignInController {
     if (!memberValue) {
       const error: OauthError = 'access_denied';
       response.redirect(`${this.signinUrl}?error=${error}`);
+      return;
     }
 
     const { memberId, memberDetailId, passportKey, timestamp } = JSON.parse(
@@ -164,17 +165,19 @@ export class SignInController {
     if (!passport) {
       const error: OauthError = 'unauthorized_client';
       response.redirect(`${this.signinUrl}?error=${error}`);
+      return;
     }
 
     const authorizationCode = await this.oauthService.createAuthorizationCode(
       memberId,
       memberDetailId,
       passportKey,
-      passport!,
+      passport,
     );
     if (!authorizationCode) {
       const error: OauthError = 'server_error';
       response.redirect(`${this.signinUrl}?error=${error}`);
+      return;
     }
 
     // set cookie
@@ -198,7 +201,7 @@ export class SignInController {
       sameSite: 'none',
     });
 
-    const passportJson = JSON.parse(passport!) as OauthAuthorizeRequestCreate;
+    const passportJson = JSON.parse(passport) as OauthAuthorizeRequestCreate;
     let redirectUrl = `${passportJson.redirect_uri}?code=${authorizationCode}`;
     if (passportJson.state) redirectUrl += `&state=${passportJson.state}`;
     this.logger.debug(`getSignin.redirectUrl -> ${redirectUrl}`);
@@ -211,44 +214,49 @@ export class SignInController {
     @Res() response: Response,
     @Query('passport') passportKey: string,
   ) {
+    this.logger.debug(`getSigninKakao.passportKey -> ${passportKey}`);
     const passport = await this.oauthService.findPassport(passportKey);
+    this.logger.debug(`getSigninKakao.passport -> ${passport}`);
     if (!passport) {
       const error: OauthError = 'access_denied';
       response.redirect(`${this.signinUrl}?error=${error}`);
+      return;
     }
     const { redirect_uri } = JSON.parse(
-      passport!,
+      passport,
     ) as OauthAuthorizeRequestCreate;
     this.setCookie(response, this.redirectCookieName, redirect_uri, {
       maxAge: this.passportExpirySeconds * 1000,
       signed: true,
     });
-    this.logger.debug(`getSigninKakao.passportKey -> ${passportKey}`);
     const url: string = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${this.kakaoClientId}&redirect_uri=${this.kakaoRedirectUri}&state=${passportKey}`;
     this.logger.debug(`getSigninKakao.url -> ${url}`);
-    response.redirect(HttpStatus.PERMANENT_REDIRECT, url);
+    response.redirect(HttpStatus.TEMPORARY_REDIRECT, url);
   }
 
   @Get('/provider/naver')
   async getSigninNaver(
     @Res() response: Response,
     @Query('passport') passportKey: string,
-  ) {
+  ): Promise<void> {
+    this.logger.debug(`getSigninNaver.passportKey -> ${passportKey}`);
     const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
       const error: OauthError = 'access_denied';
       response.redirect(`${this.signinUrl}?error=${error}`);
+      return;
     }
+    this.logger.debug(`getSigninNaver.passport -> ${passport}`);
     const { redirect_uri } = JSON.parse(
-      passport!,
+      passport,
     ) as OauthAuthorizeRequestCreate;
     this.setCookie(response, this.redirectCookieName, redirect_uri, {
       maxAge: this.passportExpirySeconds * 1000,
       signed: true,
     });
-    this.logger.debug(`getSigninNaver.passportKey -> ${passportKey}`);
+
     const url: string = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${this.naverClientId}&redirect_uri=${this.naverRedirectUri}&state=${passportKey}`;
     this.logger.debug(`getSigninNaver.url -> ${url}`);
-    response.redirect(HttpStatus.PERMANENT_REDIRECT, url);
+    response.redirect(HttpStatus.TEMPORARY_REDIRECT, url);
   }
 }
