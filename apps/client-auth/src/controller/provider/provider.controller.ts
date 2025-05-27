@@ -1,13 +1,4 @@
-import { TransformInterceptor } from '@app/interceptor/transform.interceptor';
-import {
-  Controller,
-  Get,
-  Provider,
-  Query,
-  Redirect,
-  Res,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Controller, Get, Query, Redirect, Res } from '@nestjs/common';
 import { ProviderService } from '../../service/provider/provider.service';
 import { Response } from 'express';
 import { Logger } from '@nestjs/common';
@@ -37,7 +28,7 @@ export class ProviderController {
     this.signupUrl = this.configService.getOrThrow<string>('SIGN_UP_URL');
   }
 
-  private validateAuthorizationParameters(
+  private combineAuthorizationErrorUrl(
     signinUrl: string,
     code?: string,
     state?: string,
@@ -46,20 +37,37 @@ export class ProviderController {
   ): string | undefined {
     if (error) {
       signinUrl += `&error=${error}&error_description=${error_description}`;
+      return signinUrl;
     }
-    if (!code) {
-      const error: OauthInternalError = 'invalid_code';
-      signinUrl += `&error=${error}`;
-    }
-    if (!state) {
-      const error: OauthInternalError = 'invalid_state';
-      signinUrl += `&error=${error}`;
-    }
-
-    return signinUrl;
+    if (!code) return this.combineErrorUrl(signinUrl, 'invalid_code');
+    if (!state) return this.combineErrorUrl(signinUrl, 'invalid_state');
+    return;
   }
 
-  private validateSignupUrlWithParameters(
+  private combineErrorUrl(
+    url: string,
+    error: OauthInternalError,
+    error_description?: string,
+  ): string {
+    url += `&error=${error}`;
+    if (error_description) url += `&error_description=${error_description}`;
+    return url;
+  }
+
+  private combineRedirectUrl(
+    url: string,
+    code: string,
+    state?: string,
+  ): string {
+    let redirectUrl = `${url}?code=${code}`;
+    if (state) {
+      redirectUrl += `&state=${state}`;
+    }
+
+    return redirectUrl;
+  }
+
+  private combineSignupUrl(
     providerId: Providers,
     passportKey: string,
     providerData: ProviderData,
@@ -92,7 +100,7 @@ export class ProviderController {
       `getKakao.error_description -> ${error_description}`,
     );
     let signinUrl = `${this.signinUrl}?provider=${PROVIDER.KAKAO}`;
-    const signinErrorUrl = this.validateAuthorizationParameters(
+    const signinErrorUrl = this.combineAuthorizationErrorUrl(
       signinUrl,
       code,
       state,
@@ -135,14 +143,16 @@ export class ProviderController {
       if (authorizationData.state) {
         redirectUrl += `&state=${authorizationData.state}`;
       }
-      response.redirect(redirectUrl);
+      response.redirect(
+        this.combineRedirectUrl(
+          redirectUrl,
+          authorizationCode!,
+          authorizationData.state,
+        ),
+      );
     }
 
-    const signupUrl = this.validateSignupUrlWithParameters(
-      PROVIDER.KAKAO,
-      passportKey,
-      kakao,
-    );
+    const signupUrl = this.combineSignupUrl(PROVIDER.KAKAO, passportKey, kakao);
     response.redirect(signupUrl);
   }
 
@@ -161,7 +171,7 @@ export class ProviderController {
       `getNaver.error_description -> ${error_description}`,
     );
     let signinUrl = `${this.signinUrl}?provider=${PROVIDER.NAVER}`;
-    const signinErrorUrl = this.validateAuthorizationParameters(
+    const signinErrorUrl = this.combineAuthorizationErrorUrl(
       signinUrl,
       code,
       state,
@@ -207,11 +217,7 @@ export class ProviderController {
       response.redirect(redirectUrl);
     }
 
-    const signupUrl = this.validateSignupUrlWithParameters(
-      PROVIDER.NAVER,
-      passportKey,
-      naver,
-    );
+    const signupUrl = this.combineSignupUrl(PROVIDER.NAVER, passportKey, naver);
     response.redirect(signupUrl);
   }
 
@@ -227,27 +233,27 @@ export class ProviderController {
     throw new Error('Not implemented');
   }
 
-  @Get('test/kakao')
-  @Redirect()
-  getKakaoTest() {
-    const kakao_client_id = this.configService.get<string>('KAKAO_CLIENT_ID');
-    const kakao_redirect_uri =
-      this.configService.get<string>('KAKAO_REDIRECT_URI');
+  // @Get('test/kakao')
+  // @Redirect()
+  // getKakaoTest() {
+  //   const kakao_client_id = this.configService.get<string>('KAKAO_CLIENT_ID');
+  //   const kakao_redirect_uri =
+  //     this.configService.get<string>('KAKAO_REDIRECT_URI');
 
-    return {
-      url: `https://kauth.kakao.com/oauth/authorize?client_id=${kakao_client_id}&redirect_uri=${kakao_redirect_uri}&response_type=code`,
-    };
-  }
+  //   return {
+  //     url: `https://kauth.kakao.com/oauth/authorize?client_id=${kakao_client_id}&redirect_uri=${kakao_redirect_uri}&response_type=code`,
+  //   };
+  // }
 
-  @Get('test/naver')
-  @Redirect()
-  getNaverTest() {
-    const naver_client_id = this.configService.get<string>('NAVER_CLIENT_ID');
-    const naver_redirect_uri =
-      this.configService.get<string>('NAVER_REDIRECT_URI');
+  // @Get('test/naver')
+  // @Redirect()
+  // getNaverTest() {
+  //   const naver_client_id = this.configService.get<string>('NAVER_CLIENT_ID');
+  //   const naver_redirect_uri =
+  //     this.configService.get<string>('NAVER_REDIRECT_URI');
 
-    return {
-      url: `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${naver_client_id}&state=STATE_STRING&redirect_uri=${naver_redirect_uri}`,
-    };
-  }
+  //   return {
+  //     url: `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${naver_client_id}&state=STATE_STRING&redirect_uri=${naver_redirect_uri}`,
+  //   };
+  // }
 }

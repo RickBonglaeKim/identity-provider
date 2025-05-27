@@ -25,7 +25,7 @@ export class SignGuard implements CanActivate {
   private readonly cookieEncryptionKey: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.cookieName = this.configService.getOrThrow<string>('COOKIE_NAME');
+    this.cookieName = this.configService.getOrThrow<string>('IDP_COOKIE_NAME');
     this.cookieEncryptionKey = this.configService.getOrThrow<string>(
       'COOKIE_ENCRYPTION_KEY',
     );

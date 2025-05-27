@@ -14,7 +14,7 @@ import {
   Redirect,
 } from '@nestjs/common';
 import { SigninService } from '../../service/sign.in/sign.in.service';
-import { Response } from 'express';
+import { CookieOptions, Response } from 'express';
 import { OauthService } from '../../service/oauth/oauth.service';
 import { OauthAuthorizeRequestCreate } from 'dto/interface/oauth/authorize/request/oauth.authorize.request.create.dto';
 import { ConfigService } from '@nestjs/config';
@@ -49,11 +49,25 @@ export class SignInController {
     );
     this.tokenExpirySeconds =
       this.configService.getOrThrow<number>('TOKEN_EXPIRE_IN');
-    this.cookieName = this.configService.getOrThrow<string>('COOKIE_NAME');
+    this.cookieName = this.configService.getOrThrow<string>('IDP_COOKIE_NAME');
     this.signinUrl = this.configService.getOrThrow<string>('SIGN_IN_URL');
     this.kakao_client_id =
       this.configService.getOrThrow<string>('KAKAO_CLIENT_ID');
     this.configService.getOrThrow<string>('KAKAO_REDIRECT_URI');
+  }
+
+  private setCookie(
+    response: Response,
+    cookieName: string,
+    cookieValue: string,
+    cookieOptions: CookieOptions,
+  ) {
+    response.cookie(cookieName, cookieValue, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      ...cookieOptions,
+    });
   }
 
   @Post()
@@ -171,12 +185,26 @@ export class SignInController {
   }
 
   @Get('/provider/kakao')
-  getSigninKakao(
+  async getSigninKakao(
     @Res() response: Response,
-    @Query('passport') passport: string,
+    @Query('passport') passportKey: string,
   ) {
-    this.logger.debug(`getSigninKakao.passport -> ${passport}`);
-    const url: string = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${this.kakao_client_id}&redirect_uri=${this.kakao_redirect_uri}&state=${passport}`;
+    const passport = await this.oauthService.findPassport(passportKey);
+    if (!passport) {
+      const error: OauthError = 'access_denied';
+      response.redirect(`${this.signinUrl}?error=${error}`);
+    }
+    const { redirect_uri } = JSON.parse(
+      passport!,
+    ) as OauthAuthorizeRequestCreate;
+    this.setCookie(response, this.cookieName, redirect_uri, {
+      maxAge: this.tokenExpirySeconds * 1000,
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+    });
+    this.logger.debug(`getSigninKakao.passportKey -> ${passportKey}`);
+    const url: string = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${this.kakao_client_id}&redirect_uri=${this.kakao_redirect_uri}&state=${passportKey}`;
     this.logger.debug(`getSigninKakao.url -> ${url}`);
     response.redirect(HttpStatus.PERMANENT_REDIRECT, url);
   }

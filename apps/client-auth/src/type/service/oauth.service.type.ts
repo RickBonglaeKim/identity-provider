@@ -15,9 +15,7 @@ export type OauthInternalError =
   | 'invalid_google'
   | 'invalid_apple'
   | 'invalid_member'
-  | 'invalid_passport'
-  | 'phone_duplication'
-  | 'email_duplication';
+  | 'invalid_passport';
 
 export type OauthErrorDescription = string | null;
 

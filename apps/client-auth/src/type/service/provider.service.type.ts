@@ -1,4 +1,4 @@
-import { PROVIDER, Providers } from 'dto/enum/provider.enum';
+import { PROVIDER } from 'dto/enum/provider.enum';
 
 export type ProviderData = {
   id: string;
