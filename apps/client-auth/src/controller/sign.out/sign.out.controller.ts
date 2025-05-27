@@ -17,7 +17,7 @@ export class SignOutController {
     private readonly oauthService: OauthService,
   ) {
     this.signinUrl = this.configService.getOrThrow<string>('SIGN_IN_URL');
-    this.cookieName = this.configService.getOrThrow<string>('COOKIE_NAME');
+    this.cookieName = this.configService.getOrThrow<string>('IDP_COOKIE_NAME');
     this.cookieEncryptionKey = this.configService.getOrThrow<string>(
       'COOKIE_ENCRYPTION_KEY',
     );
