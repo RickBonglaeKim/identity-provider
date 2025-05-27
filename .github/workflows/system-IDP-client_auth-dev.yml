@@ -79,6 +79,7 @@ jobs:
             SIGN_IN_URL=${{ vars.SIGN_IN_URL }}
             SIGN_UP_URL=${{ vars.SIGN_UP_URL }}
             TOKEN_EXPIRE_IN=${{ vars.TOKEN_EXPIRE_IN }}
+            PASSPORT_EXPIRE_IN=${{ vars.PASSPORT_EXPIRE_IN }}
    
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
