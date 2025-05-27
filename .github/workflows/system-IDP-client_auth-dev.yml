@@ -66,6 +66,8 @@ jobs:
             CACHE_PORT=${{ secrets.CACHE_PORT }}
             COOKIE_ENCRYPTION_KEY=${{ secrets.COOKIE_ENCRYPTION_KEY }}
             MEMBER_KEY_ENCRYPTION_KEY=${{ secrets.MEMBER_KEY_ENCRYPTION_KEY }}
+            NAVER_CLIENT_SECRET=${{ secrets.NAVER_CLIENT_SECRET }}
+
             IDP_COOKIE_NAME=${{ vars.IDP_COOKIE_NAME }}
             REDIRECT_COOKIE_NAME=${{ vars.REDIRECT_COOKIE_NAME }}
             DATABASE_IDLE_TIMEOUT=${{ vars.DATABASE_IDLE_TIMEOUT }}
@@ -80,6 +82,11 @@ jobs:
             SIGN_UP_URL=${{ vars.SIGN_UP_URL }}
             TOKEN_EXPIRE_IN=${{ vars.TOKEN_EXPIRE_IN }}
             PASSPORT_EXPIRE_IN=${{ vars.PASSPORT_EXPIRE_IN }}
+
+            KAKAO_CLIENT_ID=${{ vars.KAKAO_CLIENT_ID }}
+            KAKAO_REDIRECT_URI=${{ vars.KAKAO_REDIRECT_URI }}
+            NAVER_CLIENT_ID=${{ vars.NAVER_CLIENT_ID }}
+            NAVER_REDIRECT_URI=${{ vars.NAVER_REDIRECT_URI }}
    
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
