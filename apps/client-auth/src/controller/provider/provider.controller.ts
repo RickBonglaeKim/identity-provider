@@ -146,11 +146,73 @@ export class ProviderController {
     response.redirect(signupUrl);
   }
 
-  @UseInterceptors(TransformInterceptor)
   @Get('naver')
-  getNaver(@Query('code') code: string) {
-    this.logger.debug('getNaver', code);
-    return this.providerService.connectNaver(code);
+  async getNaver(
+    @Res() response: Response,
+    @Query('code') code?: string,
+    @Query('state') state?: string,
+    @Query('error') error?: string,
+    @Query('error_description') error_description?: string,
+  ) {
+    this.logger.debug(
+      `getNaver.code -> ${code}`,
+      `getNaver.state -> ${state}`,
+      `getNaver.error -> ${error}`,
+      `getNaver.error_description -> ${error_description}`,
+    );
+    let signinUrl = `${this.signinUrl}?provider=${PROVIDER.NAVER}`;
+    const signinErrorUrl = this.validateAuthorizationParameters(
+      signinUrl,
+      code,
+      state,
+      error,
+      error_description,
+    );
+    if (signinErrorUrl) {
+      response.redirect(signinErrorUrl);
+    }
+
+    const passportKey = state!;
+
+    const passport = await this.oauthService.findPassport(passportKey);
+    if (!passport) {
+      const error: OauthInternalError = 'invalid_passport';
+      response.redirect(`${signinUrl}&error=${error}`);
+    }
+    signinUrl += `&passport=${passport}`;
+    const authorizationData = JSON.parse(
+      passport!,
+    ) as OauthAuthorizeRequestCreate;
+
+    const naver = await this.providerService.connectNaver(code!);
+    if (!naver) {
+      const error: OauthInternalError = 'invalid_naver';
+      response.redirect(`${signinUrl}&error=${error}`);
+    }
+
+    const member = await this.signinService.findMemberByProvider(
+      makeProviderPassword(PROVIDER.NAVER, naver.id),
+    );
+    if (member) {
+      const authorizationCode = await this.oauthService.createAuthorizationCode(
+        member.memberId,
+        member.memberDetailId,
+        passportKey,
+        passport!,
+      );
+      let redirectUrl = `${authorizationData.redirect_uri}?code=${authorizationCode}`;
+      if (authorizationData.state) {
+        redirectUrl += `&state=${authorizationData.state}`;
+      }
+      response.redirect(redirectUrl);
+    }
+
+    const signupUrl = this.validateSignupUrlWithParameters(
+      PROVIDER.NAVER,
+      passportKey,
+      naver,
+    );
+    response.redirect(signupUrl);
   }
 
   @Get('google')
