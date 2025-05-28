@@ -226,7 +226,6 @@ export class SignInController {
     ) as OauthAuthorizeRequestCreate;
     this.setCookie(response, this.redirectCookieName, redirect_uri, {
       maxAge: this.passportExpirySeconds * 1000,
-      signed: true,
     });
     const url: string = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${this.kakaoClientId}&redirect_uri=${this.kakaoRedirectUri}&state=${passportKey}`;
     this.logger.debug(`getSigninKakao.url -> ${url}`);
@@ -251,7 +250,6 @@ export class SignInController {
     ) as OauthAuthorizeRequestCreate;
     this.setCookie(response, this.redirectCookieName, redirect_uri, {
       maxAge: this.passportExpirySeconds * 1000,
-      signed: true,
     });
 
     const url: string = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${this.naverClientId}&redirect_uri=${this.naverRedirectUri}&state=${passportKey}`;

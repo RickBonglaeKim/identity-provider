@@ -11,6 +11,8 @@ import { PROVIDER, Providers } from 'dto/enum/provider.enum';
 import makeProviderPassword from '../../util/make.ProviderPassword';
 import makePhoneNumber from '../../util/make.phoneNumber';
 import { ProviderData } from '../../type/service/provider.service.type';
+import makeMemberProviderKey from '../../util/make.ProviderPassword';
+import trimPhoneNumber from '../../util/trim.phoneNumber';
 
 @Controller('provider')
 export class ProviderController {
@@ -82,11 +84,16 @@ export class ProviderController {
     passportKey: string,
     providerData: ProviderData,
   ): string {
-    let signupUrl = `${this.signupUrl}?provider=${providerId}&passport=${passportKey}&memberProviderKey=${providerData.id}`;
+    const memberProviderKey = makeMemberProviderKey(
+      providerId,
+      providerData.id,
+    );
+    let signupUrl = `${this.signupUrl}?provider=${providerId}&passport=${passportKey}&memberProviderKey=${memberProviderKey}`;
     if (providerData.name) signupUrl += `&name=${providerData.name}`;
     if (providerData.email) signupUrl += `&email=${providerData.email}`;
     if (providerData.phone) {
-      signupUrl += `&countryCallingCode=${providerData.phone.countryCallingCode}&phoneNumber=${providerData.phone.phoneNumber}`;
+      signupUrl += `&countryCallingCode=${providerData.phone.countryCallingCode}`;
+      signupUrl += `&phoneNumber=${trimPhoneNumber(providerData.phone.phoneNumber)}`;
     }
     return signupUrl;
   }
@@ -138,8 +145,8 @@ export class ProviderController {
       response.redirect(this.combineErrorUrl(signinUrl, 'invalid_kakao'));
     }
 
-    const member = await this.signinService.findMemberByProvider(
-      makeProviderPassword(PROVIDER.KAKAO, kakao.id),
+    const member = await this.signinService.findMemberByMemberProvider(
+      makeMemberProviderKey(PROVIDER.KAKAO, kakao.id),
     );
     if (member) {
       const authorizationCode = await this.oauthService.createAuthorizationCode(
@@ -210,8 +217,8 @@ export class ProviderController {
       response.redirect(this.combineErrorUrl(signinUrl, 'invalid_naver'));
     }
 
-    const member = await this.signinService.findMemberByProvider(
-      makeProviderPassword(PROVIDER.NAVER, naver.id),
+    const member = await this.signinService.findMemberByMemberProvider(
+      makeMemberProviderKey(PROVIDER.NAVER, naver.id),
     );
     if (member) {
       const authorizationCode = await this.oauthService.createAuthorizationCode(
@@ -246,28 +253,4 @@ export class ProviderController {
     // TODO: 애플 로그인 구현
     throw new Error('Not implemented');
   }
-
-  // @Get('test/kakao')
-  // @Redirect()
-  // getKakaoTest() {
-  //   const kakao_client_id = this.configService.get<string>('KAKAO_CLIENT_ID');
-  //   const kakao_redirect_uri =
-  //     this.configService.get<string>('KAKAO_REDIRECT_URI');
-
-  //   return {
-  //     url: `https://kauth.kakao.com/oauth/authorize?client_id=${kakao_client_id}&redirect_uri=${kakao_redirect_uri}&response_type=code`,
-  //   };
-  // }
-
-  // @Get('test/naver')
-  // @Redirect()
-  // getNaverTest() {
-  //   const naver_client_id = this.configService.get<string>('NAVER_CLIENT_ID');
-  //   const naver_redirect_uri =
-  //     this.configService.get<string>('NAVER_REDIRECT_URI');
-
-  //   return {
-  //     url: `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${naver_client_id}&state=STATE_STRING&redirect_uri=${naver_redirect_uri}`,
-  //   };
-  // }
 }

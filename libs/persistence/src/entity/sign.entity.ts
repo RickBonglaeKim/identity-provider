@@ -16,3 +16,8 @@ export type verifyMemberByEmailAndPassword = Omit<
 >;
 
 export type verifyMemberByPassword = Omit<verifyMemberByEmailType, 'password'>;
+
+export type verifyMemberByMemberProviderKey = Omit<
+  verifyMemberByEmailType,
+  'password'
+>;
