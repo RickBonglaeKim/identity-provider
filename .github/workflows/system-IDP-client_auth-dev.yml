@@ -67,6 +67,7 @@ jobs:
             COOKIE_ENCRYPTION_KEY=${{ secrets.COOKIE_ENCRYPTION_KEY }}
             MEMBER_KEY_ENCRYPTION_KEY=${{ secrets.MEMBER_KEY_ENCRYPTION_KEY }}
             NAVER_CLIENT_SECRET=${{ secrets.NAVER_CLIENT_SECRET }}
+            GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
 
             IDP_COOKIE_NAME=${{ vars.IDP_COOKIE_NAME }}
             REDIRECT_COOKIE_NAME=${{ vars.REDIRECT_COOKIE_NAME }}
@@ -87,6 +88,14 @@ jobs:
             KAKAO_REDIRECT_URI=${{ vars.KAKAO_REDIRECT_URI }}
             NAVER_CLIENT_ID=${{ vars.NAVER_CLIENT_ID }}
             NAVER_REDIRECT_URI=${{ vars.NAVER_REDIRECT_URI }}
+
+            GOOGLE_CLIENT_ID=${{ vars.GOOGLE_CLIENT_ID }}
+            GOOGLE_REDIRECT_URI=${{ vars.GOOGLE_REDIRECT_URI }}
+            APPLE_CLIENT_ID=${{ vars.APPLE_CLIENT_ID }}
+            APPLE_REDIRECT_URI=${{ vars.APPLE_REDIRECT_URI }}
+            APPLE_AUTH_KEY=${{ vars.APPLE_AUTH_KEY }}
+            APPLE_KEY_ID  =${{ vars.APPLE_KEY_ID }}
+            APPLE_TEAM_ID=${{ vars.APPLE_TEAM_ID }}
    
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
