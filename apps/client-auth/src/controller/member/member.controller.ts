@@ -1,8 +1,10 @@
 import { TransformInterceptor } from '@app/interceptor/transform.interceptor';
 import {
+  Body,
   Controller,
   Get,
   Logger,
+  Patch,
   Req,
   UseGuards,
   UseInterceptors,
@@ -20,6 +22,7 @@ import { MemberPhoneRepository } from '@app/persistence/schema/main/repository/m
 import { MemberEntireResponseRead } from 'dto/interface/member.entire/response/member.entire.response.read.dto';
 import { SignInfo } from '../../decorator/sign.decorator';
 import { SignGuard } from '../../guard/sign.guard';
+import { MemberDetailPasswordRequestUpdate } from 'dto/interface/member.detail/request/member.detail.password.request.update.dto';
 
 @Controller('member')
 @UseInterceptors(TransformInterceptor)
@@ -45,6 +48,19 @@ export class MemberController {
   @UseGuards(SignGuard)
   getTest(@SignInfo() signCookie: SignCookie): void {
     this.logger.debug(`getTest.signCookie -> ${JSON.stringify(signCookie)}`);
+    return;
+  }
+
+  @Patch('password')
+  @UseGuards(SignGuard)
+  async changePasswordOfMemberDetailById(
+    @SignInfo() signCookie: SignCookie,
+    @Body() data: MemberDetailPasswordRequestUpdate,
+  ): Promise<void> {
+    await this.memberService.changePasswordOfMemberDetailById(
+      signCookie.memberDetailId,
+      data.password,
+    );
     return;
   }
 

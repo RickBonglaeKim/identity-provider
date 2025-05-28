@@ -11,7 +11,6 @@ import { MemberPhoneRequestCreate } from 'dto/interface/member.phone/request/mem
 import { ClientMemberRepository } from '@app/persistence/schema/main/repository/client.member.repository';
 import { MemberDetailResponseRead } from 'dto/interface/member.detail/response/member.detail.response.read.dto';
 import { MemberPhoneResponseRead } from 'dto/interface/member.phone/response/member.phone.response.read.dto';
-import cryptoRandomString from 'crypto-random-string';
 
 @Injectable()
 export class MemberService {
@@ -96,6 +95,24 @@ export class MemberService {
     return memberPhoneResult!.data!;
   }
 
+  @Transactional()
+  async changePasswordOfMemberDetailById(
+    memberDetailId: number,
+    password: string,
+  ): Promise<number> {
+    const result =
+      await this.memberDetailRepository.updatePasswordOfMemberDetailById(
+        memberDetailId,
+        password,
+      );
+    if (!result) this.exceptionService.notRecognizedError();
+    if (!result?.isSucceed || !result.data)
+      this.exceptionService.notUpdatedEntity('member detail');
+
+    return result!.data!;
+  }
+
+  @Transactional()
   async createClientMember(
     clientId: number,
     memberId: number,

@@ -127,4 +127,24 @@ export class MemberDetailRepository extends MainSchemaService {
       this.logger.error(error);
     }
   }
+
+  async updatePasswordOfMemberDetailById(
+    id: number,
+    password: string,
+  ): Promise<ResponseEntity<number> | undefined> {
+    try {
+      const result = (
+        await this.mainTransaction.tx
+          .update(memberDetail)
+          .set({ password })
+          .where(eq(memberDetail.id, id))
+      )[0];
+      if (result.affectedRows === 0) {
+        return new ResponseEntity<number>(false);
+      }
+      return new ResponseEntity<number>(true, result.affectedRows);
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
 }
