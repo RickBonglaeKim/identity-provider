@@ -56,6 +56,16 @@ export class VerificationController {
       );
   }
 
+  @Get('phone/check')
+  async getVerifyPhoneCheck(
+    @Query() dto: VerificationPhoneRequestCreate,
+  ): Promise<boolean> {
+    return await this.verificationService.verifyPhone(
+      dto.countryCallingCode,
+      trimPhoneNumber(dto.phoneNumber),
+    );
+  }
+
   @Get('phone/code')
   async getVerifyPhoneCode(
     @Query() dto: VerificationPhoneRequestRead,
@@ -106,6 +116,13 @@ export class VerificationController {
         'The verification code is not generated.',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
+  }
+
+  @Get('email/check')
+  async getVerifyEmailCheck(
+    @Query() dto: VerificationEmailRequestCreate,
+  ): Promise<boolean> {
+    return await this.verificationService.verifyEmail(dto.email);
   }
 
   @Get('email/code')

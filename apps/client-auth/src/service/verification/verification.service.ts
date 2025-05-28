@@ -34,7 +34,7 @@ export class VerificationService {
     phoneNumber: string,
   ): Promise<boolean> {
     const result =
-      await this.memberPhoneRepository.selectMemberPhoneByDistinctCountryCallingCodeAndPhoneNumber(
+      await this.memberPhoneRepository.selectMemberPhoneByCountryCallingCodeAndPhoneNumber(
         countryCallingCode,
         phoneNumber,
       );
@@ -89,9 +89,7 @@ export class VerificationService {
 
   async verifyEmail(email: string): Promise<boolean> {
     const result =
-      await this.memberDetailRepository.selectMemberDetailByDistinctEmail(
-        email,
-      );
+      await this.memberDetailRepository.selectMemberDetailByEmail(email);
     if (!result) this.exceptionService.notRecognizedError();
     if (result?.isSucceed) return false;
     return true;

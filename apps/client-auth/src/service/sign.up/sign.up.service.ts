@@ -10,6 +10,7 @@ import { MemberDetailPhoneRepository } from '@app/persistence/schema/main/reposi
 import { MemberPhoneRepository } from '@app/persistence/schema/main/repository/member.phone.repository';
 import { PROVIDER } from 'dto/enum/provider.enum';
 import cryptoRandomString from 'crypto-random-string';
+import trimPhoneNumber from '../../util/trim.phoneNumber';
 
 @Injectable()
 export class SignupService {
@@ -99,7 +100,10 @@ export class SignupService {
     const signMember = await this.createSignupWithoutDuplication(data);
     if (!signMember) return false;
 
-    this.logger.debug(JSON.stringify(signMember));
+    // Trim the phone number (e.g. 01055559871 -> 1055559871)
+    data.memberPhone.phoneNumber = trimPhoneNumber(
+      data.memberPhone.phoneNumber,
+    );
     const memberPhoneId = await this.memberService.createMemberPhone(
       signMember.memberId,
       data.memberPhone,

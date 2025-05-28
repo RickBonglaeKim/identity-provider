@@ -3,7 +3,7 @@ import { MainSchemaService } from '../service/main.schema.service';
 import { memberPhone } from 'libs/persistence/database-schema/main/schema';
 import { ResponseEntity } from '@app/persistence/entity/response.entity';
 import { and, eq } from 'drizzle-orm';
-import { SelectMemberPhoneByCountryCallingCodeAndPhoneNumber } from '@app/persistence/entity/member.entity';
+import { selectMemberPhoneByDistinctCountryCallingCodeAndPhoneNumber } from '@app/persistence/entity/member.entity';
 
 @Injectable()
 export class MemberPhoneRepository extends MainSchemaService {
@@ -103,7 +103,7 @@ export class MemberPhoneRepository extends MainSchemaService {
     countryCallingCode: string,
     phoneNumber: string,
   ): Promise<
-    | ResponseEntity<SelectMemberPhoneByCountryCallingCodeAndPhoneNumber>
+    | ResponseEntity<selectMemberPhoneByDistinctCountryCallingCodeAndPhoneNumber>
     | undefined
   > {
     try {
@@ -125,11 +125,11 @@ export class MemberPhoneRepository extends MainSchemaService {
         );
       }
       if (result.length === 0) {
-        return new ResponseEntity<SelectMemberPhoneByCountryCallingCodeAndPhoneNumber>(
+        return new ResponseEntity<selectMemberPhoneByDistinctCountryCallingCodeAndPhoneNumber>(
           false,
         );
       }
-      return new ResponseEntity<SelectMemberPhoneByCountryCallingCodeAndPhoneNumber>(
+      return new ResponseEntity<selectMemberPhoneByDistinctCountryCallingCodeAndPhoneNumber>(
         true,
         result[0],
       );
