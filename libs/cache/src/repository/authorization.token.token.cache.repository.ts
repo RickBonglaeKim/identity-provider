@@ -40,7 +40,7 @@ export class AuthorizationTokenCacheRepository extends CacheService {
   async setExpiry(key: string): Promise<boolean> {
     return await this.cache.expire(
       key,
-      this.expirySeconds,
+      +this.expirySeconds,
       this.createExpireOption(),
     );
   }
