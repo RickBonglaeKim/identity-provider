@@ -11,6 +11,9 @@ import { MemberPhoneRequestCreate } from 'dto/interface/member.phone/request/mem
 import { ClientMemberRepository } from '@app/persistence/schema/main/repository/client.member.repository';
 import { MemberDetailResponseRead } from 'dto/interface/member.detail/response/member.detail.response.read.dto';
 import { MemberPhoneResponseRead } from 'dto/interface/member.phone/response/member.phone.response.read.dto';
+import { MemberEntireResponseRead } from 'dto/interface/member.entire/response/member.entire.response.read.dto';
+import { MemberDetailPhoneRepository } from '@app/persistence/schema/main/repository/member.detail.phone.repository';
+import { MemberEntireRepository } from '@app/persistence/schema/main/repository/member.entire.repository';
 
 @Injectable()
 export class MemberService {
@@ -23,6 +26,8 @@ export class MemberService {
     private readonly clientMemberRepository: ClientMemberRepository,
     private readonly exceptionService: ExceptionService,
     private readonly hashService: HashService,
+    private readonly memberEntireRepository: MemberEntireRepository,
+    private readonly memberDetailPhoneRepository: MemberDetailPhoneRepository,
   ) {}
 
   @Transactional()
@@ -200,5 +205,53 @@ export class MemberService {
     return phoneNumbers;
   }
 
-  async findEntireMemberByMemberIdAndMemberDetailId() {}
+  async findEntireMemberByMemberDetailId(
+    memberDetailId: number,
+  ): Promise<MemberEntireResponseRead> {
+    const memberEntireResult =
+      await this.memberEntireRepository.selectMemberAndMemberDetailAndProviderByMemberDetailId(
+        memberDetailId,
+      );
+    if (!memberEntireResult) this.exceptionService.notRecognizedError();
+    if (!memberEntireResult?.isSucceed || !memberEntireResult.data) {
+      this.exceptionService.notSelectedEntity('member group tables');
+    }
+
+    const memberDetailPhoneResult =
+      await this.memberDetailPhoneRepository.selectMemberDetailPhoneByMemberDetailId(
+        memberDetailId,
+      );
+    if (!memberDetailPhoneResult) this.exceptionService.notRecognizedError();
+    if (!memberDetailPhoneResult?.isSucceed || !memberDetailPhoneResult.data) {
+      this.exceptionService.notSelectedEntity('member_detail_phone');
+    }
+
+    const memberPhoneResult =
+      await this.memberPhoneRepository.selectMemberPhoneById(
+        memberDetailPhoneResult!.data!.memberPhoneId,
+      );
+    if (!memberPhoneResult) this.exceptionService.notRecognizedError();
+
+    const member = memberEntireResult!.data!;
+    const memberPhone = memberPhoneResult!.data;
+
+    let phone: { countryCallingCode: string; phoneNumber: string } | null =
+      null;
+    if (memberPhone) {
+      phone = {
+        countryCallingCode: memberPhone.countryCallingCode,
+        phoneNumber: memberPhone.phoneNumber,
+      };
+    }
+
+    return new MemberEntireResponseRead(
+      member.createdAt,
+      member.isConsentedTermsAndConditions === 1,
+      member.isConsentedCollectionAndUsePersonalData === 1,
+      member.isConsentedMarketingUseAndInformationReceiving === 1,
+      member.name,
+      member.email,
+      phone,
+    );
+  }
 }
