@@ -1,44 +1,69 @@
 import { TransformInterceptor } from '@app/interceptor/transform.interceptor';
 import {
   Controller,
+  Delete,
   Get,
   Logger,
   Param,
+  Patch,
   Post,
-  Put,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { ChildService } from '../../service/child/child.service';
-import { ExceptionService } from '@app/exception/service/exception.service';
-import { ConfigService } from '@nestjs/config';
 import { ChildRequestCreate } from 'dto/interface/child/request/child.request.create.dto';
+import { SignGuard } from '../../guard/sign.guard';
+import { SignInfo } from '../../decorator/sign.decorator';
+import { SignCookie } from '../../type/service/sign.service.type';
 
 @Controller('child')
 @UseInterceptors(TransformInterceptor)
 export class ChildController {
   private readonly logger = new Logger(ChildController.name);
 
-  constructor(
-    private readonly configService: ConfigService,
-    private readonly exceptionService: ExceptionService,
-    private readonly childService: ChildService,
-  ) {}
+  constructor(private readonly childService: ChildService) {}
 
-  @Get('/:id')
-  async getChildren(@Param('id') id: number) {
-    const children = await this.childService.findChildByMemberId(id);
+  @Get()
+  @UseGuards(SignGuard)
+  async getChildren(@SignInfo() signCookie: SignCookie) {
+    const children = await this.childService.findChildByMemberId(
+      signCookie.memberId,
+    );
     return children;
   }
 
   @Post()
-  async createChild(dto: ChildRequestCreate) {
-    const childId = await this.childService.createChild(dto);
+  @UseGuards(SignGuard)
+  async createChild(
+    @SignInfo() signCookie: SignCookie,
+    dto: ChildRequestCreate,
+  ) {
+    const childId = await this.childService.createChild(
+      signCookie.memberId,
+      dto,
+    );
     return childId;
   }
 
-  @Put('/:id')
-  async updateChild(@Param('id') id: number, dto: ChildRequestCreate) {
-    const childId = await this.childService.updateChildById(id, dto);
+  @Patch('/:id')
+  @UseGuards(SignGuard)
+  async updateChild(
+    @SignInfo() signCookie: SignCookie,
+    @Param('id') id: number,
+    dto: ChildRequestCreate,
+  ) {
+    const childId = await this.childService.updateChildById(
+      id,
+      signCookie.memberId,
+      dto,
+    );
+    return childId;
+  }
+
+  @Delete('/:id')
+  @UseGuards(SignGuard)
+  async deleteChild(@Param('id') id: number) {
+    const childId = await this.childService.deleteChildById(id);
     return childId;
   }
 }

@@ -13,19 +13,44 @@ export class ChildService {
     private readonly childRepository: ChildRepository,
   ) {}
 
-  async createChild(data: ChildRequestCreate): Promise<number> {
-    const result = await this.childRepository.insertChild(data);
+  async createChild(
+    memberId: number,
+    data: ChildRequestCreate,
+  ): Promise<number> {
+    const result = await this.childRepository.insertChild({
+      memberId,
+      name: data.name,
+      birthday: data.birthDay,
+      codeGender: data.gender,
+    });
     if (!result) this.exceptionService.notRecognizedError();
     if (!result?.isSucceed || !result.data)
       this.exceptionService.notInsertedEntity('child');
     return result!.data!;
   }
 
-  async updateChildById(id: number, data: ChildRequestCreate): Promise<number> {
-    const result = await this.childRepository.updateChildById(id, data);
+  async updateChildById(
+    id: number,
+    memberId: number,
+    data: ChildRequestCreate,
+  ): Promise<number> {
+    const result = await this.childRepository.updateChildById(id, {
+      memberId,
+      name: data.name,
+      birthday: data.birthDay,
+      codeGender: data.gender,
+    });
     if (!result) this.exceptionService.notRecognizedError();
     if (!result?.isSucceed || !result.data)
       this.exceptionService.notUpdatedEntity('child');
+    return result!.data!;
+  }
+
+  async deleteChildById(id: number): Promise<number> {
+    const result = await this.childRepository.deleteChildById(id);
+    if (!result) this.exceptionService.notRecognizedError();
+    if (!result?.isSucceed || !result.data)
+      this.exceptionService.notDeletedEntity('child');
     return result!.data!;
   }
 

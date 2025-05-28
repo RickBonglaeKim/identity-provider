@@ -44,6 +44,22 @@ export class ChildRepository extends MainSchemaService {
     }
   }
 
+  async deleteChildById(
+    id: number,
+  ): Promise<ResponseEntity<number> | undefined> {
+    try {
+      const result = (
+        await this.mainTransaction.tx.delete(child).where(eq(child.id, id))
+      )[0];
+      if (result.affectedRows === 0) {
+        return new ResponseEntity<number>(false);
+      }
+      return new ResponseEntity<number>(true, result.affectedRows);
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
   async selectChildById(
     id: number,
   ): Promise<ResponseEntity<typeof child.$inferSelect> | undefined> {
