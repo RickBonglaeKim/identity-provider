@@ -5,12 +5,12 @@ import {
   provider,
 } from 'libs/persistence/database-schema/main/schema';
 
-type SelectMemberPhoneByCountryCallingCodeAndPhoneNumberType = {
+type selectMemberPhoneByDistinctCountryCallingCodeAndPhoneNumberType = {
   countryCallingCode: typeof memberPhone.$inferSelect.countryCallingCode;
   phoneNumber: typeof memberPhone.$inferSelect.phoneNumber;
 };
-export type SelectMemberPhoneByCountryCallingCodeAndPhoneNumber =
-  Required<SelectMemberPhoneByCountryCallingCodeAndPhoneNumberType>;
+export type selectMemberPhoneByDistinctCountryCallingCodeAndPhoneNumber =
+  Required<selectMemberPhoneByDistinctCountryCallingCodeAndPhoneNumberType>;
 
 type SelectMemberDetailByDistinctEmailType = {
   email: typeof memberDetail.$inferSelect.email;
