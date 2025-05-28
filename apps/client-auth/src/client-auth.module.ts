@@ -8,15 +8,15 @@ import { TransactionalAdapterDrizzleOrm } from '@nestjs-cls/transactional-adapte
 import { ConfigModule } from '@nestjs/config';
 import { ExceptionModule } from '@app/exception/exception.module';
 import { HomeController } from './controller/home/home.controller';
-import { SignupController } from './controller/sign.up/sign.up.controller';
-import { SignupService } from './service/sign.up/sign.up.service';
+import { SignUpController } from './controller/sign.up/sign.up.controller';
+import { SignUpService } from './service/sign.up/sign.up.service';
 import { CryptoModule } from '@app/crypto/crypto.module';
 import { MemberService } from './service/member/member.service';
 import { OauthController } from './controller/oauth/oauth.controller';
 import { OauthService } from './service/oauth/oauth.service';
 import { CacheModule } from '@app/cache/cache.module';
 import { SignInController } from './controller/sign.in/sign.in.controller';
-import { SigninService } from './service/sign.in/sign.in.service';
+import { SignInService } from './service/sign.in/sign.in.service';
 import { KeyController } from './controller/key/key.controller';
 import { KeyService } from './service/key/key.service';
 import { ClientService } from './service/client/client.service';
@@ -53,7 +53,7 @@ import { SignOutController } from './controller/sign.out/sign.out.controller';
   ],
   controllers: [
     HomeController,
-    SignupController,
+    SignUpController,
     SignInController,
     SignOutController,
     OauthController,
@@ -65,8 +65,8 @@ import { SignOutController } from './controller/sign.out/sign.out.controller';
   ],
   providers: [
     MemberService,
-    SignupService,
-    SigninService,
+    SignUpService,
+    SignInService,
     OauthService,
     KeyService,
     ClientService,

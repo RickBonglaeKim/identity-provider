@@ -6,7 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { OauthInternalError } from '../../type/service/oauth.service.type';
 import { OauthService } from '../../service/oauth/oauth.service';
 import { OauthAuthorizeRequestCreate } from 'dto/interface/oauth/authorize/request/oauth.authorize.request.create.dto';
-import { SigninService } from '../../service/sign.in/sign.in.service';
+import { SignInService } from '../../service/sign.in/sign.in.service';
 import { PROVIDER, Providers } from 'dto/enum/provider.enum';
 import makeProviderPassword from '../../util/make.ProviderPassword';
 import makePhoneNumber from '../../util/make.phoneNumber';
@@ -17,18 +17,18 @@ import trimPhoneNumber from '../../util/trim.phoneNumber';
 @Controller('provider')
 export class ProviderController {
   private readonly logger = new Logger(ProviderController.name);
-  private readonly signinUrl: string;
-  private readonly signupUrl: string;
+  private readonly signInUrl: string;
+  private readonly signUpUrl: string;
   private readonly redirectCookieName: string;
 
   constructor(
     private readonly providerService: ProviderService,
     private readonly configService: ConfigService,
     private readonly oauthService: OauthService,
-    private readonly signinService: SigninService,
+    private readonly signInService: SignInService,
   ) {
-    this.signinUrl = this.configService.getOrThrow<string>('SIGN_IN_URL');
-    this.signupUrl = this.configService.getOrThrow<string>('SIGN_UP_URL');
+    this.signInUrl = this.configService.getOrThrow<string>('SIGN_IN_URL');
+    this.signUpUrl = this.configService.getOrThrow<string>('SIGN_UP_URL');
     this.redirectCookieName = this.configService.getOrThrow<string>(
       'REDIRECT_COOKIE_NAME',
     );
@@ -79,7 +79,7 @@ export class ProviderController {
     return url;
   }
 
-  private combineSignupUrl(
+  private combineSignUpUrl(
     providerId: Providers,
     passportKey: string,
     providerData: ProviderData,
@@ -88,14 +88,14 @@ export class ProviderController {
       providerId,
       providerData.id,
     );
-    let signupUrl = `${this.signupUrl}?provider=${providerId}&passport=${passportKey}&memberProviderKey=${memberProviderKey}`;
-    if (providerData.name) signupUrl += `&name=${providerData.name}`;
-    if (providerData.email) signupUrl += `&email=${providerData.email}`;
+    let signUpUrl = `${this.signUpUrl}?provider=${providerId}&passport=${passportKey}&memberProviderKey=${memberProviderKey}`;
+    if (providerData.name) signUpUrl += `&name=${providerData.name}`;
+    if (providerData.email) signUpUrl += `&email=${providerData.email}`;
     if (providerData.phone) {
-      signupUrl += `&countryCallingCode=${providerData.phone.countryCallingCode}`;
-      signupUrl += `&phoneNumber=${trimPhoneNumber(providerData.phone.phoneNumber)}`;
+      signUpUrl += `&countryCallingCode=${providerData.phone.countryCallingCode}`;
+      signUpUrl += `&phoneNumber=${trimPhoneNumber(providerData.phone.phoneNumber)}`;
     }
-    return signupUrl;
+    return signUpUrl;
   }
 
   @Get('kakao')
@@ -120,32 +120,32 @@ export class ProviderController {
       );
     }
 
-    let signinUrl = `${this.signinUrl}?provider=${PROVIDER.KAKAO}`;
+    let signInUrl = `${this.signInUrl}?provider=${PROVIDER.KAKAO}`;
 
-    const signinErrorUrl = this.combineAuthorizationErrorUrl(
-      signinUrl,
+    const signInErrorUrl = this.combineAuthorizationErrorUrl(
+      signInUrl,
       code,
       state,
     );
-    if (signinErrorUrl) response.redirect(signinErrorUrl);
+    if (signInErrorUrl) response.redirect(signInErrorUrl);
 
     const passportKey = state!;
 
     const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
-      response.redirect(this.combineErrorUrl(signinUrl, 'invalid_passport'));
+      response.redirect(this.combineErrorUrl(signInUrl, 'invalid_passport'));
     }
-    signinUrl += `&passport=${passport}`;
+    signInUrl += `&passport=${passport}`;
     const authorizationData = JSON.parse(
       passport!,
     ) as OauthAuthorizeRequestCreate;
 
     const kakao = await this.providerService.connectKakao(code!);
     if (!kakao) {
-      response.redirect(this.combineErrorUrl(signinUrl, 'invalid_kakao'));
+      response.redirect(this.combineErrorUrl(signInUrl, 'invalid_kakao'));
     }
 
-    const member = await this.signinService.findMemberByMemberProvider(
+    const member = await this.signInService.findMemberByMemberProvider(
       makeMemberProviderKey(PROVIDER.KAKAO, kakao.id),
     );
     if (member) {
@@ -166,7 +166,7 @@ export class ProviderController {
 
     // The member searched by the Kakao does not exist in the database.
     response.redirect(
-      this.combineSignupUrl(PROVIDER.KAKAO, passportKey, kakao),
+      this.combineSignUpUrl(PROVIDER.KAKAO, passportKey, kakao),
     );
   }
 
@@ -192,32 +192,32 @@ export class ProviderController {
       );
     }
 
-    let signinUrl = `${this.signinUrl}?provider=${PROVIDER.NAVER}`;
+    let signInUrl = `${this.signInUrl}?provider=${PROVIDER.NAVER}`;
 
-    const signinErrorUrl = this.combineAuthorizationErrorUrl(
-      signinUrl,
+    const signInErrorUrl = this.combineAuthorizationErrorUrl(
+      signInUrl,
       code,
       state,
     );
-    if (signinErrorUrl) response.redirect(signinErrorUrl);
+    if (signInErrorUrl) response.redirect(signInErrorUrl);
 
     const passportKey = state!;
 
     const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
-      response.redirect(this.combineErrorUrl(signinUrl, 'invalid_passport'));
+      response.redirect(this.combineErrorUrl(signInUrl, 'invalid_passport'));
     }
-    signinUrl += `&passport=${passport}`;
+    signInUrl += `&passport=${passport}`;
     const authorizationData = JSON.parse(
       passport!,
     ) as OauthAuthorizeRequestCreate;
 
     const naver = await this.providerService.connectNaver(code!);
     if (!naver) {
-      response.redirect(this.combineErrorUrl(signinUrl, 'invalid_naver'));
+      response.redirect(this.combineErrorUrl(signInUrl, 'invalid_naver'));
     }
 
-    const member = await this.signinService.findMemberByMemberProvider(
+    const member = await this.signInService.findMemberByMemberProvider(
       makeMemberProviderKey(PROVIDER.NAVER, naver.id),
     );
     if (member) {
@@ -238,7 +238,7 @@ export class ProviderController {
 
     // The member searched by the Naver does not exist in the database.
     response.redirect(
-      this.combineSignupUrl(PROVIDER.NAVER, passportKey, naver),
+      this.combineSignUpUrl(PROVIDER.NAVER, passportKey, naver),
     );
   }
 

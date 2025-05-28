@@ -1,5 +1,5 @@
 import { TransformInterceptor } from '@app/interceptor/transform.interceptor';
-import { SigninRequestCreate } from 'dto/interface/sign.in/request/sign.in.request.create.dto';
+import { SignInRequestCreate } from 'dto/interface/sign.in/request/sign.in.request.create.dto';
 import {
   Controller,
   Logger,
@@ -12,7 +12,7 @@ import {
   Param,
   Query,
 } from '@nestjs/common';
-import { SigninService } from '../../service/sign.in/sign.in.service';
+import { SignInService } from '../../service/sign.in/sign.in.service';
 import { CookieOptions, Response } from 'express';
 import { OauthService } from '../../service/oauth/oauth.service';
 import { OauthAuthorizeRequestCreate } from 'dto/interface/oauth/authorize/request/oauth.authorize.request.create.dto';
@@ -21,7 +21,7 @@ import * as cryptoJS from 'crypto-js';
 import { MemberKey, SignCookie } from '../../type/service/sign.service.type';
 import { OauthError } from '../../type/service/oauth.service.type';
 
-@Controller('signin')
+@Controller('signIn')
 @UseInterceptors(TransformInterceptor)
 export class SignInController {
   private readonly logger = new Logger(SignInController.name);
@@ -34,7 +34,7 @@ export class SignInController {
   private readonly IDPcookieName: string;
   private readonly redirectCookieName: string;
 
-  private readonly signinUrl: string;
+  private readonly signInUrl: string;
 
   private readonly kakaoClientId: string;
   private readonly kakaoRedirectUri: string;
@@ -45,7 +45,7 @@ export class SignInController {
 
   constructor(
     private readonly configService: ConfigService,
-    private readonly signinService: SigninService,
+    private readonly signInService: SignInService,
     private readonly oauthService: OauthService,
   ) {
     this.cookieEncryptionKey = this.configService.getOrThrow<string>(
@@ -63,7 +63,7 @@ export class SignInController {
     this.redirectCookieName = this.configService.getOrThrow<string>(
       'REDIRECT_COOKIE_NAME',
     );
-    this.signinUrl = this.configService.getOrThrow<string>('SIGN_IN_URL');
+    this.signInUrl = this.configService.getOrThrow<string>('SIGN_IN_URL');
     this.kakaoClientId =
       this.configService.getOrThrow<string>('KAKAO_CLIENT_ID');
     this.kakaoRedirectUri =
@@ -92,9 +92,9 @@ export class SignInController {
   }
 
   @Post()
-  async postSignin(
+  async postSignIn(
     @Res({ passthrough: true }) response: Response,
-    @Body() dto: SigninRequestCreate,
+    @Body() dto: SignInRequestCreate,
   ): Promise<void | string> {
     const passport = await this.oauthService.findPassport(dto.passport);
     if (!passport) {
@@ -103,8 +103,8 @@ export class SignInController {
       return;
     }
 
-    const member = await this.signinService.findMember(dto.email, dto.password);
-    this.logger.debug(`getSignin.memberId -> ${JSON.stringify(member)}`);
+    const member = await this.signInService.findMember(dto.email, dto.password);
+    this.logger.debug(`getSignIn.memberId -> ${JSON.stringify(member)}`);
     if (!member) {
       this.logger.debug(`The member does not exist in the database.`);
       response.status(252);
@@ -120,42 +120,42 @@ export class SignInController {
       }),
       this.memberKeyEncryptionKey,
     ).toString();
-    this.logger.debug(`postSignin.memberKey -> ${memberKey}`);
+    this.logger.debug(`postSignIn.memberKey -> ${memberKey}`);
     const decryptedMemberValue = cryptoJS.AES.decrypt(
       memberKey,
       this.memberKeyEncryptionKey,
     ).toString(cryptoJS.enc.Utf8);
     this.logger.debug(
-      `postSignin.decryptedMemberValue -> ${decryptedMemberValue}`,
+      `postSignIn.decryptedMemberValue -> ${decryptedMemberValue}`,
     );
 
     return encodeURIComponent(memberKey);
   }
 
   @Get('/:memberKey')
-  async getSignin(
+  async getSignIn(
     @Res() response: Response,
     @Param('memberKey') memberKey: string,
   ): Promise<void> {
-    this.logger.debug(`getSignin.memberKey -> ${memberKey}`);
+    this.logger.debug(`getSignIn.memberKey -> ${memberKey}`);
     const memberValue = cryptoJS.AES.decrypt(
       decodeURIComponent(memberKey),
       this.memberKeyEncryptionKey,
     ).toString(cryptoJS.enc.Utf8);
-    this.logger.debug(`getSignin.memberValue -> ${memberValue}`);
+    this.logger.debug(`getSignIn.memberValue -> ${memberValue}`);
     if (!memberValue) {
       const error: OauthError = 'access_denied';
-      response.redirect(`${this.signinUrl}?error=${error}`);
+      response.redirect(`${this.signInUrl}?error=${error}`);
       return;
     }
 
     const { memberId, memberDetailId, passportKey, timestamp } = JSON.parse(
       memberValue,
     ) as MemberKey;
-    this.logger.debug(`getSignin.memberId -> ${memberId}`);
-    this.logger.debug(`getSignin.memberDetailId -> ${memberDetailId}`);
-    this.logger.debug(`getSignin.passportKey -> ${passportKey}`);
-    this.logger.debug(`getSignin.timestamp -> ${timestamp}`);
+    this.logger.debug(`getSignIn.memberId -> ${memberId}`);
+    this.logger.debug(`getSignIn.memberDetailId -> ${memberDetailId}`);
+    this.logger.debug(`getSignIn.passportKey -> ${passportKey}`);
+    this.logger.debug(`getSignIn.timestamp -> ${timestamp}`);
     // if (timestamp + 1000 * 100 < Date.now()) {
     //   response.redirect(`${this.signUrl}?error=access_denied`);
     // }
@@ -163,7 +163,7 @@ export class SignInController {
     const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
       const error: OauthError = 'unauthorized_client';
-      response.redirect(`${this.signinUrl}?error=${error}`);
+      response.redirect(`${this.signInUrl}?error=${error}`);
       return;
     }
 
@@ -175,7 +175,7 @@ export class SignInController {
     );
     if (!authorizationCode) {
       const error: OauthError = 'server_error';
-      response.redirect(`${this.signinUrl}?error=${error}`);
+      response.redirect(`${this.signInUrl}?error=${error}`);
       return;
     }
 
@@ -190,7 +190,7 @@ export class SignInController {
       this.cookieEncryptionKey,
     ).toString();
     this.logger.debug(
-      `getSignin.encryptedCookieValue -> ${encryptedCookieValue}`,
+      `getSignIn.encryptedCookieValue -> ${encryptedCookieValue}`,
     );
 
     response.cookie(this.IDPcookieName, encryptedCookieValue, {
@@ -203,22 +203,22 @@ export class SignInController {
     const passportJson = JSON.parse(passport) as OauthAuthorizeRequestCreate;
     let redirectUrl = `${passportJson.redirect_uri}?code=${authorizationCode}`;
     if (passportJson.state) redirectUrl += `&state=${passportJson.state}`;
-    this.logger.debug(`getSignin.redirectUrl -> ${redirectUrl}`);
+    this.logger.debug(`getSignIn.redirectUrl -> ${redirectUrl}`);
 
     response.redirect(HttpStatus.TEMPORARY_REDIRECT, redirectUrl);
   }
 
   @Get('/provider/kakao')
-  async getSigninKakao(
+  async getSignInKakao(
     @Res() response: Response,
     @Query('passport') passportKey: string,
   ) {
-    this.logger.debug(`getSigninKakao.passportKey -> ${passportKey}`);
+    this.logger.debug(`getSignInKakao.passportKey -> ${passportKey}`);
     const passport = await this.oauthService.findPassport(passportKey);
-    this.logger.debug(`getSigninKakao.passport -> ${passport}`);
+    this.logger.debug(`getSignInKakao.passport -> ${passport}`);
     if (!passport) {
       const error: OauthError = 'access_denied';
-      response.redirect(`${this.signinUrl}?error=${error}`);
+      response.redirect(`${this.signInUrl}?error=${error}`);
       return;
     }
     const { redirect_uri } = JSON.parse(
@@ -228,23 +228,23 @@ export class SignInController {
       maxAge: this.passportExpirySeconds * 1000,
     });
     const url: string = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${this.kakaoClientId}&redirect_uri=${this.kakaoRedirectUri}&state=${passportKey}`;
-    this.logger.debug(`getSigninKakao.url -> ${url}`);
+    this.logger.debug(`getSignInKakao.url -> ${url}`);
     response.redirect(HttpStatus.TEMPORARY_REDIRECT, url);
   }
 
   @Get('/provider/naver')
-  async getSigninNaver(
+  async getSignInNaver(
     @Res() response: Response,
     @Query('passport') passportKey: string,
   ): Promise<void> {
-    this.logger.debug(`getSigninNaver.passportKey -> ${passportKey}`);
+    this.logger.debug(`getSignInNaver.passportKey -> ${passportKey}`);
     const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
       const error: OauthError = 'access_denied';
-      response.redirect(`${this.signinUrl}?error=${error}`);
+      response.redirect(`${this.signInUrl}?error=${error}`);
       return;
     }
-    this.logger.debug(`getSigninNaver.passport -> ${passport}`);
+    this.logger.debug(`getSignInNaver.passport -> ${passport}`);
     const { redirect_uri } = JSON.parse(
       passport,
     ) as OauthAuthorizeRequestCreate;
@@ -253,7 +253,7 @@ export class SignInController {
     });
 
     const url: string = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${this.naverClientId}&redirect_uri=${this.naverRedirectUri}&state=${passportKey}`;
-    this.logger.debug(`getSigninNaver.url -> ${url}`);
+    this.logger.debug(`getSignInNaver.url -> ${url}`);
     response.redirect(HttpStatus.TEMPORARY_REDIRECT, url);
   }
 }
