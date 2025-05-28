@@ -1,8 +1,8 @@
 import { MemberDetailRepository } from '@app/persistence/schema/main/repository/member.detail.repository';
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
-import { SignupRequestCreate } from 'dto/interface/sign.up/request/sign.up.request.create.dto';
-import { SignupWithPhoneRequestCreate } from 'dto/interface/sign.up/request/phone/sign.up.phone.request.create.dto';
+import { SignUpRequestCreate } from 'dto/interface/sign.up/request/sign.up.request.create.dto';
+import { SignUpWithPhoneRequestCreate } from 'dto/interface/sign.up/request/phone/sign.up.phone.request.create.dto';
 import { MemberService } from '../member/member.service';
 import { SignMember } from '../../type/service/sign.service.type';
 import { ExceptionService } from '@app/exception/service/exception.service';
@@ -13,8 +13,8 @@ import cryptoRandomString from 'crypto-random-string';
 import trimPhoneNumber from '../../util/trim.phoneNumber';
 
 @Injectable()
-export class SignupService {
-  private readonly logger = new Logger(SignupService.name);
+export class SignUpService {
+  private readonly logger = new Logger(SignUpService.name);
 
   constructor(
     private readonly memberDetailRepository: MemberDetailRepository,
@@ -25,13 +25,13 @@ export class SignupService {
   ) {}
 
   @Transactional()
-  async createSignup(data: SignupRequestCreate): Promise<SignMember> {
+  async createSignUp(data: SignUpRequestCreate): Promise<SignMember> {
     const memberDetailData =
       await this.memberDetailRepository.selectMemberDetailByEmailAndMemberDetailIdIsNull(
         data.memberDetail.email,
       );
     this.logger.debug(
-      `createSignup.memberDetailData -> ${JSON.stringify(memberDetailData)}`,
+      `createSignUp.memberDetailData -> ${JSON.stringify(memberDetailData)}`,
     );
 
     let memberId: number;
@@ -54,18 +54,18 @@ export class SignupService {
     return { memberId: memberId, memberDetailId: createdMemberDetailId };
   }
 
-  async createSignupWithoutDuplication(
-    data: SignupRequestCreate,
+  async createSignUpWithoutDuplication(
+    data: SignUpRequestCreate,
   ): Promise<SignMember | undefined> {
     this.logger.debug(
-      `createSignupWithoutDuplication.data -> ${JSON.stringify(data)}`,
+      `createSignUpWithoutDuplication.data -> ${JSON.stringify(data)}`,
     );
     const memberDetailData =
       await this.memberDetailRepository.selectMemberDetailByEmail(
         data.memberDetail.email,
       );
     this.logger.debug(
-      `createSignup.memberDetailData -> ${JSON.stringify(memberDetailData)}`,
+      `createSignUp.memberDetailData -> ${JSON.stringify(memberDetailData)}`,
     );
     if (memberDetailData?.isSucceed) return;
 
@@ -85,10 +85,10 @@ export class SignupService {
   }
 
   @Transactional()
-  async createSignupWithPhone(
-    data: SignupWithPhoneRequestCreate,
+  async createSignUpWithPhone(
+    data: SignUpWithPhoneRequestCreate,
   ): Promise<boolean> {
-    this.logger.debug(`createSignupWithPhone.data -> ${JSON.stringify(data)}`);
+    this.logger.debug(`createSignUpWithPhone.data -> ${JSON.stringify(data)}`);
 
     const memberPhoneData =
       await this.memberPhoneRepository.selectMemberPhoneByCountryCallingCodeAndPhoneNumber(
@@ -97,7 +97,7 @@ export class SignupService {
       );
     if (memberPhoneData?.isSucceed) return false;
 
-    const signMember = await this.createSignupWithoutDuplication(data);
+    const signMember = await this.createSignUpWithoutDuplication(data);
     if (!signMember) return false;
 
     // Trim the phone number (e.g. 01055559871 -> 1055559871)

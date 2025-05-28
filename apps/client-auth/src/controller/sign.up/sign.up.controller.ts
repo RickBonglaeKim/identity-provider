@@ -8,24 +8,24 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { SignupService } from '../../service/sign.up/sign.up.service';
-import { SignupRequestCreate } from 'dto/interface/sign.up/request/sign.up.request.create.dto';
-import { SignupWithPhoneRequestCreate } from 'dto/interface/sign.up/request/phone/sign.up.phone.request.create.dto';
+import { SignUpService } from '../../service/sign.up/sign.up.service';
+import { SignUpRequestCreate } from 'dto/interface/sign.up/request/sign.up.request.create.dto';
+import { SignUpWithPhoneRequestCreate } from 'dto/interface/sign.up/request/phone/sign.up.phone.request.create.dto';
 
-@Controller('signup')
+@Controller('signUp')
 @UseInterceptors(TransformInterceptor)
-export class SignupController {
-  private readonly logger = new Logger(SignupController.name);
+export class SignUpController {
+  private readonly logger = new Logger(SignUpController.name);
 
-  constructor(private readonly signupService: SignupService) {}
+  constructor(private readonly signUpService: SignUpService) {}
 
   @Post()
-  async postSignup(
+  async postSignUp(
     @Res({ passthrough: true }) response: Response,
-    @Body() dto: SignupRequestCreate,
+    @Body() dto: SignUpRequestCreate,
   ): Promise<void> {
-    this.logger.debug('postSignup');
-    const result = await this.signupService.createSignupWithoutDuplication(dto);
+    this.logger.debug('postSignUp');
+    const result = await this.signUpService.createSignUpWithoutDuplication(dto);
     if (!result) {
       response.status(251);
       return;
@@ -33,11 +33,11 @@ export class SignupController {
   }
 
   @Post('/phone')
-  async postSignupWithPhone(
+  async postSignUpWithPhone(
     @Res({ passthrough: true }) response: Response,
-    @Body() dto: SignupWithPhoneRequestCreate,
+    @Body() dto: SignUpWithPhoneRequestCreate,
   ): Promise<void> {
-    const result = await this.signupService.createSignupWithPhone(dto);
+    const result = await this.signUpService.createSignUpWithPhone(dto);
     if (!result) {
       response.status(251);
       return;

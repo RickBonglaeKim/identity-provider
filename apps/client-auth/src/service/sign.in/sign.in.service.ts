@@ -1,13 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { SignupService } from '../sign.up/sign.up.service';
+import { SignUpService } from '../sign.up/sign.up.service';
 import { HashService } from '@app/crypto/service/hash/hash.service';
 import { SignRepository } from '@app/persistence/schema/main/repository/sign.repository';
 import { ExceptionService } from '@app/exception/service/exception.service';
 import { SignMember } from '../../type/service/sign.service.type';
 
 @Injectable()
-export class SigninService {
-  private readonly logger = new Logger(SignupService.name);
+export class SignInService {
+  private readonly logger = new Logger(SignUpService.name);
 
   constructor(
     private readonly signRepository: SignRepository,
@@ -19,24 +19,24 @@ export class SigninService {
     id: string,
     password: string,
   ): Promise<SignMember | undefined> {
-    const signinResult = await this.signRepository.verifyMemberByEmail(id);
-    if (!signinResult) {
-      this.logger.debug('Signin result is undefined');
+    const signInResult = await this.signRepository.verifyMemberByEmail(id);
+    if (!signInResult) {
+      this.logger.debug('SignIn result is undefined');
       return;
     }
-    if (!signinResult.isSucceed || !signinResult.data) {
+    if (!signInResult.isSucceed || !signInResult.data) {
       this.logger.debug('No member found with the given email');
       return;
     }
 
     this.logger.debug(
       `findMember.id -> ${id}, findMember.password -> ${password}`,
-      `findMember.signinResult -> ${JSON.stringify(signinResult)}`,
+      `findMember.signInResult -> ${JSON.stringify(signInResult)}`,
     );
 
-    const members = signinResult.data;
+    const members = signInResult.data;
     if (!Array.isArray(members)) {
-      this.logger.debug('Signin result data is not an array');
+      this.logger.debug('SignIn result data is not an array');
       return;
     }
 
@@ -53,7 +53,7 @@ export class SigninService {
       );
 
       this.logger.debug(
-        `findMember.signinResult.data -> ${JSON.stringify(member)}`,
+        `findMember.signInResult.data -> ${JSON.stringify(member)}`,
         `findMember.isVerifiedPassword -> ${isVerifiedPassword}`,
       );
 
@@ -73,50 +73,50 @@ export class SigninService {
     email: string,
     password: string, // ID of provider (Kakao, Naver, Google, Apple, etc.)
   ): Promise<SignMember | undefined> {
-    const signinResult =
+    const signInResult =
       await this.signRepository.verifyMemberByEmailAndPassword(email, password);
-    if (!signinResult) {
-      this.logger.debug('Signin result is undefined');
+    if (!signInResult) {
+      this.logger.debug('SignIn result is undefined');
       return;
     }
-    if (!signinResult.isSucceed || !signinResult.data) {
+    if (!signInResult.isSucceed || !signInResult.data) {
       this.logger.debug('No member found with the given email and password');
       return;
     }
 
     this.logger.debug(
-      `findMemberByEmailAndPassword.signinResult -> ${JSON.stringify(signinResult)}`,
+      `findMemberByEmailAndPassword.signInResult -> ${JSON.stringify(signInResult)}`,
     );
 
     return {
-      memberId: signinResult.data.memberId,
-      memberDetailId: signinResult.data.memberDetailId,
+      memberId: signInResult.data.memberId,
+      memberDetailId: signInResult.data.memberDetailId,
     };
   }
 
   async findMemberByMemberProvider(
     memberProviderKey: string,
   ): Promise<SignMember | undefined> {
-    const signinResult =
+    const signInResult =
       await this.signRepository.verifyMemberByMemberProviderKey(
         memberProviderKey,
       );
-    if (!signinResult) {
-      this.logger.debug('Signin result is undefined');
+    if (!signInResult) {
+      this.logger.debug('SignIn result is undefined');
       return;
     }
-    if (!signinResult.isSucceed || !signinResult.data) {
+    if (!signInResult.isSucceed || !signInResult.data) {
       this.logger.debug('No member found with the given memberProviderKey');
       return;
     }
 
     this.logger.debug(
-      `findMemberByProvider.signinResult -> ${JSON.stringify(signinResult)}`,
+      `findMemberByProvider.signInResult -> ${JSON.stringify(signInResult)}`,
     );
 
     return {
-      memberId: signinResult.data.memberId,
-      memberDetailId: signinResult.data.memberDetailId,
+      memberId: signInResult.data.memberId,
+      memberDetailId: signInResult.data.memberDetailId,
     };
   }
 }
