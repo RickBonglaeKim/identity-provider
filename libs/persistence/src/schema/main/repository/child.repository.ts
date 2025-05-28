@@ -43,6 +43,7 @@ export class ChildRepository extends MainSchemaService {
       this.logger.error(error);
     }
   }
+
   async selectChildById(
     id: number,
   ): Promise<ResponseEntity<typeof child.$inferSelect> | undefined> {
