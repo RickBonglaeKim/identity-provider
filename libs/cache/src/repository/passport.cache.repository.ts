@@ -26,7 +26,7 @@ export class PassportCacheRepository extends CacheService {
 
   private createSetOption(): SetOptions {
     return {
-      expiry: { type: TimeUnit.Seconds, count: this.expirySeconds },
+      expiry: { type: TimeUnit.Seconds, count: +this.expirySeconds },
       conditionalSet: 'onlyIfDoesNotExist',
       returnOldValue: false,
     };
