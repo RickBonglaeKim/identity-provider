@@ -24,7 +24,7 @@ export class MemberDetailPhoneRepository extends MainSchemaService {
     }
   }
 
-  async selectMemberDetailByMemberDetailId(
+  async selectMemberDetailPhoneByMemberDetailId(
     memberDetailId: number,
   ): Promise<
     ResponseEntity<typeof memberDetailPhone.$inferSelect> | undefined
