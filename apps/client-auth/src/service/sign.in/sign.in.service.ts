@@ -94,17 +94,19 @@ export class SigninService {
     };
   }
 
-  async findMemberByProvider(
-    providerPassword: string,
+  async findMemberByMemberProvider(
+    memberProviderKey: string,
   ): Promise<SignMember | undefined> {
     const signinResult =
-      await this.signRepository.verifyMemberByPassword(providerPassword);
+      await this.signRepository.verifyMemberByMemberProviderKey(
+        memberProviderKey,
+      );
     if (!signinResult) {
       this.logger.debug('Signin result is undefined');
       return;
     }
     if (!signinResult.isSucceed || !signinResult.data) {
-      this.logger.debug('No member found with the given provider password');
+      this.logger.debug('No member found with the given memberProviderKey');
       return;
     }
 

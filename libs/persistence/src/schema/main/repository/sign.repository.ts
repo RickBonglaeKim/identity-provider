@@ -9,6 +9,7 @@ import { and, eq } from 'drizzle-orm';
 import {
   verifyMemberByEmail,
   verifyMemberByEmailAndPassword,
+  verifyMemberByMemberProviderKey,
   verifyMemberByPassword,
 } from '@app/persistence/entity/sign.entity';
 
@@ -90,6 +91,30 @@ export class SignRepository extends MainSchemaService {
         return new ResponseEntity<verifyMemberByPassword>(false);
       }
       return new ResponseEntity<verifyMemberByPassword>(true, result[0]);
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
+  async verifyMemberByMemberProviderKey(
+    memberProviderKey: string,
+  ): Promise<ResponseEntity<verifyMemberByMemberProviderKey> | undefined> {
+    try {
+      const result = await this.mainTransaction.tx
+        .select({
+          memberId: member.id,
+          memberDetailId: memberDetail.id,
+        })
+        .from(memberDetail)
+        .innerJoin(member, eq(member.id, memberDetail.memberId))
+        .where(and(eq(memberDetail.memberProviderKey, memberProviderKey)));
+      if (result.length === 0) {
+        return new ResponseEntity<verifyMemberByMemberProviderKey>(false);
+      }
+      return new ResponseEntity<verifyMemberByMemberProviderKey>(
+        true,
+        result[0],
+      );
     } catch (error) {
       this.logger.error(error);
     }

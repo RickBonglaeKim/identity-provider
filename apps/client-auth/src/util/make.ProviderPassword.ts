@@ -1,6 +1,6 @@
 import { Providers } from 'dto/enum/provider.enum';
 
-export default function makeProviderPassword(
+export default function makeMemberProviderKey(
   providerId: Providers,
   idByProvider: string,
 ): string {
