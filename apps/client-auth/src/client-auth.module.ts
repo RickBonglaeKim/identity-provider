@@ -5,7 +5,7 @@ import { mainConnection } from '@app/persistence/persistence.connection.main';
 import { ClsModule } from 'nestjs-cls';
 import { ClsPluginTransactional } from '@nestjs-cls/transactional';
 import { TransactionalAdapterDrizzleOrm } from '@nestjs-cls/transactional-adapter-drizzle-orm';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ExceptionModule } from '@app/exception/exception.module';
 import { HomeController } from './controller/home/home.controller';
 import { SignUpController } from './controller/sign.up/sign.up.controller';
@@ -28,6 +28,7 @@ import { VerificationService } from './service/verification/verification.service
 import { MemberController } from './controller/member/member.controller';
 import { TestController } from './controller/test/test.controller';
 import { SignOutController } from './controller/sign.out/sign.out.controller';
+import { CookieHandler } from './util/cookie.handler';
 
 @Module({
   imports: [
@@ -64,6 +65,15 @@ import { SignOutController } from './controller/sign.out/sign.out.controller';
     TestController,
   ],
   providers: [
+    {
+      provide: CookieHandler,
+      useFactory: (configService: ConfigService) => {
+        return new CookieHandler(
+          configService.getOrThrow('COOKIE_ENCRYPTION_KEY'),
+        );
+      },
+      inject: [ConfigService],
+    },
     MemberService,
     SignUpService,
     SignInService,

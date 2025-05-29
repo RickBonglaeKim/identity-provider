@@ -20,8 +20,10 @@ import { ConfigService } from '@nestjs/config';
 import * as cryptoJS from 'crypto-js';
 import { MemberKey, SignCookie } from '../../type/service/sign.service.type';
 import { OauthError } from '../../type/service/oauth.service.type';
+import { CookieHandler } from '../../util/cookie.handler';
+import { COOKIE_NAME } from '../../enum/cookie.name.enum';
 
-@Controller('signIn')
+@Controller('signin')
 @UseInterceptors(TransformInterceptor)
 export class SignInController {
   private readonly logger = new Logger(SignInController.name);
@@ -40,11 +42,11 @@ export class SignInController {
   private readonly kakaoRedirectUri: string;
 
   private readonly naverClientId: string;
-  private readonly naverClientSecret: string;
   private readonly naverRedirectUri: string;
 
   constructor(
     private readonly configService: ConfigService,
+    private readonly cookieHandler: CookieHandler,
     private readonly signInService: SignInService,
     private readonly oauthService: OauthService,
   ) {
@@ -70,25 +72,8 @@ export class SignInController {
       this.configService.getOrThrow<string>('KAKAO_REDIRECT_URI');
     this.naverClientId =
       this.configService.getOrThrow<string>('NAVER_CLIENT_ID');
-    this.naverClientSecret = this.configService.getOrThrow<string>(
-      'NAVER_CLIENT_SECRET',
-    );
     this.naverRedirectUri =
       this.configService.getOrThrow<string>('NAVER_REDIRECT_URI');
-  }
-
-  private setCookie(
-    response: Response,
-    cookieName: string,
-    cookieValue: string,
-    cookieOptions: CookieOptions,
-  ) {
-    response.cookie(cookieName, cookieValue, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
-      ...cookieOptions,
-    });
   }
 
   @Post()
@@ -185,20 +170,12 @@ export class SignInController {
       memberDetailId,
       timestamp: Date.now(),
     };
-    const encryptedCookieValue = cryptoJS.AES.encrypt(
+    this.cookieHandler.setCookie(
+      response,
+      COOKIE_NAME.IDP,
       JSON.stringify(signCookie),
-      this.cookieEncryptionKey,
-    ).toString();
-    this.logger.debug(
-      `getSignIn.encryptedCookieValue -> ${encryptedCookieValue}`,
+      this.tokenExpirySeconds,
     );
-
-    response.cookie(this.IDPcookieName, encryptedCookieValue, {
-      maxAge: this.tokenExpirySeconds * 1000,
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-    });
 
     const passportJson = JSON.parse(passport) as OauthAuthorizeRequestCreate;
     let redirectUrl = `${passportJson.redirect_uri}?code=${authorizationCode}`;
@@ -212,7 +189,7 @@ export class SignInController {
   async getSignInKakao(
     @Res() response: Response,
     @Query('passport') passportKey: string,
-  ) {
+  ): Promise<void> {
     this.logger.debug(`getSignInKakao.passportKey -> ${passportKey}`);
     const passport = await this.oauthService.findPassport(passportKey);
     this.logger.debug(`getSignInKakao.passport -> ${passport}`);
@@ -224,12 +201,16 @@ export class SignInController {
     const { redirect_uri } = JSON.parse(
       passport,
     ) as OauthAuthorizeRequestCreate;
-    this.setCookie(response, this.redirectCookieName, redirect_uri, {
-      maxAge: this.passportExpirySeconds * 1000,
-    });
+    this.cookieHandler.setCookie(
+      response,
+      COOKIE_NAME.REDIRECT,
+      redirect_uri,
+      this.passportExpirySeconds,
+    );
     const url: string = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${this.kakaoClientId}&redirect_uri=${this.kakaoRedirectUri}&state=${passportKey}`;
     this.logger.debug(`getSignInKakao.url -> ${url}`);
     response.redirect(HttpStatus.TEMPORARY_REDIRECT, url);
+    return;
   }
 
   @Get('/provider/naver')
@@ -248,12 +229,16 @@ export class SignInController {
     const { redirect_uri } = JSON.parse(
       passport,
     ) as OauthAuthorizeRequestCreate;
-    this.setCookie(response, this.redirectCookieName, redirect_uri, {
-      maxAge: this.passportExpirySeconds * 1000,
-    });
+    this.cookieHandler.setCookie(
+      response,
+      COOKIE_NAME.REDIRECT,
+      redirect_uri,
+      this.passportExpirySeconds,
+    );
 
     const url: string = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${this.naverClientId}&redirect_uri=${this.naverRedirectUri}&state=${passportKey}`;
     this.logger.debug(`getSignInNaver.url -> ${url}`);
     response.redirect(HttpStatus.TEMPORARY_REDIRECT, url);
+    return;
   }
 }

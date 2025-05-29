@@ -29,6 +29,10 @@ export class ExceptionService {
     throw new ServiceException(904, `The ${entityName} entity is not deleted.`);
   }
 
+  tooManyEntity(entityName: string) {
+    throw new ServiceException(904, `The ${entityName} entity is too many.`);
+  }
+
   notSetCacheValue(keyName: string) {
     throw new ServiceException(911, `The ${keyName} value is not set.`);
   }
