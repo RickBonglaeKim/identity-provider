@@ -187,8 +187,6 @@ export class ProviderService {
         },
       }),
     );
-    console.log(`naver`, response.data);
-
     return response.data;
   }
 

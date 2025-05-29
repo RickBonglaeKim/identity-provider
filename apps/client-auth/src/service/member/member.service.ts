@@ -217,22 +217,41 @@ export class MemberService {
       this.exceptionService.notSelectedEntity('member group tables');
     }
 
+    const member = memberEntireResult!.data!;
+
     const memberDetailPhoneResult =
       await this.memberDetailPhoneRepository.selectMemberDetailPhoneByMemberDetailId(
         memberDetailId,
       );
     if (!memberDetailPhoneResult) this.exceptionService.notRecognizedError();
-    if (!memberDetailPhoneResult?.isSucceed || !memberDetailPhoneResult.data) {
-      this.exceptionService.notSelectedEntity('member_detail_phone');
+    if (
+      memberDetailPhoneResult?.isSucceed &&
+      memberDetailPhoneResult.data!.length > 1
+    ) {
+      this.exceptionService.tooManyEntity('member_detail_phone');
+    }
+
+    // If the member does not have a phone number, return only member information.
+    if (!memberDetailPhoneResult?.isSucceed) {
+      return new MemberEntireResponseRead(
+        member.createdAt,
+        member.isConsentedTermsAndConditions === 1,
+        member.isConsentedCollectionAndUsePersonalData === 1,
+        member.isConsentedMarketingUseAndInformationReceiving === 1,
+        member.name,
+        member.email,
+        null,
+      );
     }
 
     const memberPhoneResult =
       await this.memberPhoneRepository.selectMemberPhoneById(
-        memberDetailPhoneResult!.data!.memberPhoneId,
+        memberDetailPhoneResult.data![0].memberPhoneId,
       );
     if (!memberPhoneResult) this.exceptionService.notRecognizedError();
+    if (!memberPhoneResult?.isSucceed || !memberPhoneResult.data)
+      this.exceptionService.notSelectedEntity('member_phone');
 
-    const member = memberEntireResult!.data!;
     const memberPhone = memberPhoneResult!.data;
 
     let phone: { countryCallingCode: string; phoneNumber: string } | null =

@@ -46,7 +46,9 @@ export class SignGuard implements CanActivate {
       this.logger.debug(
         `SignGuard.canActivate.encryptedCookieValue -> ${encryptedCookieValue}`,
       );
-      if (!encryptedCookieValue) throw new Error('The cookie does not exist.');
+      if (!encryptedCookieValue) {
+        throw new Error('The authentication cookie does not exist.');
+      }
 
       const decryptedCookieValue = cryptoJS.AES.decrypt(
         encryptedCookieValue,
@@ -56,7 +58,9 @@ export class SignGuard implements CanActivate {
       this.logger.debug(
         `SignGuard.canActivate.signCookie -> ${JSON.stringify(signCookie)}`,
       );
-      if (!signCookie) throw new Error('The signCookie does not parsed.');
+      if (!signCookie) {
+        throw new Error('The authentication cookie does not parsed.');
+      }
 
       request.signCookie = signCookie;
       return true;

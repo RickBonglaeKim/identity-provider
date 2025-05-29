@@ -278,6 +278,10 @@ export class OauthService {
       memberId,
       memberDetailId,
     );
+    this.logger.debug(`createClientMemberId.key -> ${JSON.stringify(key)}`);
+    this.logger.debug(
+      `createClientMemberId.clientMemberId -> ${clientMemberId}`,
+    );
     const result =
       await this.authorizationTokenCacheRepository.setClientMemberId(
         key,
