@@ -29,6 +29,7 @@ import { MemberController } from './controller/member/member.controller';
 import { TestController } from './controller/test/test.controller';
 import { SignOutController } from './controller/sign.out/sign.out.controller';
 import { CookieHandler } from './util/cookie.handler';
+import { ChildController } from './controller/child/child.controller';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { CookieHandler } from './util/cookie.handler';
     VerificationController,
     MemberController,
     TestController,
+    ChildController,
   ],
   providers: [
     {

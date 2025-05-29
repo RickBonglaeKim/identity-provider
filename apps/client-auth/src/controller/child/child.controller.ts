@@ -1,5 +1,6 @@
 import { TransformInterceptor } from '@app/interceptor/transform.interceptor';
 import {
+  Body,
   Controller,
   Delete,
   Get,
@@ -36,8 +37,9 @@ export class ChildController {
   @UseGuards(SignGuard)
   async createChild(
     @SignInfo() signCookie: SignCookie,
-    dto: ChildRequestCreate,
+    @Body() dto: ChildRequestCreate,
   ) {
+    this.logger.debug(`createChild.signCookie -> ${JSON.stringify(dto)}`);
     const childId = await this.childService.createChild(
       signCookie.memberId,
       dto,
@@ -50,8 +52,9 @@ export class ChildController {
   async updateChild(
     @SignInfo() signCookie: SignCookie,
     @Param('id') id: number,
-    dto: ChildRequestCreate,
+    @Body() dto: ChildRequestCreate,
   ) {
+    this.logger.debug(`updateChild.signCookie -> ${JSON.stringify(dto)}`);
     const childId = await this.childService.updateChildById(
       id,
       signCookie.memberId,

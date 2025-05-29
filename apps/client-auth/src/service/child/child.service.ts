@@ -66,7 +66,6 @@ export class ChildService {
       children.push(
         new ChildResponse(
           child.id,
-          child.memberId,
           child.createdAt,
           child.name,
           child.birthday,
