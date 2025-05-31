@@ -14,10 +14,13 @@ import { ChildResponse } from 'dto/interface/child/response/child.response.dto';
 import { MemberDetailResponseRead } from 'dto/interface/member.detail/response/member.detail.response.read.dto';
 import { MemberPhoneResponseRead } from 'dto/interface/member.phone/response/member.phone.response.read.dto';
 import { SignVerification } from '../../type/service/oauth.service.type';
+import * as cryptoJS from 'crypto-js';
+import { MemberKey } from '../../type/service/sign.service.type';
 
 @Injectable()
 export class OauthService {
   private readonly logger = new Logger(OauthService.name);
+  private readonly memberKeyEncryptionKey: string;
 
   constructor(
     private readonly configService: ConfigService,
@@ -27,7 +30,11 @@ export class OauthService {
     private readonly authorizationCodeCacheRepository: AuthorizationCodeCacheRepository,
     private readonly idTokenKeypairRepository: IdTokenKeypairRepository,
     private readonly authorizationTokenCacheRepository: AuthorizationTokenCacheRepository,
-  ) {}
+  ) {
+    this.memberKeyEncryptionKey = this.configService.getOrThrow<string>(
+      'MEMBER_KEY_ENCRYPTION_KEY',
+    );
+  }
 
   createRedirectUri(uri: string): type.CreateRedirectUriReturn {
     let redirectUri: string = uri;
@@ -45,6 +52,27 @@ export class OauthService {
         };
       };
     };
+  }
+
+  createMemberKey(memberKey: MemberKey): string | undefined {
+    try {
+      const encryptedMemberKey = cryptoJS.AES.encrypt(
+        JSON.stringify({
+          memberId: memberKey.memberId,
+          memberDetailId: memberKey.memberDetailId,
+          passportKey: memberKey.passportKey,
+          timestamp: Date.now(),
+        }),
+        this.memberKeyEncryptionKey,
+      ).toString();
+      this.logger.debug(
+        `createMemberKey.encryptedMemberKey -> ${encryptedMemberKey}`,
+      );
+      return encodeURIComponent(encryptedMemberKey);
+    } catch (error) {
+      this.logger.error(`createMemberKey.error -> ${error}`);
+      return;
+    }
   }
 
   async verifyClient(

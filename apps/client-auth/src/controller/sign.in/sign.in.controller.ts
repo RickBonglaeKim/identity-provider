@@ -27,14 +27,10 @@ import { COOKIE_NAME } from '../../enum/cookie.name.enum';
 @UseInterceptors(TransformInterceptor)
 export class SignInController {
   private readonly logger = new Logger(SignInController.name);
-  private readonly cookieEncryptionKey: string;
   private readonly memberKeyEncryptionKey: string;
 
   private readonly passportExpirySeconds: number;
   private readonly tokenExpirySeconds: number;
-
-  private readonly IDPcookieName: string;
-  private readonly redirectCookieName: string;
 
   private readonly signInUrl: string;
 
@@ -50,9 +46,6 @@ export class SignInController {
     private readonly signInService: SignInService,
     private readonly oauthService: OauthService,
   ) {
-    this.cookieEncryptionKey = this.configService.getOrThrow<string>(
-      'COOKIE_ENCRYPTION_KEY',
-    );
     this.memberKeyEncryptionKey = this.configService.getOrThrow<string>(
       'MEMBER_KEY_ENCRYPTION_KEY',
     );
@@ -60,11 +53,6 @@ export class SignInController {
       this.configService.getOrThrow<number>('PASSPORT_EXPIRE_IN');
     this.tokenExpirySeconds =
       this.configService.getOrThrow<number>('TOKEN_EXPIRE_IN');
-    this.IDPcookieName =
-      this.configService.getOrThrow<string>('IDP_COOKIE_NAME');
-    this.redirectCookieName = this.configService.getOrThrow<string>(
-      'REDIRECT_COOKIE_NAME',
-    );
     this.signInUrl = this.configService.getOrThrow<string>('SIGN_IN_URL');
     this.kakaoClientId =
       this.configService.getOrThrow<string>('KAKAO_CLIENT_ID');

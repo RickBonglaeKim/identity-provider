@@ -3,6 +3,10 @@ export type SignMember = {
   memberDetailId: number;
 };
 
+export type SignMemberPhone = SignMember & {
+  memberPhoneId: number;
+};
+
 export type SignCookie = SignMember & {
   timestamp: number;
 };

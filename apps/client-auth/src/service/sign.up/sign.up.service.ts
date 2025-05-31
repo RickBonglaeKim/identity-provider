@@ -4,7 +4,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { SignUpRequestCreate } from 'dto/interface/sign.up/request/sign.up.request.create.dto';
 import { SignUpWithPhoneRequestCreate } from 'dto/interface/sign.up/request/phone/sign.up.phone.request.create.dto';
 import { MemberService } from '../member/member.service';
-import { SignMember } from '../../type/service/sign.service.type';
+import {
+  SignMember,
+  SignMemberPhone,
+} from '../../type/service/sign.service.type';
 import { ExceptionService } from '@app/exception/service/exception.service';
 import { MemberDetailPhoneRepository } from '@app/persistence/schema/main/repository/member.detail.phone.repository';
 import { MemberPhoneRepository } from '@app/persistence/schema/main/repository/member.phone.repository';
@@ -54,6 +57,7 @@ export class SignUpService {
     return { memberId: memberId, memberDetailId: createdMemberDetailId };
   }
 
+  @Transactional()
   async createSignUpWithoutDuplication(
     data: SignUpRequestCreate,
   ): Promise<SignMember | undefined> {
@@ -65,7 +69,7 @@ export class SignUpService {
         data.memberDetail.email,
       );
     this.logger.debug(
-      `createSignUp.memberDetailData -> ${JSON.stringify(memberDetailData)}`,
+      `createSignUpWithoutDuplication.memberDetailData -> ${JSON.stringify(memberDetailData)}`,
     );
     if (memberDetailData?.isSucceed) return;
 
@@ -87,7 +91,11 @@ export class SignUpService {
   @Transactional()
   async createSignUpWithPhone(
     data: SignUpWithPhoneRequestCreate,
-  ): Promise<boolean> {
+  ): Promise<SignMemberPhone | undefined> {
+    // Trim the phone number (e.g. 01055559871 -> 1055559871)
+    data.memberPhone.phoneNumber = trimPhoneNumber(
+      data.memberPhone.phoneNumber,
+    );
     this.logger.debug(`createSignUpWithPhone.data -> ${JSON.stringify(data)}`);
 
     const memberPhoneData =
@@ -95,25 +103,31 @@ export class SignUpService {
         data.memberPhone.countryCallingCode,
         data.memberPhone.phoneNumber,
       );
-    if (memberPhoneData?.isSucceed) return false;
+    this.logger.debug(
+      `createSignUpWithPhone.memberPhoneData -> ${JSON.stringify(memberPhoneData)}`,
+    );
+    if (memberPhoneData?.isSucceed) return;
 
     const signMember = await this.createSignUpWithoutDuplication(data);
-    if (!signMember) return false;
+    if (!signMember) return;
 
-    // Trim the phone number (e.g. 01055559871 -> 1055559871)
-    data.memberPhone.phoneNumber = trimPhoneNumber(
-      data.memberPhone.phoneNumber,
-    );
     const memberPhoneId = await this.memberService.createMemberPhone(
       signMember.memberId,
       data.memberPhone,
     );
+    if (!memberPhoneId) return;
 
-    await this.memberDetailPhoneRepository.insertMemberDetailPhone({
+    const memberDetailPhoneResult =
+      await this.memberDetailPhoneRepository.insertMemberDetailPhone({
+        memberDetailId: signMember.memberDetailId,
+        memberPhoneId: memberPhoneId,
+      });
+    if (!memberDetailPhoneResult?.isSucceed) return;
+
+    return {
+      memberId: signMember.memberId,
       memberDetailId: signMember.memberDetailId,
       memberPhoneId: memberPhoneId,
-    });
-
-    return true;
+    };
   }
 }
