@@ -1,14 +1,12 @@
 import { ExceptionService } from '@app/exception/service/exception.service';
 import { ChildRepository } from '@app/persistence/schema/main/repository/child.repository';
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { ChildRequestCreate } from 'dto/interface/child/request/child.request.create.dto';
 import { ChildResponse } from 'dto/interface/child/response/child.response.dto';
 
 @Injectable()
 export class ChildService {
   constructor(
-    private readonly configService: ConfigService,
     private readonly exceptionService: ExceptionService,
     private readonly childRepository: ChildRepository,
   ) {}
