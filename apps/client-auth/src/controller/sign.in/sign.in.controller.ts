@@ -40,6 +40,9 @@ export class SignInController {
   private readonly naverClientId: string;
   private readonly naverRedirectUri: string;
 
+  private readonly googleClientId: string;
+  private readonly googleRedirectUri: string;
+
   constructor(
     private readonly configService: ConfigService,
     private readonly cookieHandler: CookieHandler,
@@ -62,6 +65,11 @@ export class SignInController {
       this.configService.getOrThrow<string>('NAVER_CLIENT_ID');
     this.naverRedirectUri =
       this.configService.getOrThrow<string>('NAVER_REDIRECT_URI');
+    this.googleClientId =
+      this.configService.getOrThrow<string>('GOOGLE_CLIENT_ID');
+    this.googleRedirectUri = this.configService.getOrThrow<string>(
+      'GOOGLE_REDIRECT_URI',
+    );
   }
 
   @Post()
@@ -226,6 +234,35 @@ export class SignInController {
 
     const url: string = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${this.naverClientId}&redirect_uri=${this.naverRedirectUri}&state=${passportKey}`;
     this.logger.debug(`getSignInNaver.url -> ${url}`);
+    response.redirect(HttpStatus.TEMPORARY_REDIRECT, url);
+    return;
+  }
+
+  @Get('/provider/google')
+  async getSignInGoogle(
+    @Res() response: Response,
+    @Query('passport') passportKey: string,
+  ): Promise<void> {
+    this.logger.debug(`getSignInGoogle.passportKey -> ${passportKey}`);
+    const passport = await this.oauthService.findPassport(passportKey);
+    if (!passport) {
+      const error: OauthError = 'access_denied';
+      response.redirect(`${this.signInUrl}?error=${error}`);
+      return;
+    }
+    this.logger.debug(`getSignInGoogle.passport -> ${passport}`);
+    const { redirect_uri } = JSON.parse(
+      passport,
+    ) as OauthAuthorizeRequestCreate;
+    this.cookieHandler.setCookie(
+      response,
+      COOKIE_NAME.REDIRECT,
+      redirect_uri,
+      this.passportExpirySeconds,
+    );
+
+    const url: string = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${this.googleClientId}&redirect_uri=${this.googleRedirectUri}&scope=email%20profile&state=${passportKey}`;
+    this.logger.debug(`getSignInGoogle.url -> ${url}`);
     response.redirect(HttpStatus.TEMPORARY_REDIRECT, url);
     return;
   }

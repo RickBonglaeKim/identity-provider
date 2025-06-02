@@ -83,3 +83,21 @@ export interface NaverUserMeResponse {
     name: string;
   };
 }
+
+export interface GoogleTokenResponse {
+  access_token: string;
+  token_type: string;
+  refresh_token: string;
+  expires_in: number;
+  scope: string;
+  refresh_token_expires_in: number;
+}
+
+export interface GoogleUserMeResponse {
+  sub: string;
+  name: string;
+  given_name: string;
+  family_name: string;
+  picture: string;
+  email: string;
+}

@@ -11,6 +11,8 @@ import {
   NaverTokenResponse,
   NaverUserMeResponse,
   Naver,
+  GoogleTokenResponse,
+  GoogleUserMeResponse,
 } from '../../type/service/provider.service.type';
 import { PROVIDER } from 'dto/enum/provider.enum';
 
@@ -22,6 +24,9 @@ export class ProviderService {
   private readonly naver_client_id: string | undefined;
   private readonly naver_client_secret: string | undefined;
   private readonly naver_redirect_uri: string | undefined;
+  private readonly google_client_id: string | undefined;
+  private readonly google_client_secret: string | undefined;
+  private readonly google_redirect_uri: string | undefined;
 
   constructor(
     private readonly configService: ConfigService,
@@ -36,6 +41,13 @@ export class ProviderService {
     );
     this.naver_redirect_uri =
       this.configService.get<string>('NAVER_REDIRECT_URI');
+    this.google_client_id = this.configService.get<string>('GOOGLE_CLIENT_ID');
+    this.google_client_secret = this.configService.get<string>(
+      'GOOGLE_CLIENT_SECRET',
+    );
+    this.google_redirect_uri = this.configService.get<string>(
+      'GOOGLE_REDIRECT_URI',
+    );
   }
 
   async connectKakao(code: string): Promise<Kakao> {
@@ -190,8 +202,66 @@ export class ProviderService {
     return response.data;
   }
 
-  connectGoogle(): Promise<Google> {
-    throw new Error('Not implemented');
+  async connectGoogle(code: string): Promise<Google> {
+    this.logger.debug('connectGoogle', code);
+    try {
+      const tokenData = await this.getGoogleToken(code);
+      const userInfo = await this.getGoogleUserInfo(tokenData.access_token);
+
+      return {
+        provider: PROVIDER.GOOGLE,
+        id: userInfo.sub,
+        name: userInfo.given_name,
+        email: userInfo.email,
+        phone: {
+          countryCallingCode: '',
+          phoneNumber: '',
+        },
+      };
+    } catch (error) {
+      this.logger.error('Error in connectGoogle');
+      throw new HttpException(
+        'Failed to connect with Google',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async getGoogleToken(code: string): Promise<GoogleTokenResponse> {
+    const url = 'https://oauth2.googleapis.com/token';
+    const body = new URLSearchParams(
+      Object.entries({
+        grant_type: 'authorization_code',
+        client_id: this.google_client_id as string,
+        client_secret: this.google_client_secret as string,
+        redirect_uri: this.google_redirect_uri as string,
+        code,
+      }),
+    );
+    this.logger.log(`getGoogleToken`, body.toString());
+    const response = await firstValueFrom(
+      this.httpService.post<GoogleTokenResponse>(url, body.toString(), {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      }),
+    );
+
+    return response.data;
+  }
+
+  async getGoogleUserInfo(token: string): Promise<GoogleUserMeResponse> {
+    const url = 'https://www.googleapis.com/oauth2/v3/userinfo';
+    const response = await firstValueFrom(
+      this.httpService.get<GoogleUserMeResponse>(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }),
+    );
+    console.log(`google`, response.data);
+
+    return response.data;
   }
 
   connectApple(): Promise<Apple> {

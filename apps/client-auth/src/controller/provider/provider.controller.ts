@@ -236,9 +236,65 @@ export class ProviderController {
   }
 
   @Get('google')
-  getGoogle() {
-    // TODO: 구글 로그인 구현
-    throw new Error('Not implemented');
+  async getGoogle(
+    @Req() request: Request,
+    @Res() response: Response,
+    @Query('code') code?: string,
+    @Query('state') state?: string,
+    @Query('error') error?: string,
+    @Query('error_description') error_description?: string,
+  ) {
+    this.logger.debug(
+      `getGoogle.code -> ${code}`,
+      `getGoogle.state -> ${state}`,
+      `getGoogle.error -> ${error}`,
+      `getGoogle.error_description -> ${error_description}`,
+    );
+
+    if (error) {
+      response.redirect(
+        this.combineRedirectUrlWithError(request, error, error_description),
+      );
+    }
+
+    let signInUrl = `${this.signInUrl}?provider=${PROVIDER.GOOGLE}`;
+
+    const signInErrorUrl = this.combineAuthorizationErrorUrl(
+      signInUrl,
+      code,
+      state,
+    );
+    if (signInErrorUrl) {
+      response.redirect(HttpStatus.TEMPORARY_REDIRECT, signInErrorUrl);
+    }
+
+    const passportKey = state!;
+    signInUrl += `&passport=${passportKey}`;
+
+    const google = await this.providerService.connectGoogle(code!);
+    if (!google) {
+      response.redirect(
+        HttpStatus.TEMPORARY_REDIRECT,
+        this.combineErrorUrl(signInUrl, 'invalid_google'),
+      );
+    }
+
+    const member = await this.signInService.findMemberByMemberProvider(
+      makeMemberProviderKey(PROVIDER.GOOGLE, google.id),
+    );
+
+    if (member) {
+      response.redirect(
+        HttpStatus.TEMPORARY_REDIRECT,
+        this.generateSignInUrl(member, passportKey),
+      );
+    }
+
+    // The member searched by the Google does not exist in the database.
+    response.redirect(
+      HttpStatus.TEMPORARY_REDIRECT,
+      this.combineSignUpUrl(PROVIDER.GOOGLE, passportKey, google),
+    );
   }
 
   @Get('apple')
