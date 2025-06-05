@@ -43,6 +43,9 @@ export class SignInController {
   private readonly googleClientId: string;
   private readonly googleRedirectUri: string;
 
+  private readonly appleClientId: string;
+  private readonly appleRedirectUri: string;
+
   constructor(
     private readonly configService: ConfigService,
     private readonly cookieHandler: CookieHandler,
@@ -70,6 +73,8 @@ export class SignInController {
     this.googleRedirectUri = this.configService.getOrThrow<string>(
       'GOOGLE_REDIRECT_URI',
     );
+    this.appleClientId = this.configService.getOrThrow<string>('APPLE_CLIENT_ID');
+    this.appleRedirectUri = this.configService.getOrThrow<string>('APPLE_REDIRECT_URI');
   }
 
   @Post()
@@ -203,7 +208,11 @@ export class SignInController {
       redirect_uri,
       this.passportExpirySeconds,
     );
-    const url: string = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${this.kakaoClientId}&redirect_uri=${this.kakaoRedirectUri}&state=${passportKey}`;
+    let url = `https://kauth.kakao.com/oauth/authorize`;
+    url += `?response_type=code`;
+    url += `&client_id=${this.kakaoClientId}`;
+    url += `&redirect_uri=${this.kakaoRedirectUri}`;
+    url += `&state=${passportKey}`;
     this.logger.debug(`getSignInKakao.url -> ${url}`);
     response.redirect(HttpStatus.TEMPORARY_REDIRECT, url);
     return;
@@ -231,8 +240,11 @@ export class SignInController {
       redirect_uri,
       this.passportExpirySeconds,
     );
-
-    const url: string = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${this.naverClientId}&redirect_uri=${this.naverRedirectUri}&state=${passportKey}`;
+    let url = `https://nid.naver.com/oauth2.0/authorize`;
+    url += `?response_type=code`;
+    url += `&client_id=${this.naverClientId}`;
+    url += `&redirect_uri=${this.naverRedirectUri}`;
+    url += `&state=${passportKey}`;
     this.logger.debug(`getSignInNaver.url -> ${url}`);
     response.redirect(HttpStatus.TEMPORARY_REDIRECT, url);
     return;
@@ -261,8 +273,48 @@ export class SignInController {
       this.passportExpirySeconds,
     );
 
-    const url: string = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${this.googleClientId}&redirect_uri=${this.googleRedirectUri}&scope=email%20profile&state=${passportKey}`;
+    let url = `https://accounts.google.com/o/oauth2/v2/auth`;
+    url += `?response_type=code`;
+    url += `&client_id=${this.googleClientId}`;
+    url += `&redirect_uri=${this.googleRedirectUri}`;
+    url += `&scope=email%20profile`;
+    url += `&state=${passportKey}`;
     this.logger.debug(`getSignInGoogle.url -> ${url}`);
+    response.redirect(HttpStatus.TEMPORARY_REDIRECT, url);
+    return;
+  }
+
+  @Get('/provider/apple')
+  async getSignInApple(
+    @Res() response: Response,
+    @Query('passport') passportKey: string,
+  ) {
+    this.logger.debug(`getSignInApple.passportKey -> ${passportKey}`);
+    const passport = await this.oauthService.findPassport(passportKey);
+    if (!passport) {
+      const error: OauthError = 'access_denied';
+      response.redirect(`${this.signInUrl}?error=${error}`);
+      return;
+    }
+    this.logger.debug(`getSignInApple.passport -> ${passport}`);
+    const { redirect_uri } = JSON.parse(
+      passport,
+    ) as OauthAuthorizeRequestCreate;
+    this.cookieHandler.setCookie(
+      response,
+      COOKIE_NAME.REDIRECT,
+      redirect_uri,
+      this.passportExpirySeconds,
+    );
+
+    let url = `https://appleid.apple.com/auth/authorize`;
+    url += `?response_type=code`;
+    url += `&client_id=${this.appleClientId}`;
+    url += `&redirect_uri=${this.appleRedirectUri}`;
+    url += `&scope=email%20name`;
+    url += `&response_mode=form_post`;
+    url += `&state=${passportKey}`;
+    this.logger.debug(`getSignInApple.url -> ${url}`);
     response.redirect(HttpStatus.TEMPORARY_REDIRECT, url);
     return;
   }

@@ -13,8 +13,13 @@ import {
   Naver,
   GoogleTokenResponse,
   GoogleUserMeResponse,
+  AppleTokenResponse,
+  AppleIdToken,
 } from '../../type/service/provider.service.type';
 import { PROVIDER } from 'dto/enum/provider.enum';
+import { decodeJwt, importPKCS8, SignJWT } from 'jose';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class ProviderService {
@@ -27,6 +32,11 @@ export class ProviderService {
   private readonly google_client_id: string | undefined;
   private readonly google_client_secret: string | undefined;
   private readonly google_redirect_uri: string | undefined;
+  private readonly apple_client_id: string | undefined;
+  private readonly apple_redirect_uri: string | undefined;
+  private readonly apple_key_id: string | undefined;
+  private readonly apple_team_id: string | undefined;
+  private readonly apple_private_key_path: string | undefined;
 
   constructor(
     private readonly configService: ConfigService,
@@ -47,6 +57,15 @@ export class ProviderService {
     );
     this.google_redirect_uri = this.configService.get<string>(
       'GOOGLE_REDIRECT_URI',
+    );
+    this.apple_client_id = this.configService.get<string>('APPLE_CLIENT_ID');
+    this.apple_redirect_uri =
+      this.configService.get<string>('APPLE_REDIRECT_URI');
+    this.apple_key_id = this.configService.get<string>('APPLE_KEY_ID');
+    this.apple_team_id = this.configService.get<string>('APPLE_TEAM_ID');
+    this.apple_private_key_path = path.join(
+      __dirname,
+      '../../../cert/AuthKey_C2QLJALWTZ.p8',
     );
   }
 
@@ -264,8 +283,103 @@ export class ProviderService {
     return response.data;
   }
 
-  connectApple(): Promise<Apple> {
-    throw new Error('Not implemented');
+  async connectApple(code: string): Promise<Apple> {
+    this.logger.debug('connectApple', code);
+    try {
+      const tokenData = await this.getAppleToken(code);
+      console.log(tokenData);
+      const decodedIdToken = decodeJwt(tokenData.id_token) as AppleIdToken;
+      this.logger.debug(
+        `connectApple.decodedIdToken`,
+        JSON.stringify(decodedIdToken),
+      );
+      return {
+        provider: PROVIDER.APPLE,
+        id: decodedIdToken.sub,
+        email: decodedIdToken.email,
+        phone: undefined,
+      };
+    } catch (error) {
+      this.logger.error('Error in connectApple');
+      throw new HttpException(
+        'Failed to connect with Apple',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async getAppleToken(code: string): Promise<AppleTokenResponse> {
+    const url = 'https://appleid.apple.com/auth/token';
+    const body = new URLSearchParams(
+      Object.entries({
+        grant_type: 'authorization_code',
+        client_id: this.apple_client_id as string,
+        client_secret: await this.createClientSecret(),
+        redirect_uri: this.apple_redirect_uri as string,
+        code,
+      }),
+    );
+    this.logger.log(`getAppleToken`, body.toString());
+    const response = await firstValueFrom(
+      this.httpService.post<AppleTokenResponse>(url, body.toString(), {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      }),
+    );
+
+    if (!response.data?.access_token) {
+      throw new HttpException('Invalid token response', 400);
+    }
+    this.logger.log(`getAppleToken`, response.data);
+    return {
+      access_token: response.data.access_token || '',
+      token_type: response.data.token_type || '',
+      refresh_token: response.data.refresh_token || '',
+      expires_in: response.data.expires_in || 0,
+      scope: response.data.scope || '',
+      refresh_token_expires_in: response.data.refresh_token_expires_in || 0,
+      id_token: response.data.id_token || '',
+    } as AppleTokenResponse;
+  }
+
+  private async createClientSecret(): Promise<string> {
+    if (
+      !this.apple_private_key_path ||
+      !this.apple_key_id ||
+      !this.apple_team_id ||
+      !this.apple_client_id
+    ) {
+      throw new HttpException(
+        'Apple configuration is missing',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    try {
+      const keyContent = await fs.promises.readFile(
+        this.apple_private_key_path,
+        'utf-8',
+      );
+      const privateKey = await importPKCS8(keyContent, 'ES256');
+      const now = Math.floor(Date.now() / 1000);
+      const jwt = await new SignJWT({})
+        .setProtectedHeader({ alg: 'ES256', kid: this.apple_key_id })
+        .setIssuer(this.apple_team_id)
+        .setAudience('https://appleid.apple.com')
+        .setSubject(this.apple_client_id)
+        .setIssuedAt(now)
+        .setExpirationTime(now + 60 * 60 * 6) // 6시간
+        .sign(privateKey);
+
+      return jwt;
+    } catch (error) {
+      this.logger.error('Failed to create client secret', error);
+      throw new HttpException(
+        'Failed to create client secret',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   private parsePhoneNumber(phoneNumberRaw: string) {

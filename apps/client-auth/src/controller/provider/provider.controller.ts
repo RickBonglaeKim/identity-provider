@@ -1,9 +1,10 @@
 import {
+  Body,
   Controller,
   Get,
   HttpStatus,
+  Post,
   Query,
-  Redirect,
   Req,
   Res,
 } from '@nestjs/common';
@@ -12,11 +13,12 @@ import { Response, Request } from 'express';
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OauthInternalError } from '../../type/service/oauth.service.type';
-import { OauthService } from '../../service/oauth/oauth.service';
-import { OauthAuthorizeRequestCreate } from 'dto/interface/oauth/authorize/request/oauth.authorize.request.create.dto';
 import { SignInService } from '../../service/sign.in/sign.in.service';
 import { PROVIDER, Providers } from 'dto/enum/provider.enum';
-import { ProviderData } from '../../type/service/provider.service.type';
+import {
+  AppleCallback,
+  ProviderData,
+} from '../../type/service/provider.service.type';
 import makeMemberProviderKey from '../../util/make.ProviderPassword';
 import trimPhoneNumber from '../../util/trim.phoneNumber';
 import * as cryptoJS from 'crypto-js';
@@ -132,6 +134,7 @@ export class ProviderController {
       response.redirect(
         this.combineRedirectUrlWithError(request, error, error_description),
       );
+      return;
     }
 
     let signInUrl = `${this.signInUrl}?provider=${PROVIDER.KAKAO}`;
@@ -141,7 +144,8 @@ export class ProviderController {
       state,
     );
     if (signInErrorUrl) {
-      response.redirect(HttpStatus.TEMPORARY_REDIRECT, signInErrorUrl);
+      response.redirect(HttpStatus.FOUND, signInErrorUrl);
+      return;
     }
 
     const passportKey = state!;
@@ -150,9 +154,10 @@ export class ProviderController {
     const kakao = await this.providerService.connectKakao(code!);
     if (!kakao) {
       response.redirect(
-        HttpStatus.TEMPORARY_REDIRECT,
+        HttpStatus.FOUND,
         this.combineErrorUrl(signInUrl, 'invalid_kakao'),
       );
+      return;
     }
 
     const member = await this.signInService.findMemberByMemberProvider(
@@ -161,16 +166,18 @@ export class ProviderController {
 
     if (member) {
       response.redirect(
-        HttpStatus.TEMPORARY_REDIRECT,
+        HttpStatus.FOUND,
         this.generateSignInUrl(member, passportKey),
       );
+      return;
     }
 
     // The member searched by the Kakao does not exist in the database.
     response.redirect(
-      HttpStatus.TEMPORARY_REDIRECT,
+      HttpStatus.FOUND,
       this.combineSignUpUrl(PROVIDER.KAKAO, passportKey, kakao),
     );
+    return;
   }
 
   @Get('naver')
@@ -193,6 +200,7 @@ export class ProviderController {
       response.redirect(
         this.combineRedirectUrlWithError(request, error, error_description),
       );
+      return;
     }
 
     let signInUrl = `${this.signInUrl}?provider=${PROVIDER.NAVER}`;
@@ -203,7 +211,8 @@ export class ProviderController {
       state,
     );
     if (signInErrorUrl) {
-      response.redirect(HttpStatus.TEMPORARY_REDIRECT, signInErrorUrl);
+      response.redirect(HttpStatus.FOUND, signInErrorUrl);
+      return;
     }
 
     const passportKey = state!;
@@ -212,9 +221,10 @@ export class ProviderController {
     const naver = await this.providerService.connectNaver(code!);
     if (!naver) {
       response.redirect(
-        HttpStatus.TEMPORARY_REDIRECT,
+        HttpStatus.FOUND,
         this.combineErrorUrl(signInUrl, 'invalid_naver'),
       );
+      return;
     }
 
     const member = await this.signInService.findMemberByMemberProvider(
@@ -223,16 +233,18 @@ export class ProviderController {
 
     if (member) {
       response.redirect(
-        HttpStatus.TEMPORARY_REDIRECT,
+        HttpStatus.FOUND,
         this.generateSignInUrl(member, passportKey),
       );
+      return;
     }
 
     // The member searched by the Naver does not exist in the database.
     response.redirect(
-      HttpStatus.TEMPORARY_REDIRECT,
+      HttpStatus.FOUND,
       this.combineSignUpUrl(PROVIDER.NAVER, passportKey, naver),
     );
+    return;
   }
 
   @Get('google')
@@ -243,7 +255,7 @@ export class ProviderController {
     @Query('state') state?: string,
     @Query('error') error?: string,
     @Query('error_description') error_description?: string,
-  ) {
+  ): Promise<void> {
     this.logger.debug(
       `getGoogle.code -> ${code}`,
       `getGoogle.state -> ${state}`,
@@ -255,6 +267,7 @@ export class ProviderController {
       response.redirect(
         this.combineRedirectUrlWithError(request, error, error_description),
       );
+      return;
     }
 
     let signInUrl = `${this.signInUrl}?provider=${PROVIDER.GOOGLE}`;
@@ -265,7 +278,8 @@ export class ProviderController {
       state,
     );
     if (signInErrorUrl) {
-      response.redirect(HttpStatus.TEMPORARY_REDIRECT, signInErrorUrl);
+      response.redirect(HttpStatus.FOUND, signInErrorUrl);
+      return;
     }
 
     const passportKey = state!;
@@ -274,9 +288,10 @@ export class ProviderController {
     const google = await this.providerService.connectGoogle(code!);
     if (!google) {
       response.redirect(
-        HttpStatus.TEMPORARY_REDIRECT,
+        HttpStatus.FOUND,
         this.combineErrorUrl(signInUrl, 'invalid_google'),
       );
+      return;
     }
 
     const member = await this.signInService.findMemberByMemberProvider(
@@ -285,21 +300,83 @@ export class ProviderController {
 
     if (member) {
       response.redirect(
-        HttpStatus.TEMPORARY_REDIRECT,
+        HttpStatus.FOUND,
         this.generateSignInUrl(member, passportKey),
       );
+      return;
     }
 
     // The member searched by the Google does not exist in the database.
     response.redirect(
-      HttpStatus.TEMPORARY_REDIRECT,
+      HttpStatus.FOUND,
       this.combineSignUpUrl(PROVIDER.GOOGLE, passportKey, google),
     );
+    return;
   }
 
-  @Get('apple')
-  getApple() {
-    // TODO: 애플 로그인 구현
-    throw new Error('Not implemented');
+  @Post('apple')
+  async getApple(
+    @Req() request: Request,
+    @Res() response: Response,
+    @Body() data: AppleCallback,
+  ): Promise<void> {
+    this.logger.debug(`getApple.data -> ${JSON.stringify(data)}`);
+
+    if (data.error) {
+      response.redirect(
+        HttpStatus.FOUND,
+        this.combineRedirectUrlWithError(
+          request,
+          data.error,
+          data.error_description,
+        ),
+      );
+      return;
+    }
+
+    let signInUrl = `${this.signInUrl}?provider=${PROVIDER.APPLE}`;
+
+    const signInErrorUrl = this.combineAuthorizationErrorUrl(
+      signInUrl,
+      data.code,
+      data.state,
+    );
+    if (signInErrorUrl) {
+      response.redirect(HttpStatus.FOUND, signInErrorUrl);
+      return;
+    }
+
+    const passportKey = data.state;
+    signInUrl += `&passport=${passportKey}`;
+
+    const apple = await this.providerService.connectApple(data.code!);
+    if (!apple) {
+      response.redirect(
+        HttpStatus.FOUND,
+        this.combineErrorUrl(signInUrl, 'invalid_apple'),
+      );
+      return;
+    }
+
+    this.logger.debug(`getApple.apple -> ${JSON.stringify(apple)}`);
+
+    const member = await this.signInService.findMemberByMemberProvider(
+      makeMemberProviderKey(PROVIDER.APPLE, apple.id),
+    );
+
+    if (member) {
+      response.redirect(
+        HttpStatus.FOUND,
+        this.generateSignInUrl(member, passportKey),
+      );
+      return;
+    }
+
+    // The member searched by the Apple does not exist in the database.
+    response.redirect(
+      HttpStatus.FOUND,
+      this.combineSignUpUrl(PROVIDER.APPLE, passportKey, apple),
+    );
+    return;
   }
 }

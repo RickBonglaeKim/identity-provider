@@ -16,28 +16,6 @@ export type Kakao = ProviderData & {
   provider: typeof PROVIDER.KAKAO;
 };
 
-export type Naver = ProviderData & {
-  provider: typeof PROVIDER.NAVER;
-};
-
-export type Google = ProviderData & {
-  provider: typeof PROVIDER.GOOGLE;
-};
-
-export type Apple = ProviderData & {
-  provider: typeof PROVIDER.APPLE;
-};
-
-export type TokenResponse = {
-  access_token: string;
-  token_type: string;
-  refresh_token: string;
-  expires_in: number;
-  scope: string;
-  refresh_token_expires_in: number;
-  connectUrl?: string;
-};
-
 export interface KakaoTokenResponse {
   access_token: string;
   token_type: string;
@@ -63,6 +41,11 @@ export interface KakaoUserMeResponse {
     phone_number: string;
   };
 }
+
+export type Naver = ProviderData & {
+  provider: typeof PROVIDER.NAVER;
+};
+
 export interface NaverTokenResponse {
   access_token: string;
   token_type: string;
@@ -84,6 +67,10 @@ export interface NaverUserMeResponse {
   };
 }
 
+export type Google = ProviderData & {
+  provider: typeof PROVIDER.GOOGLE;
+};
+
 export interface GoogleTokenResponse {
   access_token: string;
   token_type: string;
@@ -100,4 +87,44 @@ export interface GoogleUserMeResponse {
   family_name: string;
   picture: string;
   email: string;
+}
+
+export type Apple = ProviderData & {
+  provider: typeof PROVIDER.APPLE;
+};
+
+export type AppleIdToken = {
+  iss: string;
+  aud: string;
+  exp: number;
+  iat: number;
+  sub: string;
+  at_hash: string;
+  email: string;
+  email_verified: true;
+  auth_time: number;
+  nonce_supported: true;
+};
+
+export type AppleCallback = {
+  state: string;
+  error?: string;
+  error_description?: string;
+  code?: string;
+  user?:
+    | {
+        name: { firstName: string; lastName: string };
+        email: string;
+      }
+    | undefined;
+};
+
+export interface AppleTokenResponse {
+  access_token: string;
+  token_type: string;
+  refresh_token: string;
+  expires_in: number;
+  scope: string;
+  refresh_token_expires_in: number;
+  id_token: string;
 }
