@@ -346,20 +346,20 @@ export class ProviderService {
   }
 
   private async createClientSecret(): Promise<string> {
-    if (
-      !this.apple_private_key_path ||
-      !this.apple_key_id ||
-      !this.apple_team_id ||
-      !this.apple_client_id
-    ) {
-      throw new HttpException(
-        'Apple configuration is missing',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-    this.logger.debug(
-      `createClientSecret.apple_private_key_path -> ${this.apple_private_key_path}`,
-    );
+    // if (
+    //   !this.apple_private_key_path ||
+    //   !this.apple_key_id ||
+    //   !this.apple_team_id ||
+    //   !this.apple_client_id
+    // ) {
+    //   throw new HttpException(
+    //     'Apple configuration is missing',
+    //     HttpStatus.INTERNAL_SERVER_ERROR,
+    //   );
+    // }
+    // this.logger.debug(
+    //   `createClientSecret.apple_private_key_path -> ${this.apple_private_key_path}`,
+    // );
 
     try {
       const keyContent = await fs.promises.readFile(
@@ -370,9 +370,9 @@ export class ProviderService {
       const now = Math.floor(Date.now() / 1000);
       const jwt = await new SignJWT({})
         .setProtectedHeader({ alg: 'ES256', kid: this.apple_key_id })
-        .setIssuer(this.apple_team_id)
+        .setIssuer(this.apple_team_id!)
         .setAudience('https://appleid.apple.com')
-        .setSubject(this.apple_client_id)
+        .setSubject(this.apple_client_id!)
         .setIssuedAt(now)
         .setExpirationTime(now + 60 * 60 * 6) // 6시간
         .sign(privateKey);
