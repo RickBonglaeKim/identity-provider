@@ -289,7 +289,7 @@ export class ProviderService {
     this.logger.debug('connectApple', code);
     try {
       const tokenData = await this.getAppleToken(code);
-      console.log(tokenData);
+      this.logger.debug(`connectApple.tokenData`, tokenData);
       const decodedIdToken = decodeJwt(tokenData.id_token) as AppleIdToken;
       this.logger.debug(
         `connectApple.decodedIdToken`,
@@ -329,6 +329,7 @@ export class ProviderService {
         },
       }),
     );
+    this.logger.log(`getAppleToken.response`, response);
 
     if (!response.data?.access_token) {
       throw new HttpException('Invalid token response', 400);
