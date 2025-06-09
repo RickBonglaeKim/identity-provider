@@ -37,6 +37,7 @@ export class ProviderService {
   private readonly apple_key_id: string | undefined;
   private readonly apple_team_id: string | undefined;
   private readonly apple_private_key_path: string | undefined;
+  private readonly appleAuthKey: string;
 
   constructor(
     private readonly configService: ConfigService,
@@ -67,6 +68,7 @@ export class ProviderService {
       __dirname,
       '../../../cert/AuthKey_C2QLJALWTZ.p8',
     );
+    this.appleAuthKey = this.configService.getOrThrow<string>('APPLE_AUTH_KEY');
   }
 
   async connectKakao(code: string): Promise<Kakao> {
@@ -355,10 +357,13 @@ export class ProviderService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+    this.logger.debug(
+      `createClientSecret.apple_private_key_path -> ${this.apple_private_key_path}`,
+    );
 
     try {
       const keyContent = await fs.promises.readFile(
-        this.apple_private_key_path,
+        path.resolve('cert', this.appleAuthKey),
         'utf-8',
       );
       const privateKey = await importPKCS8(keyContent, 'ES256');
