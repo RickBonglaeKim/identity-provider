@@ -321,7 +321,7 @@ export class ProviderService {
         code,
       }),
     );
-    this.logger.log(`getAppleToken`, body.toString());
+    this.logger.log(`getAppleToken.body -> ${body}`);
     const response = await firstValueFrom(
       this.httpService.post<AppleTokenResponse>(url, body.toString(), {
         headers: {
@@ -329,7 +329,7 @@ export class ProviderService {
         },
       }),
     );
-    this.logger.log(`getAppleToken.response`, response);
+    this.logger.log(`getAppleToken.response -> ${JSON.stringify(response)}`);
 
     if (!response.data?.access_token) {
       throw new HttpException('Invalid token response', 400);
