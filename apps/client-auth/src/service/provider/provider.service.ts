@@ -302,7 +302,8 @@ export class ProviderService {
         phone: undefined,
       };
     } catch (error) {
-      this.logger.error('Error in connectApple');
+      // this.logger.error('Error in connectApple');
+      this.logger.error(error);
       throw new HttpException(
         'Failed to connect with Apple',
         HttpStatus.INTERNAL_SERVER_ERROR,
