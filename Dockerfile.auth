@@ -1,9 +1,9 @@
-FROM node:24-slim AS base
+FROM node:23-alpine AS base
 
 FROM base AS builder
 WORKDIR /usr/src/app
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 COPY . .
 RUN npm run build:auth
 
@@ -11,6 +11,6 @@ FROM base
 WORKDIR /usr/src/app
 COPY --from=builder /usr/src/app/package*.json ./
 COPY --from=builder /usr/src/app/cert ./cert
-RUN npm ci --only=production
+RUN npm install --only=prod
 COPY --from=builder /usr/src/app/dist/apps/client-auth ./dist
 ENTRYPOINT [ "node", "dist/main"]

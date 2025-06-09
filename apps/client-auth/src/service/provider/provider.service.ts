@@ -37,7 +37,7 @@ export class ProviderService {
   private readonly apple_key_id: string | undefined;
   private readonly apple_team_id: string | undefined;
   private readonly apple_private_key_path: string | undefined;
-  private readonly appleAuthKey: string;
+  private readonly apple_auth_key: string | undefined;
 
   constructor(
     private readonly configService: ConfigService,
@@ -68,7 +68,7 @@ export class ProviderService {
       __dirname,
       '../../../cert/AuthKey_C2QLJALWTZ.p8',
     );
-    this.appleAuthKey = this.configService.getOrThrow<string>('APPLE_AUTH_KEY');
+    this.apple_auth_key = this.configService.get<string>('APPLE_AUTH_KEY');
   }
 
   async connectKakao(code: string): Promise<Kakao> {
@@ -289,7 +289,7 @@ export class ProviderService {
     this.logger.debug('connectApple', code);
     try {
       const tokenData = await this.getAppleToken(code);
-      this.logger.debug(`connectApple.tokenData`, tokenData);
+      console.log(tokenData);
       const decodedIdToken = decodeJwt(tokenData.id_token) as AppleIdToken;
       this.logger.debug(
         `connectApple.decodedIdToken`,
@@ -302,7 +302,7 @@ export class ProviderService {
         phone: undefined,
       };
     } catch (error) {
-      this.logger.error(`connectApple.error -> ${JSON.stringify(error)}`);
+      this.logger.error('Error in connectApple');
       throw new HttpException(
         'Failed to connect with Apple',
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -321,7 +321,7 @@ export class ProviderService {
         code,
       }),
     );
-    this.logger.log(`getAppleToken.body -> ${body}`);
+    this.logger.log(`getAppleToken`, body.toString());
     const response = await firstValueFrom(
       this.httpService.post<AppleTokenResponse>(url, body.toString(), {
         headers: {
@@ -329,7 +329,6 @@ export class ProviderService {
         },
       }),
     );
-    this.logger.log(`getAppleToken.response -> ${JSON.stringify(response)}`);
 
     if (!response.data?.access_token) {
       throw new HttpException('Invalid token response', 400);
@@ -347,31 +346,12 @@ export class ProviderService {
   }
 
   private async createClientSecret(): Promise<string> {
-    // if (
-    //   !this.apple_private_key_path ||
-    //   !this.apple_key_id ||
-    //   !this.apple_team_id ||
-    //   !this.apple_client_id
-    // ) {
-    //   throw new HttpException(
-    //     'Apple configuration is missing',
-    //     HttpStatus.INTERNAL_SERVER_ERROR,
-    //   );
-    // }
-    // this.logger.debug(
-    //   `createClientSecret.apple_private_key_path -> ${this.apple_private_key_path}`,
-    // );
-
-    this.logger.debug(
-      `createClientSecret.appleAuthKey -> ${path.resolve('cert', this.appleAuthKey)}`,
-    );
 
     try {
       const keyContent = await fs.promises.readFile(
-        path.resolve('cert', this.appleAuthKey),
+        path.resolve('cert', this.apple_auth_key!),
         'utf-8',
       );
-      this.logger.debug(`createClientSecret.keyContent -> ${keyContent}`);
       const privateKey = await importPKCS8(keyContent, 'ES256');
       const now = Math.floor(Date.now() / 1000);
       const jwt = await new SignJWT({})
