@@ -10,6 +10,7 @@ RUN npm run build:auth
 FROM base
 WORKDIR /usr/src/app
 COPY --from=builder /usr/src/app/package*.json ./
+COPY --from=builder /usr/src/app/cert ./cert
 RUN npm install --only=prod
 COPY --from=builder /usr/src/app/dist/apps/client-auth ./dist
 ENTRYPOINT [ "node", "dist/main"]
