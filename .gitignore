@@ -57,5 +57,4 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # VS code setting files
 /.vscode
-.vscode/settings.json
 /.vscode/settings.json
