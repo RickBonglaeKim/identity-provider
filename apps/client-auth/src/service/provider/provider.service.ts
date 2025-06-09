@@ -302,7 +302,7 @@ export class ProviderService {
         phone: undefined,
       };
     } catch (error) {
-      this.logger.error('Error in connectApple', error);
+      this.logger.error('Error in connectApple');
       throw new HttpException(
         'Failed to connect with Apple',
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -361,11 +361,16 @@ export class ProviderService {
     //   `createClientSecret.apple_private_key_path -> ${this.apple_private_key_path}`,
     // );
 
+    this.logger.debug(
+      `createClientSecret.appleAuthKey -> ${path.resolve('cert', this.appleAuthKey)}`,
+    );
+
     try {
       const keyContent = await fs.promises.readFile(
         path.resolve('cert', this.appleAuthKey),
         'utf-8',
       );
+      this.logger.debug(`createClientSecret.keyContent -> ${keyContent}`);
       const privateKey = await importPKCS8(keyContent, 'ES256');
       const now = Math.floor(Date.now() / 1000);
       const jwt = await new SignJWT({})
