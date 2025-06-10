@@ -7,6 +7,7 @@ import {
   Logger,
   Post,
   Res,
+  Headers,
   UseInterceptors,
 } from '@nestjs/common';
 import { Response } from 'express';
@@ -37,6 +38,7 @@ export class SignUpController {
   @Post()
   @Transactional()
   async postSignUp(
+    @Headers('passport') passportKey: string,
     @Res({ passthrough: true }) response: Response,
     @Body() dto: SignUpRequestCreate,
   ): Promise<void | string> {
@@ -47,9 +49,9 @@ export class SignUpController {
       return;
     }
 
-    if (!dto.passport) return;
+    if (!passportKey) return;
 
-    const passport = await this.oauthService.findPassport(dto.passport);
+    const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
       throw new HttpException(
         'The passport was not found',
@@ -60,7 +62,7 @@ export class SignUpController {
     const memberKey = this.oauthService.createMemberKey({
       memberId: result.memberId,
       memberDetailId: result.memberDetailId,
-      passportKey: dto.passport,
+      passportKey: passportKey,
       timestamp: Date.now(),
     });
     if (!memberKey) {
@@ -75,6 +77,7 @@ export class SignUpController {
   @Post('/phone')
   @Transactional()
   async postSignUpWithPhone(
+    @Headers('passport') passportKey: string,
     @Res({ passthrough: true }) response: Response,
     @Body() dto: SignUpWithPhoneRequestCreate,
   ): Promise<void | string> {
@@ -84,9 +87,9 @@ export class SignUpController {
       return;
     }
 
-    if (!dto.passport) return;
+    if (!passportKey) return;
 
-    const passport = await this.oauthService.findPassport(dto.passport);
+    const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
       throw new HttpException(
         'The passport was not found',
@@ -97,7 +100,7 @@ export class SignUpController {
     const memberKey = this.oauthService.createMemberKey({
       memberId: result.memberId,
       memberDetailId: result.memberDetailId,
-      passportKey: dto.passport,
+      passportKey: passportKey,
       timestamp: Date.now(),
     });
     if (!memberKey) {
