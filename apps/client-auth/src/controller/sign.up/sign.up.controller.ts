@@ -42,14 +42,12 @@ export class SignUpController {
     @Res({ passthrough: true }) response: Response,
     @Body() dto: SignUpRequestCreate,
   ): Promise<void | string> {
-    this.logger.debug('postSignUp');
-    const result = await this.signUpService.createSignUpWithoutDuplication(dto);
-    if (!result) {
-      response.status(251);
-      return;
+    if (!passportKey) {
+      throw new HttpException(
+        'The passport is required',
+        HttpStatus.BAD_REQUEST,
+      );
     }
-
-    if (!passportKey) return;
 
     const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
@@ -57,6 +55,12 @@ export class SignUpController {
         'The passport was not found',
         HttpStatus.FORBIDDEN,
       );
+    }
+
+    const result = await this.signUpService.createSignUpWithoutDuplication(dto);
+    if (!result) {
+      response.status(251);
+      return;
     }
 
     const memberKey = this.oauthService.createMemberKey({
@@ -81,13 +85,12 @@ export class SignUpController {
     @Res({ passthrough: true }) response: Response,
     @Body() dto: SignUpWithPhoneRequestCreate,
   ): Promise<void | string> {
-    const result = await this.signUpService.createSignUpWithPhone(dto);
-    if (!result) {
-      response.status(251);
-      return;
+    if (!passportKey) {
+      throw new HttpException(
+        'The passport is required',
+        HttpStatus.BAD_REQUEST,
+      );
     }
-
-    if (!passportKey) return;
 
     const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
@@ -95,6 +98,12 @@ export class SignUpController {
         'The passport was not found',
         HttpStatus.FORBIDDEN,
       );
+    }
+
+    const result = await this.signUpService.createSignUpWithPhone(dto);
+    if (!result) {
+      response.status(251);
+      return;
     }
 
     const memberKey = this.oauthService.createMemberKey({

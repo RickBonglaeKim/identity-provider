@@ -9,6 +9,7 @@ import {
   Post,
   Query,
   Res,
+  Headers,
   UseInterceptors,
 } from '@nestjs/common';
 import { VerificationService } from '../../service/verification/verification.service';
@@ -20,6 +21,7 @@ import { Response } from 'express';
 import { VerificationEmailRequestRead } from 'dto/interface/verification/email/request/verification.email.request.read.dto';
 import { VerificationPhoneRequestRead } from 'dto/interface/verification/phone/request/verification.phone.request.read.dto';
 import trimPhoneNumber from '../../util/trim.phoneNumber';
+import { OauthService } from '../../service/oauth/oauth.service';
 
 @Controller('verification')
 @UseInterceptors(TransformInterceptor)
@@ -28,23 +30,29 @@ export class VerificationController {
 
   constructor(
     private readonly verificationService: VerificationService,
-    private readonly passportCacheRepository: PassportCacheRepository,
+    private readonly oauthService: OauthService,
   ) {}
 
   @Get('phone')
   async getVerifyPhone(
     @Res({ passthrough: true }) response: Response,
     @Query() dto: VerificationPhoneRequestCreate,
+    @Headers('passport') passportKey: string,
   ): Promise<void> {
-    const isVerified = await this.verificationService.verifyPhone(
-      dto.countryCallingCode,
-      trimPhoneNumber(dto.phoneNumber),
-    );
-    this.logger.debug(`getVerifyPhone.isVerified -> ${isVerified}`);
-    if (!isVerified) {
-      response.status(251);
-      return;
+    if (!passportKey) {
+      throw new HttpException(
+        'The passport is required',
+        HttpStatus.BAD_REQUEST,
+      );
     }
+    const passport = await this.oauthService.findPassport(passportKey);
+    if (!passport) {
+      throw new HttpException(
+        'The passport was not found',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
     const isGenerated = await this.verificationService.setPhoneVerificationCode(
       dto.countryCallingCode,
       trimPhoneNumber(dto.phoneNumber),
@@ -60,7 +68,21 @@ export class VerificationController {
   @Get('phone/check')
   async getVerifyPhoneCheck(
     @Query() dto: VerificationPhoneRequestCreate,
+    @Headers('passport') passportKey: string,
   ): Promise<boolean> {
+    if (!passportKey) {
+      throw new HttpException(
+        'The passport is required',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const passport = await this.oauthService.findPassport(passportKey);
+    if (!passport) {
+      throw new HttpException(
+        'The passport was not found',
+        HttpStatus.FORBIDDEN,
+      );
+    }
     return await this.verificationService.verifyPhone(
       dto.countryCallingCode,
       trimPhoneNumber(dto.phoneNumber),
@@ -70,7 +92,21 @@ export class VerificationController {
   @Get('phone/code')
   async getVerifyPhoneCode(
     @Query() dto: VerificationPhoneRequestRead,
+    @Headers('passport') passportKey: string,
   ): Promise<boolean> {
+    if (!passportKey) {
+      throw new HttpException(
+        'The passport is required',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const passport = await this.oauthService.findPassport(passportKey);
+    if (!passport) {
+      throw new HttpException(
+        'The passport was not found',
+        HttpStatus.FORBIDDEN,
+      );
+    }
     const result = await this.verificationService.getPhoneVerificationCode(
       dto.countryCallingCode,
       trimPhoneNumber(dto.phoneNumber),
@@ -101,12 +137,20 @@ export class VerificationController {
   async getVerifyEmail(
     @Res({ passthrough: true }) response: Response,
     @Query() dto: VerificationEmailRequestCreate,
+    @Headers('passport') passportKey: string,
   ): Promise<void> {
-    const isVerified = await this.verificationService.verifyEmail(dto.email);
-    this.logger.debug(`getVerifyEmail.isVerified -> ${isVerified}`);
-    if (!isVerified) {
-      response.status(251);
-      return;
+    if (!passportKey) {
+      throw new HttpException(
+        'The passport is required',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const passport = await this.oauthService.findPassport(passportKey);
+    if (!passport) {
+      throw new HttpException(
+        'The passport was not found',
+        HttpStatus.FORBIDDEN,
+      );
     }
     const isGenerated = await this.verificationService.setEmailVerificationCode(
       dto.email,
@@ -122,14 +166,42 @@ export class VerificationController {
   @Get('email/check')
   async getVerifyEmailCheck(
     @Query() dto: VerificationEmailRequestCreate,
+    @Headers('passport') passportKey: string,
   ): Promise<boolean> {
+    if (!passportKey) {
+      throw new HttpException(
+        'The passport is required',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const passport = await this.oauthService.findPassport(passportKey);
+    if (!passport) {
+      throw new HttpException(
+        'The passport was not found',
+        HttpStatus.FORBIDDEN,
+      );
+    }
     return await this.verificationService.verifyEmail(dto.email);
   }
 
   @Get('email/code')
   async getVerifyEmailCode(
     @Query() dto: VerificationEmailRequestRead,
+    @Headers('passport') passportKey: string,
   ): Promise<boolean> {
+    if (!passportKey) {
+      throw new HttpException(
+        'The passport is required',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const passport = await this.oauthService.findPassport(passportKey);
+    if (!passport) {
+      throw new HttpException(
+        'The passport was not found',
+        HttpStatus.FORBIDDEN,
+      );
+    }
     const result = await this.verificationService.getEmailVerificationCode(
       dto.email,
     );
