@@ -39,6 +39,7 @@ export class VerificationController {
     @Query() dto: VerificationPhoneRequestCreate,
     @Headers('passport') passportKey: string,
   ): Promise<void> {
+    this.logger.debug(`getVerifyPhone.passport -> ${passportKey}`);
     if (!passportKey) {
       throw new HttpException(
         'The passport is required',
@@ -94,6 +95,7 @@ export class VerificationController {
     @Query() dto: VerificationPhoneRequestRead,
     @Headers('passport') passportKey: string,
   ): Promise<boolean> {
+    this.logger.debug(`getVerifyPhoneCode.passport -> ${passportKey}`);
     if (!passportKey) {
       throw new HttpException(
         'The passport is required',
