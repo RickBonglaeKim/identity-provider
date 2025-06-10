@@ -5,6 +5,7 @@ import {
   HttpException,
   HttpStatus,
   Logger,
+  Patch,
   Post,
   Query,
   Res,
@@ -152,4 +153,13 @@ export class VerificationController {
       );
     return code;
   }
+
+  @Get('find/id')
+  async getFindId() {}
+
+  @Get('find/password')
+  async getFindPassword() {}
+
+  @Patch('reset/password')
+  async patchResetPassword() {}
 }
