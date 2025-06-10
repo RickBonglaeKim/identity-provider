@@ -79,10 +79,11 @@ export class VerificationService {
     countryCallingCode: string,
     phoneNumber: string,
   ): Promise<string | undefined> {
-    const code = this.generateVerificationCode();
-    this.logger.debug(`getPhoneVerificationCode.code -> ${code}`);
     const result = await this.verificationCacheRepository.getVerificationCode(
       this.createPhoneVerificationKey(countryCallingCode, phoneNumber),
+    );
+    this.logger.debug(
+      `getPhoneVerificationCode.result -> ${JSON.stringify(result)}`,
     );
     if (result.isSucceed) return result.data;
   }
