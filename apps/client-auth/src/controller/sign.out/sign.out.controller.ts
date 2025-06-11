@@ -12,6 +12,7 @@ import { Request, Response } from 'express';
 import { OauthService } from '../../service/oauth/oauth.service';
 import { CookieHandler } from '../../util/cookie.handler';
 import { COOKIE_NAME } from '../../enum/cookie.name.enum';
+import ERROR_MESSAGE from 'dto/constant/error.message.constant';
 
 @Controller('signout')
 export class SignOutController {
@@ -32,7 +33,7 @@ export class SignOutController {
     this.logger.debug(`getSignout.signCookie -> ${JSON.stringify(signCookie)}`);
     if (!signCookie) {
       throw new HttpException(
-        'The cookie does not exist.',
+        ERROR_MESSAGE.COOKIE_NOT_FOUND,
         HttpStatus.UNAUTHORIZED,
       );
     }

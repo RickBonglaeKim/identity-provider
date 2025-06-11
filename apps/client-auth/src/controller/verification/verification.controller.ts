@@ -21,6 +21,8 @@ import { Passport } from '../../decorator/passport.decorator';
 import { VerificationFindIdRequestRead } from 'dto/interface/verification/find/request/verification.find.id.request.read.dto';
 import { VerificationFindPasswordRequestRead } from 'dto/interface/verification/find/request/verification.find.password.request.read.dto';
 import { VerificationResetPasswordRequestCreate } from 'dto/interface/verification/reset/request/verification.reset.password.request.create.dto';
+import ERROR_MESSAGE from 'dto/constant/error.message.constant';
+import SUCCESS_HTTP_STATUS from 'dto/constant/http.status.constant';
 
 @Controller('verification')
 @UseInterceptors(TransformInterceptor)
@@ -40,7 +42,7 @@ export class VerificationController {
     const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
       throw new HttpException(
-        'The passport was not found',
+        ERROR_MESSAGE.PASSPORT_NOT_FOUND,
         HttpStatus.FORBIDDEN,
       );
     }
@@ -53,7 +55,7 @@ export class VerificationController {
 
     if (!isGenerated)
       throw new HttpException(
-        'The verification code is not generated.',
+        ERROR_MESSAGE.VERIFICATION_CODE_NOT_GENERATED,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
   }
@@ -66,7 +68,7 @@ export class VerificationController {
     const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
       throw new HttpException(
-        'The passport was not found',
+        ERROR_MESSAGE.PASSPORT_NOT_FOUND,
         HttpStatus.FORBIDDEN,
       );
     }
@@ -85,7 +87,7 @@ export class VerificationController {
     const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
       throw new HttpException(
-        'The passport was not found',
+        ERROR_MESSAGE.PASSPORT_NOT_FOUND,
         HttpStatus.FORBIDDEN,
       );
     }
@@ -95,8 +97,8 @@ export class VerificationController {
     );
     if (!result)
       throw new HttpException(
-        'The verification code does not exist.',
-        HttpStatus.NOT_FOUND,
+        ERROR_MESSAGE.VERIFICATION_CODE_NOT_FOUND,
+        SUCCESS_HTTP_STATUS.DATA_NOT_FOUND,
       );
     return dto.verificationCode === result;
   }
@@ -109,8 +111,8 @@ export class VerificationController {
     );
     if (!code)
       throw new HttpException(
-        'The verification code does not exist.',
-        HttpStatus.NOT_FOUND,
+        ERROR_MESSAGE.VERIFICATION_CODE_NOT_FOUND,
+        SUCCESS_HTTP_STATUS.DATA_NOT_FOUND,
       );
     return code;
   }
@@ -123,7 +125,7 @@ export class VerificationController {
     const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
       throw new HttpException(
-        'The passport was not found',
+        ERROR_MESSAGE.PASSPORT_NOT_FOUND,
         HttpStatus.FORBIDDEN,
       );
     }
@@ -133,7 +135,7 @@ export class VerificationController {
     this.logger.debug(`getVerifyEmail.isGenerated -> ${isGenerated}`);
     if (!isGenerated)
       throw new HttpException(
-        'The verification code is not generated.',
+        ERROR_MESSAGE.VERIFICATION_CODE_NOT_GENERATED,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
   }
@@ -146,7 +148,7 @@ export class VerificationController {
     const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
       throw new HttpException(
-        'The passport was not found',
+        ERROR_MESSAGE.PASSPORT_NOT_FOUND,
         HttpStatus.FORBIDDEN,
       );
     }
@@ -161,7 +163,7 @@ export class VerificationController {
     const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
       throw new HttpException(
-        'The passport was not found',
+        ERROR_MESSAGE.PASSPORT_NOT_FOUND,
         HttpStatus.FORBIDDEN,
       );
     }
@@ -170,8 +172,8 @@ export class VerificationController {
     );
     if (!result)
       throw new HttpException(
-        'The verification code does not exist.',
-        HttpStatus.NOT_FOUND,
+        ERROR_MESSAGE.VERIFICATION_CODE_NOT_FOUND,
+        SUCCESS_HTTP_STATUS.DATA_NOT_FOUND,
       );
     return dto.verificationCode === result;
   }
@@ -185,8 +187,8 @@ export class VerificationController {
     );
     if (!code)
       throw new HttpException(
-        'The verification code does not exist.',
-        HttpStatus.NOT_FOUND,
+        ERROR_MESSAGE.VERIFICATION_CODE_NOT_FOUND,
+        SUCCESS_HTTP_STATUS.DATA_NOT_FOUND,
       );
     return code;
   }
@@ -199,7 +201,7 @@ export class VerificationController {
     const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
       throw new HttpException(
-        'The passport was not found',
+        ERROR_MESSAGE.PASSPORT_NOT_FOUND,
         HttpStatus.FORBIDDEN,
       );
     }
@@ -209,7 +211,10 @@ export class VerificationController {
       trimPhoneNumber(dto.phoneNumber),
     );
     if (!result)
-      throw new HttpException('The user does not exist.', HttpStatus.NOT_FOUND);
+      throw new HttpException(
+        ERROR_MESSAGE.USER_NOT_FOUND,
+        SUCCESS_HTTP_STATUS.DATA_NOT_FOUND,
+      );
     return result;
   }
 
@@ -221,7 +226,7 @@ export class VerificationController {
     const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
       throw new HttpException(
-        'The passport was not found',
+        ERROR_MESSAGE.PASSPORT_NOT_FOUND,
         HttpStatus.FORBIDDEN,
       );
     }
@@ -232,7 +237,10 @@ export class VerificationController {
       trimPhoneNumber(dto.phoneNumber),
     );
     if (!result) {
-      throw new HttpException('The user does not exist.', HttpStatus.NOT_FOUND);
+      throw new HttpException(
+        ERROR_MESSAGE.USER_NOT_FOUND,
+        SUCCESS_HTTP_STATUS.DATA_NOT_FOUND,
+      );
     }
 
     const token = await this.verificationService.setPasswordToken(
@@ -240,7 +248,7 @@ export class VerificationController {
     );
     if (!token) {
       throw new HttpException(
-        'The token was not generated.',
+        ERROR_MESSAGE.PASSWORD_TOKEN_WAS_NOT_GENERATED,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -256,7 +264,7 @@ export class VerificationController {
     const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
       throw new HttpException(
-        'The passport was not found',
+        ERROR_MESSAGE.PASSPORT_NOT_FOUND,
         HttpStatus.FORBIDDEN,
       );
     }
@@ -266,8 +274,8 @@ export class VerificationController {
     );
     if (!tokenResult) {
       throw new HttpException(
-        'The token to reset password does not exist.',
-        HttpStatus.FORBIDDEN,
+        ERROR_MESSAGE.PASSWORD_TOKEN_NOT_FOUND,
+        SUCCESS_HTTP_STATUS.DATA_NOT_FOUND,
       );
     }
 
@@ -277,7 +285,7 @@ export class VerificationController {
     );
     if (!result) {
       throw new HttpException(
-        'The password was not updated.',
+        ERROR_MESSAGE.PASSWORD_NOT_UPDATED,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

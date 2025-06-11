@@ -105,10 +105,11 @@ export class MemberService {
     memberDetailId: number,
     password: string,
   ): Promise<number> {
+    const hashPassword = await this.hashService.generateHash(password);
     const result =
       await this.memberDetailRepository.updatePasswordOfMemberDetailById(
         memberDetailId,
-        password,
+        hashPassword,
       );
     if (!result) this.exceptionService.notRecognizedError();
     if (!result?.isSucceed || !result.data)

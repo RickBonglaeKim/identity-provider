@@ -16,6 +16,8 @@ import { SignUpWithPhoneRequestCreate } from 'dto/interface/sign.up/request/phon
 import { OauthService } from '../../service/oauth/oauth.service';
 import { Transactional } from '@nestjs-cls/transactional';
 import { Passport } from '../../decorator/passport.decorator';
+import ERROR_MESSAGE from 'dto/constant/error.message.constant';
+import SUCCESS_HTTP_STATUS from 'dto/constant/http.status.constant';
 
 @Controller('signUp')
 @UseInterceptors(TransformInterceptor)
@@ -37,14 +39,14 @@ export class SignUpController {
     const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
       throw new HttpException(
-        'The passport was not found',
+        ERROR_MESSAGE.PASSPORT_NOT_FOUND,
         HttpStatus.FORBIDDEN,
       );
     }
 
     const result = await this.signUpService.createSignUpWithoutDuplication(dto);
     if (!result) {
-      response.status(251);
+      response.status(SUCCESS_HTTP_STATUS.DATA_DUPLICATED);
       return;
     }
 
@@ -56,7 +58,7 @@ export class SignUpController {
     });
     if (!memberKey) {
       throw new HttpException(
-        'The member key was not created',
+        ERROR_MESSAGE.MEMBER_KEY_NOT_CREATED,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -73,14 +75,14 @@ export class SignUpController {
     const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
       throw new HttpException(
-        'The passport was not found',
+        ERROR_MESSAGE.PASSPORT_NOT_FOUND,
         HttpStatus.FORBIDDEN,
       );
     }
 
     const result = await this.signUpService.createSignUpWithPhone(dto);
     if (!result) {
-      response.status(251);
+      response.status(SUCCESS_HTTP_STATUS.DATA_DUPLICATED);
       return;
     }
 
@@ -92,7 +94,7 @@ export class SignUpController {
     });
     if (!memberKey) {
       throw new HttpException(
-        'The member key was not created',
+        ERROR_MESSAGE.MEMBER_KEY_NOT_CREATED,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

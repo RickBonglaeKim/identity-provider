@@ -24,6 +24,8 @@ import { OauthError } from '../../type/service/oauth.service.type';
 import { CookieHandler } from '../../util/cookie.handler';
 import { COOKIE_NAME } from '../../enum/cookie.name.enum';
 import { Passport } from '../../decorator/passport.decorator';
+import SUCCESS_HTTP_STATUS from 'dto/constant/http.status.constant';
+import ERROR_MESSAGE from 'dto/constant/error.message.constant';
 
 @Controller('signin')
 @UseInterceptors(TransformInterceptor)
@@ -90,7 +92,7 @@ export class SignInController {
     const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
       throw new HttpException(
-        'The passport was not found',
+        ERROR_MESSAGE.PASSPORT_NOT_FOUND,
         HttpStatus.FORBIDDEN,
       );
     }
@@ -99,29 +101,34 @@ export class SignInController {
     this.logger.debug(`getSignIn.memberId -> ${JSON.stringify(member)}`);
     if (!member) {
       this.logger.debug(`The member does not exist in the database.`);
-      response.status(251);
+      response.status(SUCCESS_HTTP_STATUS.DATA_NOT_FOUND);
       return;
     }
 
-    const memberKey = cryptoJS.AES.encrypt(
-      JSON.stringify({
-        memberId: member.memberId,
-        memberDetailId: member.memberDetailId,
-        passportKey: passportKey,
-        timestamp: Date.now(),
-      }),
-      this.memberKeyEncryptionKey,
-    ).toString();
-    this.logger.debug(`postSignIn.memberKey -> ${memberKey}`);
-    const decryptedMemberValue = cryptoJS.AES.decrypt(
-      memberKey,
-      this.memberKeyEncryptionKey,
-    ).toString(cryptoJS.enc.Utf8);
-    this.logger.debug(
-      `postSignIn.decryptedMemberValue -> ${decryptedMemberValue}`,
-    );
+    let memberKey: string | undefined;
+    try {
+      memberKey = cryptoJS.AES.encrypt(
+        JSON.stringify({
+          memberId: member.memberId,
+          memberDetailId: member.memberDetailId,
+          passportKey: passportKey,
+          timestamp: Date.now(),
+        }),
+        this.memberKeyEncryptionKey,
+      ).toString();
+      this.logger.debug(`postSignIn.memberKey -> ${memberKey}`);
+    } catch (error) {
+      this.logger.error(`postSignIn.error -> ${error}`);
+      throw new HttpException(
+        'The memberKey was not created',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
 
-    return encodeURIComponent(memberKey);
+    if (memberKey) {
+      return encodeURIComponent(memberKey);
+    }
+    return;
   }
 
   @Get('/:memberKey')
@@ -130,11 +137,18 @@ export class SignInController {
     @Param('memberKey') memberKey: string,
   ): Promise<void> {
     this.logger.debug(`getSignIn.memberKey -> ${memberKey}`);
-    const memberValue = cryptoJS.AES.decrypt(
-      decodeURIComponent(memberKey),
-      this.memberKeyEncryptionKey,
-    ).toString(cryptoJS.enc.Utf8);
-    this.logger.debug(`getSignIn.memberValue -> ${memberValue}`);
+
+    let memberValue: string | undefined;
+    try {
+      memberValue = cryptoJS.AES.decrypt(
+        decodeURIComponent(memberKey),
+        this.memberKeyEncryptionKey,
+      ).toString(cryptoJS.enc.Utf8);
+      this.logger.debug(`getSignIn.memberValue -> ${memberValue}`);
+    } catch (error) {
+      this.logger.error(`getSignIn.error -> ${error}`);
+    }
+
     if (!memberValue) {
       const error: OauthError = 'access_denied';
       response.redirect(`${this.signInUrl}?error=${error}`);

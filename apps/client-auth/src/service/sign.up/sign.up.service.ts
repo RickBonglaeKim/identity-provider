@@ -115,14 +115,15 @@ export class SignUpService {
       signMember.memberId,
       data.memberPhone,
     );
-    if (!memberPhoneId) return;
 
     const memberDetailPhoneResult =
       await this.memberDetailPhoneRepository.insertMemberDetailPhone({
         memberDetailId: signMember.memberDetailId,
         memberPhoneId: memberPhoneId,
       });
-    if (!memberDetailPhoneResult?.isSucceed) return;
+    if (!memberDetailPhoneResult?.isSucceed) {
+      this.exceptionService.notInsertedEntity('member_detail_phone');
+    }
 
     return {
       memberId: signMember.memberId,
