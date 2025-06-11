@@ -11,6 +11,7 @@ import {
   HttpStatus,
   Param,
   Query,
+  HttpException,
 } from '@nestjs/common';
 import { SignInService } from '../../service/sign.in/sign.in.service';
 import { CookieOptions, Response } from 'express';
@@ -22,6 +23,7 @@ import { MemberKey, SignCookie } from '../../type/service/sign.service.type';
 import { OauthError } from '../../type/service/oauth.service.type';
 import { CookieHandler } from '../../util/cookie.handler';
 import { COOKIE_NAME } from '../../enum/cookie.name.enum';
+import { Passport } from '../../decorator/passport.decorator';
 
 @Controller('signin')
 @UseInterceptors(TransformInterceptor)
@@ -73,27 +75,31 @@ export class SignInController {
     this.googleRedirectUri = this.configService.getOrThrow<string>(
       'GOOGLE_REDIRECT_URI',
     );
-    this.appleClientId = this.configService.getOrThrow<string>('APPLE_CLIENT_ID');
-    this.appleRedirectUri = this.configService.getOrThrow<string>('APPLE_REDIRECT_URI');
+    this.appleClientId =
+      this.configService.getOrThrow<string>('APPLE_CLIENT_ID');
+    this.appleRedirectUri =
+      this.configService.getOrThrow<string>('APPLE_REDIRECT_URI');
   }
 
   @Post()
   async postSignIn(
+    @Passport() passportKey: string,
     @Res({ passthrough: true }) response: Response,
     @Body() dto: SignInRequestCreate,
   ): Promise<void | string> {
-    const passport = await this.oauthService.findPassport(dto.passport);
+    const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
-      this.logger.debug(`The passport does not exist in the cache.`);
-      response.status(251);
-      return;
+      throw new HttpException(
+        'The passport was not found',
+        HttpStatus.FORBIDDEN,
+      );
     }
 
     const member = await this.signInService.findMember(dto.email, dto.password);
     this.logger.debug(`getSignIn.memberId -> ${JSON.stringify(member)}`);
     if (!member) {
       this.logger.debug(`The member does not exist in the database.`);
-      response.status(252);
+      response.status(251);
       return;
     }
 
@@ -101,7 +107,7 @@ export class SignInController {
       JSON.stringify({
         memberId: member.memberId,
         memberDetailId: member.memberDetailId,
-        passportKey: dto.passport,
+        passportKey: passportKey,
         timestamp: Date.now(),
       }),
       this.memberKeyEncryptionKey,
