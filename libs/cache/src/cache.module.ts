@@ -7,6 +7,7 @@ import { PassportCacheRepository } from './repository/passport.cache.repository'
 import { AuthorizationCodeCacheRepository } from './repository/authorization.code.cache.repository';
 import { VerificationCacheRepository } from './repository/verification.cache.repository';
 import { AuthorizationTokenCacheRepository } from './repository/authorization.token.token.cache.repository';
+import { PasswordCacheRepository } from './repository/password.cache.repository';
 
 const cache = {
   provide: VALKEY_CONNECTION,
@@ -50,6 +51,7 @@ const cache = {
     AuthorizationCodeCacheRepository,
     AuthorizationTokenCacheRepository,
     VerificationCacheRepository,
+    PasswordCacheRepository,
   ],
   exports: [
     CheckCacheRepository,
@@ -57,6 +59,7 @@ const cache = {
     AuthorizationCodeCacheRepository,
     AuthorizationTokenCacheRepository,
     VerificationCacheRepository,
+    PasswordCacheRepository,
   ],
 })
 export class CacheModule {}

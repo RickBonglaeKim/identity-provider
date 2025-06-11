@@ -4,39 +4,44 @@ import { Decoder, SetOptions, TimeUnit } from '@valkey/valkey-glide';
 import { CacheResponseEntity } from '../entity/cache.response.entity';
 
 @Injectable()
-export class VerificationCacheRepository extends CacheService {
-  private readonly prefix = 'verification';
+export class PasswordCacheRepository extends CacheService {
+  private readonly prefix = 'password';
   private createSetOption(): SetOptions {
     return {
-      expiry: { type: TimeUnit.Milliseconds, count: 1000 * 60 * 3 },
+      expiry: { type: TimeUnit.Milliseconds, count: 1000 * 60 * 30 },
       conditionalSet: 'onlyIfDoesNotExist',
       returnOldValue: false,
     };
   }
 
-  async setVerificationCode(
+  private createKey(key: string): string {
+    return `${this.prefix}:${key}`;
+  }
+
+  async setPasswordToken(
     key: string,
     data: string,
   ): Promise<CacheResponseEntity<string>> {
-    key = `${this.prefix}:${key}`;
-    const result = await this.cache.set(key, data, this.createSetOption());
+    const result = await this.cache.set(
+      this.createKey(key),
+      data,
+      this.createSetOption(),
+    );
     if (result === 'OK')
       return new CacheResponseEntity<string>(true, result.toString());
     return new CacheResponseEntity<string>(false);
   }
 
-  async getVerificationCode(key: string): Promise<CacheResponseEntity<string>> {
-    key = `${this.prefix}:${key}`;
-    const result = await this.cache.get(key, { decoder: Decoder.String });
+  async getPasswordToken(key: string): Promise<CacheResponseEntity<string>> {
+    const result = await this.cache.get(this.createKey(key), {
+      decoder: Decoder.String,
+    });
     if (result) return new CacheResponseEntity<string>(true, result.toString());
     return new CacheResponseEntity<string>(false);
   }
 
-  async deleteVerificationCode(
-    key: string,
-  ): Promise<CacheResponseEntity<number>> {
-    key = `${this.prefix}:${key}`;
-    const result: number = await this.cache.del([key]);
+  async deletePasswordToken(key: string): Promise<CacheResponseEntity<number>> {
+    const result: number = await this.cache.del([this.createKey(key)]);
     return new CacheResponseEntity<number>(result === 1, result);
   }
 }

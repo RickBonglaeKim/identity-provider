@@ -29,3 +29,20 @@ type SelectMemberAndMemberDetailAndProviderByMemberDetailIdType = {
 };
 export type SelectMemberAndMemberDetailAndProviderByMemberDetailId =
   Required<SelectMemberAndMemberDetailAndProviderByMemberDetailIdType>;
+
+type selectMemberVerificationByNameAndCountryCallingCodeAndPhoneNumberType = {
+  memberId: typeof member.$inferSelect.id;
+  memberDetailId: typeof memberDetail.$inferSelect.id;
+  memberPhoneId: typeof memberPhone.$inferSelect.id;
+  email: typeof memberDetail.$inferSelect.email;
+};
+export type selectMemberVerificationByNameAndCountryCallingCodeAndPhoneNumber =
+  Required<selectMemberVerificationByNameAndCountryCallingCodeAndPhoneNumberType>;
+
+type selectMemberVerificationByEmailAndCountryCallingCodeAndPhoneNumberType = {
+  memberId: typeof member.$inferSelect.id;
+  memberDetailId: typeof memberDetail.$inferSelect.id;
+  memberPhoneId: typeof memberPhone.$inferSelect.id;
+};
+export type selectMemberVerificationByEmailAndCountryCallingCodeAndPhoneNumber =
+  Required<selectMemberVerificationByEmailAndCountryCallingCodeAndPhoneNumberType>;

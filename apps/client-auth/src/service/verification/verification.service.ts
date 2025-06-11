@@ -1,10 +1,13 @@
+import { PasswordCacheRepository } from '@app/cache/repository/password.cache.repository';
 import { VerificationCacheRepository } from '@app/cache/repository/verification.cache.repository';
 import { ExceptionService } from '@app/exception/service/exception.service';
 import { MemberDetailRepository } from '@app/persistence/schema/main/repository/member.detail.repository';
 import { MemberPhoneRepository } from '@app/persistence/schema/main/repository/member.phone.repository';
+import { MemberVerificationRepository } from '@app/persistence/schema/main/repository/member.verification.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import cryptoRandomString from 'crypto-random-string';
+import { HashService } from '@app/crypto/service/hash/hash.service';
 
 @Injectable()
 export class VerificationService {
@@ -13,9 +16,12 @@ export class VerificationService {
   constructor(
     private readonly configService: ConfigService,
     private readonly exceptionService: ExceptionService,
+    private readonly hashService: HashService,
     private readonly memberDetailRepository: MemberDetailRepository,
     private readonly memberPhoneRepository: MemberPhoneRepository,
     private readonly verificationCacheRepository: VerificationCacheRepository,
+    private readonly passwordCacheRepository: PasswordCacheRepository,
+    private readonly memberVerificationRepository: MemberVerificationRepository,
   ) {}
 
   private generateVerificationCode() {
@@ -123,5 +129,78 @@ export class VerificationService {
     const result =
       await this.verificationCacheRepository.getVerificationCode(email);
     if (result.isSucceed) return result.data;
+  }
+
+  async findId(
+    name: string,
+    countryCallingCode: string,
+    phoneNumber: string,
+  ): Promise<string | undefined> {
+    const result =
+      await this.memberVerificationRepository.selectMemberVerificationByNameAndCountryCallingCodeAndPhoneNumber(
+        name,
+        countryCallingCode,
+        phoneNumber,
+      );
+    if (!result) this.exceptionService.notRecognizedError();
+    if (!result?.isSucceed || !result?.data) return;
+
+    return result.data.email;
+  }
+
+  async findPassword(
+    email: string,
+    countryCallingCode: string,
+    phoneNumber: string,
+  ): Promise<number | undefined> {
+    const result =
+      await this.memberVerificationRepository.selectMemberVerificationByEmailAndCountryCallingCodeAndPhoneNumber(
+        email,
+        countryCallingCode,
+        phoneNumber,
+      );
+    if (!result) this.exceptionService.notRecognizedError();
+    if (!result?.isSucceed || !result?.data) return;
+
+    return result.data.memberDetailId;
+  }
+
+  async setPasswordToken(data: string): Promise<string | undefined> {
+    const token = cryptoRandomString({ length: 16, type: 'alphanumeric' });
+    this.logger.debug(`setPasswordToken.token -> ${token}`);
+    const checkResult =
+      await this.passwordCacheRepository.getPasswordToken(token);
+
+    if (
+      checkResult.isSucceed &&
+      !(await this.passwordCacheRepository.deletePasswordToken(token)).isSucceed
+    )
+      return;
+
+    const tokenResult = await this.passwordCacheRepository.setPasswordToken(
+      token,
+      data,
+    );
+    this.logger.debug(
+      `setPasswordToken.tokenResult -> ${JSON.stringify(tokenResult)}`,
+    );
+    if (!tokenResult.isSucceed) return;
+    return token;
+  }
+
+  async getPasswordToken(token: string): Promise<string | undefined> {
+    const result = await this.passwordCacheRepository.getPasswordToken(token);
+    if (result.isSucceed) return result.data;
+  }
+
+  async resetPassword(id: number, password: string): Promise<boolean> {
+    const hashPassword = await this.hashService.generateHash(password);
+    const result =
+      await this.memberDetailRepository.updatePasswordOfMemberDetailById(
+        id,
+        hashPassword,
+      );
+    if (!result) this.exceptionService.notRecognizedError();
+    return result!.isSucceed;
   }
 }

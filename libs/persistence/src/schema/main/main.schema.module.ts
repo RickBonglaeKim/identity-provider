@@ -12,6 +12,7 @@ import { ClientRepository } from './repository/client.repository';
 import { ChildRepository } from './repository/child.repository';
 import { MemberDetailPhoneRepository } from './repository/member.detail.phone.repository';
 import { MemberEntireRepository } from './repository/member.entire.repository';
+import { MemberVerificationRepository } from './repository/member.verification.repository';
 
 @Module({
   providers: [
@@ -28,6 +29,7 @@ import { MemberEntireRepository } from './repository/member.entire.repository';
     IdTokenKeypairRepository,
     ClientMemberRepository,
     ChildRepository,
+    MemberVerificationRepository,
   ],
   exports: [
     mainConnection,
@@ -43,6 +45,7 @@ import { MemberEntireRepository } from './repository/member.entire.repository';
     IdTokenKeypairRepository,
     ClientMemberRepository,
     ChildRepository,
+    MemberVerificationRepository,
   ],
 })
 export class MainSchemaModule {}
