@@ -26,6 +26,7 @@ import { COOKIE_NAME } from '../../enum/cookie.name.enum';
 import { Passport } from '../../decorator/passport.decorator';
 import SUCCESS_HTTP_STATUS from 'dto/constant/http.status.constant';
 import ERROR_MESSAGE from 'dto/constant/http.error.message.constant';
+import HTTP_ERROR_MESSAGE from 'dto/constant/http.error.message.constant';
 
 @Controller('signin')
 @UseInterceptors(TransformInterceptor)
@@ -100,7 +101,7 @@ export class SignInController {
     const member = await this.signInService.findMember(dto.email, dto.password);
     this.logger.debug(`getSignIn.memberId -> ${JSON.stringify(member)}`);
     if (!member) {
-      this.logger.debug(`The member does not exist in the database.`);
+      this.logger.debug(HTTP_ERROR_MESSAGE.MEMBER_NOT_FOUND);
       response.status(SUCCESS_HTTP_STATUS.DATA_NOT_FOUND);
       return;
     }
@@ -120,7 +121,7 @@ export class SignInController {
     } catch (error) {
       this.logger.error(`postSignIn.error -> ${error}`);
       throw new HttpException(
-        'The memberKey was not created',
+        HTTP_ERROR_MESSAGE.MEMBER_KEY_NOT_CREATED,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

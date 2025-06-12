@@ -7,6 +7,10 @@ export class ExceptionService {
     throw new ServiceException(401, `This http request is not authorized.`);
   }
 
+  notGeneratedKeypair() {
+    throw new ServiceException(899, `The keypair is not generated.`);
+  }
+
   notInsertedEntity(entityName: string) {
     throw new ServiceException(
       901,
@@ -30,7 +34,7 @@ export class ExceptionService {
   }
 
   tooManyEntity(entityName: string) {
-    throw new ServiceException(904, `The ${entityName} entity is too many.`);
+    throw new ServiceException(905, `The ${entityName} entity is too many.`);
   }
 
   notSetCacheValue(keyName: string) {
@@ -47,10 +51,6 @@ export class ExceptionService {
 
   notDeletedCacheValue(keyName: string) {
     throw new ServiceException(914, `The ${keyName} value is not deleted.`);
-  }
-
-  notGeneratedKeypair() {
-    throw new ServiceException(911, `The keypair is not generated.`);
   }
 
   notRecognizedError() {
