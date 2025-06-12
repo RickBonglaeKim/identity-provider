@@ -12,7 +12,7 @@ import { Request, Response } from 'express';
 import { OauthService } from '../../service/oauth/oauth.service';
 import { CookieHandler } from '../../util/cookie.handler';
 import { COOKIE_NAME } from '../../enum/cookie.name.enum';
-import ERROR_MESSAGE from 'dto/constant/error.message.constant';
+import ERROR_MESSAGE from 'dto/constant/http.error.message.constant';
 
 @Controller('signout')
 export class SignOutController {

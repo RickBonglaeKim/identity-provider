@@ -21,7 +21,7 @@ import { Passport } from '../../decorator/passport.decorator';
 import { VerificationFindIdRequestRead } from 'dto/interface/verification/find/request/verification.find.id.request.read.dto';
 import { VerificationFindPasswordRequestRead } from 'dto/interface/verification/find/request/verification.find.password.request.read.dto';
 import { VerificationResetPasswordRequestCreate } from 'dto/interface/verification/reset/request/verification.reset.password.request.create.dto';
-import ERROR_MESSAGE from 'dto/constant/error.message.constant';
+import ERROR_MESSAGE from 'dto/constant/http.error.message.constant';
 import SUCCESS_HTTP_STATUS from 'dto/constant/http.status.constant';
 
 @Controller('verification')

@@ -25,7 +25,7 @@ import { CookieHandler } from '../../util/cookie.handler';
 import { COOKIE_NAME } from '../../enum/cookie.name.enum';
 import { Passport } from '../../decorator/passport.decorator';
 import SUCCESS_HTTP_STATUS from 'dto/constant/http.status.constant';
-import ERROR_MESSAGE from 'dto/constant/error.message.constant';
+import ERROR_MESSAGE from 'dto/constant/http.error.message.constant';
 
 @Controller('signin')
 @UseInterceptors(TransformInterceptor)

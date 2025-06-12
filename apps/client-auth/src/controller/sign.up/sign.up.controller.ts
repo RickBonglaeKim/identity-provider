@@ -16,7 +16,7 @@ import { SignUpWithPhoneRequestCreate } from 'dto/interface/sign.up/request/phon
 import { OauthService } from '../../service/oauth/oauth.service';
 import { Transactional } from '@nestjs-cls/transactional';
 import { Passport } from '../../decorator/passport.decorator';
-import ERROR_MESSAGE from 'dto/constant/error.message.constant';
+import ERROR_MESSAGE from 'dto/constant/http.error.message.constant';
 import SUCCESS_HTTP_STATUS from 'dto/constant/http.status.constant';
 
 @Controller('signUp')
