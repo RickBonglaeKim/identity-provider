@@ -54,10 +54,10 @@ export class MemberService {
     data: MemberDetailRequestCreate,
   ): Promise<number> {
     this.logger.debug(`createMemberDetail.data.password -> ${data.password}`);
-    const hashPassword = await this.hashService.generateHash(data.password);
+    const hashPassword = await this.hashService.generateHash(data.password!);
     this.logger.debug(`createMemberDetail.hashPassword -> ${hashPassword}`);
     this.logger.debug(
-      `createMemberDetail -> compared result is ${await this.hashService.compareHash(data.password, hashPassword)}`,
+      `createMemberDetail -> compared result is ${await this.hashService.compareHash(data.password!, hashPassword)}`,
     );
 
     const memberDetailResult =

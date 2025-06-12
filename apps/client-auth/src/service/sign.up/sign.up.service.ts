@@ -73,10 +73,25 @@ export class SignUpService {
     );
     if (memberDetailData?.isSucceed) return;
 
+    //----------------------------------------------------------------------------------------------------//
+    // If the provider is I_SCREAM_ART, set the memberProviderKey to the providerId and a random key.
+    //----------------------------------------------------------------------------------------------------//
     if (data.memberDetail.providerId === PROVIDER.I_SCREAM_ART) {
       const key = cryptoRandomString({ length: 64, type: 'hex' });
       data.memberDetail.memberProviderKey = `${data.memberDetail.providerId}.${key}`;
     }
+    //----------------------------------------------------------------------------------------------------//
+
+    //----------------------------------------------------------------------------------------------------//
+    // If the provider is not I_SCREAM_ART, set the password to the memberProviderKey.
+    //----------------------------------------------------------------------------------------------------//
+    if (data.memberDetail.providerId !== PROVIDER.I_SCREAM_ART) {
+      data.memberDetail.password = data.memberDetail.memberProviderKey;
+    }
+    this.logger.debug(
+      `createSignUpWithoutDuplication.data:updated -> ${JSON.stringify(data)}`,
+    );
+    //----------------------------------------------------------------------------------------------------//
 
     const memberId = await this.memberService.createMember(data.member);
     const memberDetailId = await this.memberService.createMemberDetail(
