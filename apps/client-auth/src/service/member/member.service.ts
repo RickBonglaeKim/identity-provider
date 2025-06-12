@@ -14,6 +14,7 @@ import { MemberPhoneResponseRead } from 'dto/interface/member.phone/response/mem
 import { MemberEntireResponseRead } from 'dto/interface/member.entire/response/member.entire.response.read.dto';
 import { MemberDetailPhoneRepository } from '@app/persistence/schema/main/repository/member.detail.phone.repository';
 import { MemberEntireRepository } from '@app/persistence/schema/main/repository/member.entire.repository';
+import { DUPLICATION_TYPE } from 'dto/enum/duplication.type.enum';
 
 @Injectable()
 export class MemberService {
@@ -69,7 +70,7 @@ export class MemberService {
         name: data.name,
         email: data.email,
         password: hashPassword,
-        codeDuplicationType: data.duplicationType,
+        codeDuplicationType: data.duplicationType || DUPLICATION_TYPE.NONE,
       });
     if (!memberDetailResult) this.exceptionService.notRecognizedError();
     if (!memberDetailResult?.isSucceed || !memberDetailResult.data)
