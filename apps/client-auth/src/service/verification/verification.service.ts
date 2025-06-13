@@ -8,6 +8,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import cryptoRandomString from 'crypto-random-string';
 import { HashService } from '@app/crypto/service/hash/hash.service';
+import { PROVIDER } from 'dto/enum/provider.enum';
 
 @Injectable()
 export class VerificationService {
@@ -162,6 +163,10 @@ export class VerificationService {
     if (!result) this.exceptionService.notRecognizedError();
     if (!result?.isSucceed || !result?.data) return;
 
+    if (result.data.providerId !== PROVIDER.I_SCREAM_ART) {
+      return -1;
+    }
+
     return result.data.memberDetailId;
   }
 
@@ -188,9 +193,14 @@ export class VerificationService {
     return token;
   }
 
-  async getPasswordToken(token: string): Promise<string | undefined> {
-    const result = await this.passwordCacheRepository.getPasswordToken(token);
+  async getPasswordToken(key: string): Promise<string | undefined> {
+    const result = await this.passwordCacheRepository.getPasswordToken(key);
     if (result.isSucceed) return result.data;
+  }
+
+  async removePasswordToken(key: string): Promise<boolean> {
+    const result = await this.passwordCacheRepository.deletePasswordToken(key);
+    return result.isSucceed;
   }
 
   async resetPassword(id: number, password: string): Promise<boolean> {

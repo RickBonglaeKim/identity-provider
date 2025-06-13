@@ -81,6 +81,7 @@ export class MemberVerificationRepository extends MainSchemaService {
           memberId: memberDetail.memberId,
           memberDetailId: memberDetail.id,
           memberPhoneId: memberPhone.id,
+          providerId: memberDetail.providerId,
         })
         .from(memberDetailPhone)
         .innerJoin(

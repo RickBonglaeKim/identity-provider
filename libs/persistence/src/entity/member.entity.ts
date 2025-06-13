@@ -43,6 +43,7 @@ type selectMemberVerificationByEmailAndCountryCallingCodeAndPhoneNumberType = {
   memberId: typeof member.$inferSelect.id;
   memberDetailId: typeof memberDetail.$inferSelect.id;
   memberPhoneId: typeof memberPhone.$inferSelect.id;
+  providerId: typeof memberDetail.$inferSelect.providerId;
 };
 export type selectMemberVerificationByEmailAndCountryCallingCodeAndPhoneNumber =
   Required<selectMemberVerificationByEmailAndCountryCallingCodeAndPhoneNumberType>;

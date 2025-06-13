@@ -7,6 +7,7 @@ import {
   Logger,
   Patch,
   Query,
+  Res,
   UseInterceptors,
 } from '@nestjs/common';
 import { VerificationService } from '../../service/verification/verification.service';
@@ -23,6 +24,7 @@ import { VerificationFindPasswordRequestRead } from 'dto/interface/verification/
 import { VerificationResetPasswordRequestCreate } from 'dto/interface/verification/reset/request/verification.reset.password.request.create.dto';
 import ERROR_MESSAGE from 'dto/constant/http.error.message.constant';
 import SUCCESS_HTTP_STATUS from 'dto/constant/http.status.constant';
+import { Response } from 'express';
 
 @Controller('verification')
 @UseInterceptors(TransformInterceptor)
@@ -38,6 +40,7 @@ export class VerificationController {
   async getVerifyPhone(
     @Query() dto: VerificationPhoneRequestCreate,
     @Passport() passportKey: string,
+    @Res({ passthrough: true }) response: Response,
   ): Promise<void> {
     const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
@@ -47,12 +50,21 @@ export class VerificationController {
       );
     }
 
+    if (
+      !(await this.verificationService.verifyPhone(
+        dto.countryCallingCode,
+        trimPhoneNumber(dto.phoneNumber),
+      ))
+    ) {
+      response.status(SUCCESS_HTTP_STATUS.DATA_DUPLICATED);
+      return;
+    }
+
     const isGenerated = await this.verificationService.setPhoneVerificationCode(
       dto.countryCallingCode,
       trimPhoneNumber(dto.phoneNumber),
     );
     this.logger.debug(`getVerifyPhone.isGenerated -> ${isGenerated}`);
-
     if (!isGenerated)
       throw new HttpException(
         ERROR_MESSAGE.VERIFICATION_CODE_NOT_GENERATED,
@@ -195,16 +207,8 @@ export class VerificationController {
 
   @Get('find/id')
   async getFindId(
-    @Passport() passportKey: string,
     @Query() dto: VerificationFindIdRequestRead,
   ): Promise<string> {
-    const passport = await this.oauthService.findPassport(passportKey);
-    if (!passport) {
-      throw new HttpException(
-        ERROR_MESSAGE.PASSPORT_NOT_FOUND,
-        HttpStatus.FORBIDDEN,
-      );
-    }
     const result = await this.verificationService.findId(
       dto.name,
       dto.countryCallingCode,
@@ -220,27 +224,23 @@ export class VerificationController {
 
   @Get('find/password')
   async getFindPassword(
-    @Passport() passportKey: string,
     @Query() dto: VerificationFindPasswordRequestRead,
-  ): Promise<string> {
-    const passport = await this.oauthService.findPassport(passportKey);
-    if (!passport) {
-      throw new HttpException(
-        ERROR_MESSAGE.PASSPORT_NOT_FOUND,
-        HttpStatus.FORBIDDEN,
-      );
-    }
-
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<string | undefined> {
     const result = await this.verificationService.findPassword(
       dto.email,
       dto.countryCallingCode,
       trimPhoneNumber(dto.phoneNumber),
     );
     if (!result) {
-      throw new HttpException(
-        ERROR_MESSAGE.USER_NOT_FOUND,
-        SUCCESS_HTTP_STATUS.DATA_NOT_FOUND,
-      );
+      response.status(SUCCESS_HTTP_STATUS.DATA_NOT_FOUND);
+      return;
+    }
+
+    // if user is not allowed to reset password
+    if (result === -1) {
+      response.status(SUCCESS_HTTP_STATUS.DATA_NOT_ALLOWED);
+      return;
     }
 
     const token = await this.verificationService.setPasswordToken(
@@ -252,31 +252,22 @@ export class VerificationController {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+
     this.logger.debug(`getFindPassword.token -> ${token}`);
     return token;
   }
 
   @Patch('reset/password')
   async patchResetPassword(
-    @Passport() passportKey: string,
     @Body() dto: VerificationResetPasswordRequestCreate,
+    @Res({ passthrough: true }) response: Response,
   ): Promise<void> {
-    const passport = await this.oauthService.findPassport(passportKey);
-    if (!passport) {
-      throw new HttpException(
-        ERROR_MESSAGE.PASSPORT_NOT_FOUND,
-        HttpStatus.FORBIDDEN,
-      );
-    }
-
     const tokenResult = await this.verificationService.getPasswordToken(
       dto.token,
     );
     if (!tokenResult) {
-      throw new HttpException(
-        ERROR_MESSAGE.PASSWORD_TOKEN_NOT_FOUND,
-        SUCCESS_HTTP_STATUS.DATA_NOT_FOUND,
-      );
+      response.status(SUCCESS_HTTP_STATUS.DATA_NOT_FOUND);
+      return;
     }
 
     const result = await this.verificationService.resetPassword(
@@ -286,6 +277,13 @@ export class VerificationController {
     if (!result) {
       throw new HttpException(
         ERROR_MESSAGE.PASSWORD_NOT_UPDATED,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    if (!(await this.verificationService.removePasswordToken(dto.token))) {
+      throw new HttpException(
+        ERROR_MESSAGE.PASSWORD_TOKEN_WAS_NOT_REMOVED,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
