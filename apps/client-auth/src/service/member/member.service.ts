@@ -34,11 +34,18 @@ export class MemberService {
   @Transactional()
   async createMember(data: MemberRequestCreate): Promise<number> {
     const memberResult = await this.memberRepository.insertMember({
-      isConsentedTermsAndConditions: data.isConsentedTermsAndConditions ? 1 : 0,
+      isConsentedArtBonbonTermsAndConditions:
+        data.isConsentedArtBonbonTermsAndConditions ? 1 : 0,
+      isConsentedILandTermsAndConditions:
+        data.isConsentedILandTermsAndConditions ? 1 : 0,
+      isConsentedGalleryBonbonTermsAndConditions:
+        data.isConsentedGalleryBonbonTermsAndConditions ? 1 : 0,
       isConsentedCollectionAndUsePersonalData:
         data.isConsentedCollectionAndUsePersonalData ? 1 : 0,
-      isConsentedMarketingUseAndInformationReceiving:
-        data.isConsentedMarketingUseAndInformationReceiving ? 1 : 0,
+      isConsentedUseAiSketchService: data.isConsentedUseAiSketchService ? 1 : 0,
+      isConsentedOver14Years: data.isConsentedOver14Years ? 1 : 0,
+      isConsentedEventAndInformationReceiving:
+        data.isConsentedEventAndInformationReceiving ? 1 : 0,
     });
 
     if (!memberResult) this.exceptionService.notRecognizedError();
@@ -237,9 +244,13 @@ export class MemberService {
     if (!memberDetailPhoneResult?.isSucceed) {
       return new MemberEntireResponseRead(
         member.createdAt,
-        member.isConsentedTermsAndConditions === 1,
+        member.isConsentedArtBonbonTermsAndConditions === 1,
+        member.isConsentedILandTermsAndConditions === 1,
+        member.isConsentedGalleryBonbonTermsAndConditions === 1,
         member.isConsentedCollectionAndUsePersonalData === 1,
-        member.isConsentedMarketingUseAndInformationReceiving === 1,
+        member.isConsentedUseAiSketchService === 1,
+        member.isConsentedOver14Years === 1,
+        member.isConsentedEventAndInformationReceiving === 1,
         member.name,
         member.email,
         null,
@@ -267,9 +278,13 @@ export class MemberService {
 
     return new MemberEntireResponseRead(
       member.createdAt,
-      member.isConsentedTermsAndConditions === 1,
+      member.isConsentedArtBonbonTermsAndConditions === 1,
+      member.isConsentedILandTermsAndConditions === 1,
+      member.isConsentedGalleryBonbonTermsAndConditions === 1,
       member.isConsentedCollectionAndUsePersonalData === 1,
-      member.isConsentedMarketingUseAndInformationReceiving === 1,
+      member.isConsentedUseAiSketchService === 1,
+      member.isConsentedOver14Years === 1,
+      member.isConsentedEventAndInformationReceiving === 1,
       member.name,
       member.email,
       phone,

@@ -23,11 +23,18 @@ export class MemberEntireRepository extends MainSchemaService {
       const result = await this.mainTransaction.tx
         .select({
           createdAt: member.createdAt,
-          isConsentedTermsAndConditions: member.isConsentedTermsAndConditions,
+          isConsentedArtBonbonTermsAndConditions:
+            member.isConsentedArtBonbonTermsAndConditions,
+          isConsentedILandTermsAndConditions:
+            member.isConsentedILandTermsAndConditions,
+          isConsentedGalleryBonbonTermsAndConditions:
+            member.isConsentedGalleryBonbonTermsAndConditions,
           isConsentedCollectionAndUsePersonalData:
             member.isConsentedCollectionAndUsePersonalData,
-          isConsentedMarketingUseAndInformationReceiving:
-            member.isConsentedMarketingUseAndInformationReceiving,
+          isConsentedUseAiSketchService: member.isConsentedUseAiSketchService,
+          isConsentedOver14Years: member.isConsentedOver14Years,
+          isConsentedEventAndInformationReceiving:
+            member.isConsentedEventAndInformationReceiving,
           name: memberDetail.name,
           email: memberDetail.email,
           provider: provider.name,

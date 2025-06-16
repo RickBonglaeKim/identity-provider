@@ -20,9 +20,13 @@ export type SelectMemberDetailByDistinctEmail =
 
 type SelectMemberAndMemberDetailAndProviderByMemberDetailIdType = {
   createdAt: typeof member.$inferSelect.createdAt;
-  isConsentedTermsAndConditions: typeof member.$inferSelect.isConsentedTermsAndConditions;
+  isConsentedArtBonbonTermsAndConditions: typeof member.$inferSelect.isConsentedArtBonbonTermsAndConditions;
+  isConsentedILandTermsAndConditions: typeof member.$inferSelect.isConsentedILandTermsAndConditions;
+  isConsentedGalleryBonbonTermsAndConditions: typeof member.$inferSelect.isConsentedGalleryBonbonTermsAndConditions;
   isConsentedCollectionAndUsePersonalData: typeof member.$inferSelect.isConsentedCollectionAndUsePersonalData;
-  isConsentedMarketingUseAndInformationReceiving: typeof member.$inferSelect.isConsentedMarketingUseAndInformationReceiving;
+  isConsentedUseAiSketchService: typeof member.$inferSelect.isConsentedUseAiSketchService;
+  isConsentedOver14Years: typeof member.$inferSelect.isConsentedOver14Years;
+  isConsentedEventAndInformationReceiving: typeof member.$inferSelect.isConsentedEventAndInformationReceiving;
   name: typeof memberDetail.$inferSelect.name;
   email: typeof memberDetail.$inferSelect.email;
   provider: typeof provider.$inferSelect.name;
