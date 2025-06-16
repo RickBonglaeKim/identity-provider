@@ -42,6 +42,8 @@ export class VerificationController {
     @Passport() passportKey: string,
     @Res({ passthrough: true }) response: Response,
   ): Promise<void> {
+    this.logger.debug(`getVerifyPhone.dto -> ${JSON.stringify(dto)}`);
+
     const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
       throw new HttpException(
@@ -51,6 +53,7 @@ export class VerificationController {
     }
 
     if (
+      dto.isWillVerifyDuplication &&
       !(await this.verificationService.verifyPhone(
         dto.countryCallingCode,
         trimPhoneNumber(dto.phoneNumber),
