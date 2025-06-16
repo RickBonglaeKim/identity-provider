@@ -27,10 +27,12 @@ async function bootstrap() {
   app.use(cookieParser());
   app.enableCors({
     origin: [
-      'https://dev-oauth.artbonbon.co.kr',
+      'https://system-idp-frontend-auth.dev.iscreamarts.com',
       'https://localhost:3000',
       'https://kauth.kakao.com',
       'https://nid.naver.com',
+      'https://accounts.google.com',
+      'https://appleid.apple.com',
     ],
     method: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
