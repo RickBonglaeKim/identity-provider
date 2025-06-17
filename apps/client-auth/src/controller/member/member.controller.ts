@@ -29,7 +29,7 @@ export class MemberController {
     private readonly signOutService: SignOutService,
   ) {}
 
-  @Get('test')
+  @Get('sign')
   @UseGuards(SignGuard)
   getTest(@SignInfo() signCookie: SignCookie): void {
     this.logger.debug(`getTest.signCookie -> ${JSON.stringify(signCookie)}`);
