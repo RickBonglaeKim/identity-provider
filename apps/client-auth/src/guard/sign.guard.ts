@@ -40,6 +40,9 @@ export class SignGuard implements CanActivate {
         `SignGuard.canActivate.cookieEncryptionKey -> ${this.cookieEncryptionKey}`,
       );
       const request = context.switchToHttp().getRequest<Request>();
+      this.logger.debug(
+        `SignGuard.canActivate.request.cookies -> ${JSON.stringify(request.cookies)}`,
+      );
       const encryptedCookieValue = request.cookies[this.IDPcookieName] as
         | string
         | undefined;
