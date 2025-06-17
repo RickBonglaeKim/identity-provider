@@ -1,58 +1,37 @@
-import {
-  Controller,
-  Get,
-  Logger,
-  Req,
-  Res,
-  Query,
-  HttpException,
-  HttpStatus,
-} from '@nestjs/common';
-import { Request, Response } from 'express';
-import { OauthService } from '../../service/oauth/oauth.service';
-import { CookieHandler } from '../../util/cookie.handler';
-import { COOKIE_NAME } from '../../enum/cookie.name.enum';
-import ERROR_MESSAGE from 'dto/constant/http.error.message.constant';
+import { Controller, Get, Logger, Res, Query, UseGuards } from '@nestjs/common';
+import { Response } from 'express';
+import { SignGuard } from '../../guard/sign.guard';
+import { SignInfo } from '../../decorator/sign.decorator';
+import { SignCookie } from '../../type/service/sign.service.type';
+import { ConfigService } from '@nestjs/config';
+import { SignOutService } from '../../service/sign.out/sign.out.service';
 
 @Controller('signout')
 export class SignOutController {
   private readonly logger = new Logger(SignOutController.name);
+  private readonly signUpUrl: string;
 
   constructor(
-    private readonly oauthService: OauthService,
-    private readonly cookieHandler: CookieHandler,
-  ) {}
+    private readonly configService: ConfigService,
+    private readonly signOutService: SignOutService,
+  ) {
+    this.signUpUrl = this.configService.getOrThrow<string>('SIGN_UP_URL');
+  }
 
   @Get()
+  @UseGuards(SignGuard)
   async getSignout(
-    @Req() request: Request,
+    @SignInfo() signCookie: SignCookie,
     @Res() response: Response,
     @Query('return') returnUrl: string,
   ): Promise<void> {
-    const signCookie = this.cookieHandler.getCookie(request, COOKIE_NAME.IDP);
-    this.logger.debug(`getSignout.signCookie -> ${JSON.stringify(signCookie)}`);
-    if (!signCookie) {
-      throw new HttpException(
-        ERROR_MESSAGE.COOKIE_NOT_FOUND,
-        HttpStatus.UNAUTHORIZED,
-      );
-    }
-
-    const removedResult = await this.oauthService.removeAuthorizationToken(
+    await this.signOutService.signOut(
       signCookie.memberId,
       signCookie.memberDetailId,
+      response,
     );
-    if (!removedResult) {
-      this.logger.warn('The authorization token does not exist.');
-    }
 
-    this.cookieHandler.removeCookie(response, COOKIE_NAME.IDP);
-
-    if (returnUrl) {
-      response.redirect(returnUrl);
-    } else {
-      response.redirect('/');
-      // response.redirect(this.signInUrl);
-    }
+    if (returnUrl) response.redirect(returnUrl);
+    response.redirect(this.signUpUrl);
   }
 }

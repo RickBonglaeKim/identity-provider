@@ -15,6 +15,8 @@ import { MemberEntireResponseRead } from 'dto/interface/member.entire/response/m
 import { MemberDetailPhoneRepository } from '@app/persistence/schema/main/repository/member.detail.phone.repository';
 import { MemberEntireRepository } from '@app/persistence/schema/main/repository/member.entire.repository';
 import { DUPLICATION_TYPE } from 'dto/enum/duplication.type.enum';
+import { WithdrawalScheduleRepository } from '@app/persistence/schema/main/repository/withdrawal.schedule.repository';
+import { MemberWithdrawalRequestCreate } from 'dto/interface/member.withdrawal/request/member.withdrawal.request.create.dto';
 
 @Injectable()
 export class MemberService {
@@ -29,6 +31,7 @@ export class MemberService {
     private readonly hashService: HashService,
     private readonly memberEntireRepository: MemberEntireRepository,
     private readonly memberDetailPhoneRepository: MemberDetailPhoneRepository,
+    private readonly withdrawalScheduleRepository: WithdrawalScheduleRepository,
   ) {}
 
   @Transactional()
@@ -289,5 +292,37 @@ export class MemberService {
       member.email,
       phone,
     );
+  }
+
+  @Transactional()
+  async createWithdrawalSchedule(
+    memberId: number,
+    data: MemberWithdrawalRequestCreate,
+  ): Promise<number> {
+    this.logger.debug(`createWithdrawalSchedule.memberId -> ${memberId}`);
+    this.logger.debug(
+      `createWithdrawalSchedule.data -> ${JSON.stringify(data)}`,
+    );
+    const bookingDatetime = new Date();
+    bookingDatetime.setDate(bookingDatetime.getDate() + 7);
+    const bookedAt = bookingDatetime
+      .toISOString()
+      .replace('T', ' ')
+      .replace('Z', '');
+    this.logger.debug(
+      `createWithdrawalSchedule.bookingDatetime -> ${bookedAt}`,
+    );
+    const withdrawalScheduleResult =
+      await this.withdrawalScheduleRepository.insertWithdrawalSchedule({
+        memberId,
+        bookedAt,
+        codeReason: data.withdrawalReason,
+        reasonExplanation: data.reasonExplanation,
+      });
+    if (!withdrawalScheduleResult) this.exceptionService.notRecognizedError();
+    if (!withdrawalScheduleResult?.isSucceed || !withdrawalScheduleResult.data)
+      this.exceptionService.notInsertedEntity('withdrawal_schedule');
+
+    return withdrawalScheduleResult!.data!;
   }
 }

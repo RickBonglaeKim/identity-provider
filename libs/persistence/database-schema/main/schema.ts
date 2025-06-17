@@ -193,7 +193,7 @@ export const memberWithdrawal = mysqlTable("member_withdrawal", {
 	memberId: bigint("member_id", { mode: "number" }).notNull().references(() => member.id),
 	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
-	codeReason: varchar("code__reason", { length: 32 }),
+	codeReason: varchar("code__reason", { length: 32 }).notNull(),
 	reasonExplanation: varchar("reason_explanation", { length: 256 }),
 },
 (table) => [
@@ -216,7 +216,7 @@ export const withdrawalSchedule = mysqlTable("withdrawal_schedule", {
 	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	bookedAt: datetime("booked_at", { mode: 'string', fsp: 6 }).notNull(),
-	codeReason: varchar("code__reason", { length: 32 }),
+	codeReason: varchar("code__reason", { length: 32 }).notNull(),
 	reasonExplanation: varchar("reason_explanation", { length: 256 }),
 },
 (table) => [

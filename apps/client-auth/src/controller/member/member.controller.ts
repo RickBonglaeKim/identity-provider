@@ -5,21 +5,29 @@ import {
   Get,
   Logger,
   Patch,
+  Post,
+  Res,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { MemberService } from '../../service/member/member.service';
 import { SignCookie } from '../../type/service/sign.service.type';
 import { MemberEntireResponseRead } from 'dto/interface/member.entire/response/member.entire.response.read.dto';
 import { SignInfo } from '../../decorator/sign.decorator';
 import { SignGuard } from '../../guard/sign.guard';
 import { MemberDetailPasswordRequestUpdate } from 'dto/interface/member.detail/request/member.detail.password.request.update.dto';
+import { MemberWithdrawalRequestCreate } from 'dto/interface/member.withdrawal/request/member.withdrawal.request.create.dto';
+import { SignOutService } from '../../service/sign.out/sign.out.service';
 
 @Controller('member')
 @UseInterceptors(TransformInterceptor)
 export class MemberController {
   private readonly logger = new Logger(MemberController.name);
-  constructor(private readonly memberService: MemberService) {}
+  constructor(
+    private readonly memberService: MemberService,
+    private readonly signOutService: SignOutService,
+  ) {}
 
   @Get('test')
   @UseGuards(SignGuard)
@@ -49,5 +57,24 @@ export class MemberController {
     return this.memberService.findEntireMemberByMemberDetailId(
       signCookie.memberDetailId,
     );
+  }
+
+  @Post('withdrawal')
+  @UseGuards(SignGuard)
+  async postWithdrawalMember(
+    @SignInfo() signCookie: SignCookie,
+    @Res() response: Response,
+    @Body() data: MemberWithdrawalRequestCreate,
+  ): Promise<void> {
+    await this.memberService.createWithdrawalSchedule(
+      signCookie.memberId,
+      data,
+    );
+    await this.signOutService.signOut(
+      signCookie.memberId,
+      signCookie.memberDetailId,
+      response,
+    );
+    return;
   }
 }

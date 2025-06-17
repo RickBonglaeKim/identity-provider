@@ -30,6 +30,7 @@ import { TestController } from './controller/test/test.controller';
 import { SignOutController } from './controller/sign.out/sign.out.controller';
 import { CookieHandler } from './util/cookie.handler';
 import { ChildController } from './controller/child/child.controller';
+import { SignOutService } from './service/sign.out/sign.out.service';
 
 @Module({
   imports: [
@@ -85,6 +86,7 @@ import { ChildController } from './controller/child/child.controller';
     ChildService,
     ProviderService,
     VerificationService,
+    SignOutService,
   ],
 })
 export class ClientAuthModule {}
