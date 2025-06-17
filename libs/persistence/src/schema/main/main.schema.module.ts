@@ -13,6 +13,7 @@ import { ChildRepository } from './repository/child.repository';
 import { MemberDetailPhoneRepository } from './repository/member.detail.phone.repository';
 import { MemberEntireRepository } from './repository/member.entire.repository';
 import { MemberVerificationRepository } from './repository/member.verification.repository';
+import { WithdrawalScheduleRepository } from './repository/withdrawal.schedule.repository';
 
 @Module({
   providers: [
@@ -30,6 +31,7 @@ import { MemberVerificationRepository } from './repository/member.verification.r
     ClientMemberRepository,
     ChildRepository,
     MemberVerificationRepository,
+    WithdrawalScheduleRepository,
   ],
   exports: [
     mainConnection,
@@ -46,6 +48,7 @@ import { MemberVerificationRepository } from './repository/member.verification.r
     ClientMemberRepository,
     ChildRepository,
     MemberVerificationRepository,
+    WithdrawalScheduleRepository,
   ],
 })
 export class MainSchemaModule {}
