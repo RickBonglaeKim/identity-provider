@@ -193,7 +193,8 @@ export const memberWithdrawal = mysqlTable("member_withdrawal", {
 	memberId: bigint("member_id", { mode: "number" }).notNull().references(() => member.id),
 	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
-	reason: varchar({ length: 128 }),
+	codeReason: varchar("code__reason", { length: 32 }),
+	reasonExplanation: varchar("reason_explanation", { length: 256 }),
 },
 (table) => [
 	primaryKey({ columns: [table.memberId], name: "member_withdrawal_member_id"}),
@@ -208,4 +209,16 @@ export const provider = mysqlTable("provider", {
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "provider_id"}),
+]);
+
+export const withdrawalSchedule = mysqlTable("withdrawal_schedule", {
+	memberId: bigint("member_id", { mode: "number" }).notNull().references(() => member.id),
+	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
+	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
+	bookedAt: datetime("booked_at", { mode: 'string', fsp: 6 }).notNull(),
+	codeReason: varchar("code__reason", { length: 32 }),
+	reasonExplanation: varchar("reason_explanation", { length: 256 }),
+},
+(table) => [
+	primaryKey({ columns: [table.memberId], name: "withdrawal_schedule_member_id"}),
 ]);
