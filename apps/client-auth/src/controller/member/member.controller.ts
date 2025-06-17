@@ -63,7 +63,7 @@ export class MemberController {
   @UseGuards(SignGuard)
   async postWithdrawalMember(
     @SignInfo() signCookie: SignCookie,
-    @Res() response: Response,
+    @Res({ passthrough: true }) response: Response,
     @Body() data: MemberWithdrawalRequestCreate,
   ): Promise<void> {
     await this.memberService.createWithdrawalSchedule(
