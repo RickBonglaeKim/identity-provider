@@ -11,6 +11,7 @@ import { ConfigService } from '@nestjs/config';
 import { Observable } from 'rxjs';
 import { Request } from 'express';
 import { SignCookie } from '../type/service/sign.service.type';
+import { COOKIE_NAME } from '../enum/cookie.name.enum';
 
 declare module 'express' {
   interface Request {
@@ -21,12 +22,9 @@ declare module 'express' {
 @Injectable()
 export class SignGuard implements CanActivate {
   private readonly logger = new Logger(SignGuard.name);
-  private readonly IDPcookieName: string;
   private readonly cookieEncryptionKey: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.IDPcookieName =
-      this.configService.getOrThrow<string>('IDP_COOKIE_NAME');
     this.cookieEncryptionKey = this.configService.getOrThrow<string>(
       'COOKIE_ENCRYPTION_KEY',
     );
@@ -43,7 +41,7 @@ export class SignGuard implements CanActivate {
       this.logger.debug(
         `SignGuard.canActivate.request.cookies -> ${JSON.stringify(request.cookies)}`,
       );
-      const encryptedCookieValue = request.cookies[this.IDPcookieName] as
+      const encryptedCookieValue = request.cookies[COOKIE_NAME.IDP] as
         | string
         | undefined;
       this.logger.debug(

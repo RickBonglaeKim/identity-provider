@@ -23,13 +23,13 @@ import makeMemberProviderKey from '../../util/make.ProviderPassword';
 import trimPhoneNumber from '../../util/trim.phoneNumber';
 import * as cryptoJS from 'crypto-js';
 import { SignMember } from '../../type/service/sign.service.type';
+import { COOKIE_NAME } from '../../enum/cookie.name.enum';
 
 @Controller('provider')
 export class ProviderController {
   private readonly logger = new Logger(ProviderController.name);
   private readonly signInUrl: string;
   private readonly signUpUrl: string;
-  private readonly redirectCookieName: string;
   private readonly memberKeyEncryptionKey: string;
 
   constructor(
@@ -39,9 +39,6 @@ export class ProviderController {
   ) {
     this.signInUrl = this.configService.getOrThrow<string>('SIGN_IN_URL');
     this.signUpUrl = this.configService.getOrThrow<string>('SIGN_UP_URL');
-    this.redirectCookieName = this.configService.getOrThrow<string>(
-      'REDIRECT_COOKIE_NAME',
-    );
     this.memberKeyEncryptionKey = this.configService.getOrThrow<string>(
       'MEMBER_KEY_ENCRYPTION_KEY',
     );
@@ -72,7 +69,7 @@ export class ProviderController {
     error: string,
     errorDescription?: string,
   ): string {
-    let url = request.signedCookies[this.redirectCookieName] as string;
+    let url = request.signedCookies[COOKIE_NAME.REDIRECT] as string;
     this.logger.debug(`combineRedirectUrlWithError.url -> ${url}`);
     url += `?error=${error}`;
     if (errorDescription) url += `&error_description=${errorDescription}`;
