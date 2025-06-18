@@ -18,6 +18,7 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { Passport } from '../../decorator/passport.decorator';
 import ERROR_MESSAGE from 'dto/constant/http.error.message.constant';
 import SUCCESS_HTTP_STATUS from 'dto/constant/http.status.constant';
+import { ChildService } from '../../service/child/child.service';
 
 @Controller('signUp')
 @UseInterceptors(TransformInterceptor)
@@ -27,8 +28,10 @@ export class SignUpController {
   constructor(
     private readonly signUpService: SignUpService,
     private readonly oauthService: OauthService,
+    private readonly childService: ChildService,
   ) {}
 
+  // Not used yet
   @Post()
   @Transactional()
   async postSignUp(
@@ -98,6 +101,9 @@ export class SignUpController {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+
+    // Get children from ArtBonBon
+    this.childService.getChildrenFromArtBonBon(dto.memberPhone.phoneNumber);
     return memberKey;
   }
 }

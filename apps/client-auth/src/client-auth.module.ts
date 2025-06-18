@@ -40,6 +40,7 @@ import { SignOutService } from './service/sign.out/sign.out.service';
     ExceptionModule,
     CryptoModule,
     CacheModule,
+    HttpModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: `./env/.env.${process.env.NODE_ENV}`,

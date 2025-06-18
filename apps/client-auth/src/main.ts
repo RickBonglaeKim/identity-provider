@@ -3,7 +3,7 @@ import { ClientAuthModule } from './client-auth.module';
 import { ServiceExceptionFilter } from '@app/exception/filter/service.exception.filter';
 import { LogInterceptor } from '@app/interceptor/log.interceptor';
 import { ZodValidationPipe } from 'nestjs-zod';
-import * as cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 import * as fs from 'fs';
 
 async function bootstrap() {

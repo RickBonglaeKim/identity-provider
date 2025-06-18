@@ -6,6 +6,7 @@ import {
   Query,
   UseInterceptors,
 } from '@nestjs/common';
+import { ArtBonBonChild } from '../../type/service/child.service.type';
 
 @Controller('test')
 @UseInterceptors(TransformInterceptor)
@@ -37,20 +38,23 @@ export class TestController {
   }
 
   @Get('child')
-  getChild() {
-    return [
-      {
-        id: crypto.randomUUID(),
-        name: '딸1',
-        birthDay: '2010-05-30',
-        gender: 'GENDER.FEMALE',
-      },
-      {
-        id: crypto.randomUUID(),
-        name: '아들1',
-        birthDay: '2013-12-30',
-        gender: 'GENDER.MALE',
-      },
-    ];
+  getChild(@Query('phoneNumber') phoneNumber: string): ArtBonBonChild[] {
+    this.logger.debug(`getChild.phoneNumber -> ${phoneNumber}`);
+
+    const children: ArtBonBonChild[] = [];
+    children.push({
+      id: crypto.randomUUID(),
+      name: '딸1',
+      birthday: '2010-05-30',
+      gender: 'GENDER.FEMALE',
+    });
+    children.push({
+      id: crypto.randomUUID(),
+      name: '아들1',
+      birthday: '2013-12-30',
+      gender: 'GENDER.MALE',
+    });
+
+    return children;
   }
 }

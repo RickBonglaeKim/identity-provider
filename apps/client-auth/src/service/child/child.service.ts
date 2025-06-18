@@ -1,15 +1,37 @@
 import { ExceptionService } from '@app/exception/service/exception.service';
 import { ChildRepository } from '@app/persistence/schema/main/repository/child.repository';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ChildRequestCreate } from 'dto/interface/child/request/child.request.create.dto';
 import { ChildResponse } from 'dto/interface/child/response/child.response.dto';
+import { HttpService } from '@nestjs/axios';
+import { catchError, firstValueFrom, map } from 'rxjs';
+import { ArtBonBonChild } from '../../type/service/child.service.type';
 
 @Injectable()
 export class ChildService {
+  private readonly logger = new Logger(ChildService.name);
+
   constructor(
     private readonly exceptionService: ExceptionService,
     private readonly childRepository: ChildRepository,
+    private readonly httpService: HttpService,
   ) {}
+
+  async getChildrenFromArtBonBon(phoneNumber: string) {
+    const { data } = await firstValueFrom(
+      this.httpService.get<ArtBonBonChild[]>(
+        'https://localhost:3000/test/children',
+        {
+          params: {
+            phoneNumber,
+          },
+        },
+      ),
+    );
+    this.logger.debug(
+      `getChildrenFromArtBonBon.result -> ${JSON.stringify(data)}`,
+    );
+  }
 
   async createChild(
     memberId: number,
