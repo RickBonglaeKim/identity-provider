@@ -11,22 +11,22 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { ChildService } from '../../service/child/child.service';
+import { ChildService } from '../../../service/child/child.service';
 import { ChildRequestCreate } from 'dto/interface/child/request/child.request.create.dto';
-import { SignGuard } from '../../guard/sign.guard';
-import { SignInfo } from '../../decorator/sign.decorator';
-import { SignCookie } from '../../type/service/sign.service.type';
+import { SignGuard } from '../../../guard/sign.guard';
+import { SignInfo } from '../../../decorator/sign.decorator';
+import { SignCookie } from '../../../type/service/sign.service.type';
 import { ChildResponse } from 'dto/interface/child/response/child.response.dto';
 
-@Controller('child')
+@Controller('child/cookie')
+@UseGuards(SignGuard)
 @UseInterceptors(TransformInterceptor)
-export class ChildController {
-  private readonly logger = new Logger(ChildController.name);
+export class ChildCookieController {
+  private readonly logger = new Logger(ChildCookieController.name);
 
   constructor(private readonly childService: ChildService) {}
 
   @Get()
-  @UseGuards(SignGuard)
   async getChildren(
     @SignInfo() signCookie: SignCookie,
   ): Promise<ChildResponse[]> {
@@ -36,8 +36,19 @@ export class ChildController {
     return children;
   }
 
+  @Get('/:id')
+  async getChildById(
+    @SignInfo() signCookie: SignCookie,
+    @Param('id') id: number,
+  ): Promise<ChildResponse | null> {
+    const child = await this.childService.findChildByMemberIdAndId(
+      signCookie.memberId,
+      id,
+    );
+    return child;
+  }
+
   @Post()
-  @UseGuards(SignGuard)
   async createChild(
     @SignInfo() signCookie: SignCookie,
     @Body() dto: ChildRequestCreate,
@@ -51,7 +62,6 @@ export class ChildController {
   }
 
   @Patch('/:id')
-  @UseGuards(SignGuard)
   async updateChild(
     @SignInfo() signCookie: SignCookie,
     @Param('id') id: number,
@@ -67,7 +77,6 @@ export class ChildController {
   }
 
   @Delete('/:id')
-  @UseGuards(SignGuard)
   async deleteChild(@Param('id') id: number): Promise<number> {
     const childId = await this.childService.deleteChildById(id);
     return childId;

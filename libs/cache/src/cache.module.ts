@@ -6,7 +6,7 @@ import { CheckCacheRepository } from './repository/check.cache.repository';
 import { PassportCacheRepository } from './repository/passport.cache.repository';
 import { AuthorizationCodeCacheRepository } from './repository/authorization.code.cache.repository';
 import { VerificationCacheRepository } from './repository/verification.cache.repository';
-import { AuthorizationTokenCacheRepository } from './repository/authorization.token.token.cache.repository';
+import { AuthorizationTokenCacheRepository } from './repository/authorization.token.cache.repository';
 import { PasswordCacheRepository } from './repository/password.cache.repository';
 
 const cache = {

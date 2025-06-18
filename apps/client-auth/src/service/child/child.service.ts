@@ -52,6 +52,28 @@ export class ChildService {
     return result!.data!;
   }
 
+  async findChildByMemberIdAndId(
+    memberId: number,
+    id: number,
+  ): Promise<ChildResponse | null> {
+    const result = await this.childRepository.selectChildByMemberIdAndId(
+      memberId,
+      id,
+    );
+    if (!result) this.exceptionService.notRecognizedError();
+    if (!result?.isSucceed) {
+      this.exceptionService.notSelectedEntity('child');
+    }
+    if (!result!.data) return null;
+    return new ChildResponse(
+      result!.data.id,
+      result!.data.createdAt,
+      result!.data.name,
+      result!.data.birthday,
+      result!.data.codeGender,
+    );
+  }
+
   async findChildByMemberId(memberId: number): Promise<ChildResponse[]> {
     const result = await this.childRepository.selectChildByMemberId(memberId);
 

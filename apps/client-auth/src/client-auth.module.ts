@@ -29,7 +29,8 @@ import { MemberController } from './controller/member/member.controller';
 import { TestController } from './controller/test/test.controller';
 import { SignOutController } from './controller/sign.out/sign.out.controller';
 import { CookieHandler } from './util/cookie.handler';
-import { ChildController } from './controller/child/child.controller';
+import { ChildCookieController } from './controller/child/child.cookie/child.cookie.controller';
+import { ChildTokenController } from './controller/child/child.token/child.token.controller';
 import { SignOutService } from './service/sign.out/sign.out.service';
 
 @Module({
@@ -65,7 +66,8 @@ import { SignOutService } from './service/sign.out/sign.out.service';
     VerificationController,
     MemberController,
     TestController,
-    ChildController,
+    ChildCookieController,
+    ChildTokenController,
   ],
   providers: [
     {

@@ -35,4 +35,22 @@ export class TestController {
     );
     return requestQueries;
   }
+
+  @Get('child')
+  getChild() {
+    return [
+      {
+        id: crypto.randomUUID(),
+        name: '딸1',
+        birthDay: '2010-05-30',
+        gender: 'GENDER.FEMALE',
+      },
+      {
+        id: crypto.randomUUID(),
+        name: '아들1',
+        birthDay: '2013-12-30',
+        gender: 'GENDER.MALE',
+      },
+    ];
+  }
 }

@@ -66,6 +66,7 @@ jobs:
             CACHE_PORT=${{ secrets.CACHE_PORT }}
             COOKIE_ENCRYPTION_KEY=${{ secrets.COOKIE_ENCRYPTION_KEY }}
             MEMBER_KEY_ENCRYPTION_KEY=${{ secrets.MEMBER_KEY_ENCRYPTION_KEY }}
+            SIGN_TOKEN_ENCRYPTION_KEY=${{ secrets.SIGN_TOKEN_ENCRYPTION_KEY }}
             NAVER_CLIENT_SECRET=${{ secrets.NAVER_CLIENT_SECRET }}
             GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
 

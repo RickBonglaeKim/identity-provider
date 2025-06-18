@@ -60,14 +60,15 @@ export class ChildRepository extends MainSchemaService {
     }
   }
 
-  async selectChildById(
+  async selectChildByMemberIdAndId(
+    memberId: number,
     id: number,
   ): Promise<ResponseEntity<typeof child.$inferSelect> | undefined> {
     try {
       const result = await this.mainTransaction.tx
         .select()
         .from(child)
-        .where(eq(child.id, id));
+        .where(and(eq(child.memberId, memberId), eq(child.id, id)));
       if (result.length > 1) {
         throw new Error('The data searched by child.id is duplicated.');
       }

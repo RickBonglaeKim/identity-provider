@@ -9,18 +9,19 @@ import { OauthRepository } from '@app/persistence/schema/main/repository/oauth.r
 import { AuthorizationCodeCacheRepository } from '@app/cache/repository/authorization.code.cache.repository';
 import { IdTokenKeypairRepository } from '@app/persistence/schema/main/repository/id.token.keypair.repository';
 import * as type from '../../type/service/oauth.service.type';
-import { AuthorizationTokenCacheRepository } from '@app/cache/repository/authorization.token.token.cache.repository';
+import { AuthorizationTokenCacheRepository } from '@app/cache/repository/authorization.token.cache.repository';
 import { ChildResponse } from 'dto/interface/child/response/child.response.dto';
 import { MemberDetailResponseRead } from 'dto/interface/member.detail/response/member.detail.response.read.dto';
 import { MemberPhoneResponseRead } from 'dto/interface/member.phone/response/member.phone.response.read.dto';
 import { SignVerification } from '../../type/service/oauth.service.type';
 import * as cryptoJS from 'crypto-js';
-import { MemberKey } from '../../type/service/sign.service.type';
+import { MemberKey, SignToken } from '../../type/service/sign.service.type';
 
 @Injectable()
 export class OauthService {
   private readonly logger = new Logger(OauthService.name);
   private readonly memberKeyEncryptionKey: string;
+  private readonly signTokenEncryptionKey: string;
 
   constructor(
     private readonly configService: ConfigService,
@@ -33,6 +34,9 @@ export class OauthService {
   ) {
     this.memberKeyEncryptionKey = this.configService.getOrThrow<string>(
       'MEMBER_KEY_ENCRYPTION_KEY',
+    );
+    this.signTokenEncryptionKey = this.configService.getOrThrow<string>(
+      'SIGN_TOKEN_ENCRYPTION_KEY',
     );
   }
 
@@ -269,16 +273,35 @@ export class OauthService {
     memberId: number,
     memberDetailId: number,
   ): Promise<string | undefined> {
-    const accessToken = cryptoRandomString({ length: 256, type: 'base64' });
+    let encryptedSignToken: string | undefined;
+    const signToken: SignToken = {
+      memberId,
+      memberDetailId,
+      timestamp: Date.now(),
+      nonce: cryptoRandomString({ length: 32, type: 'alphanumeric' }),
+    };
+
+    try {
+      encryptedSignToken = cryptoJS.AES.encrypt(
+        JSON.stringify(signToken),
+        this.signTokenEncryptionKey,
+      ).toString();
+      this.logger.debug(
+        `issueAccessToken.encryptedSignToken -> ${encryptedSignToken}`,
+      );
+    } catch (error) {
+      this.logger.error(`issueAccessToken.error -> ${error}`);
+      return;
+    }
     const key = this.authorizationTokenCacheRepository.createKey(
       memberId,
       memberDetailId,
     );
     const result = await this.authorizationTokenCacheRepository.setAccessToken(
       key,
-      accessToken,
+      encryptedSignToken,
     );
-    if (result) return accessToken;
+    if (result) return encryptedSignToken;
   }
 
   async issueRefreshToken(
