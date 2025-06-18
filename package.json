@@ -38,6 +38,7 @@
     "crypto-js": "^4.2.0",
     "crypto-random-string": "^5.0.0",
     "drizzle-orm": "^0.43.1",
+    "got": "^14.4.7",
     "jose": "^6.0.10",
     "mysql2": "^3.14.1",
     "nestjs-cls": "^5.4.3",
