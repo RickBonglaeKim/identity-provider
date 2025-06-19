@@ -5,7 +5,7 @@ import { ChildRequestCreate } from 'dto/interface/child/request/child.request.cr
 import { ChildResponse } from 'dto/interface/child/response/child.response.dto';
 import { HttpService } from '@nestjs/axios';
 import { catchError, firstValueFrom, map } from 'rxjs';
-import { ArtBonBonChild } from '../../type/service/child.service.type';
+import { ArtBonBonResponse } from '../../type/service/child.service.type';
 
 @Injectable()
 export class ChildService {
@@ -17,20 +17,23 @@ export class ChildService {
     private readonly httpService: HttpService,
   ) {}
 
-  async getChildrenFromArtBonBon(phoneNumber: string) {
+  async getChildrenFromArtBonBon(phone: string): Promise<ArtBonBonResponse> {
     const { data } = await firstValueFrom(
-      this.httpService.get<ArtBonBonChild[]>(
-        'https://localhost:3000/test/children',
+      this.httpService.get<ArtBonBonResponse>(
+        'https://capi-dev.art-bonbon.com/v2/user/students',
         {
-          params: {
-            phoneNumber,
+          params: { phone },
+          headers: {
+            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTc1MDMxMDM5Nzg2Mywic2VydmljZU5hbWUiOiJpZHAiLCJpYXQiOjE3NTAzMTAzOTd9.-pHh76kGpLm_CgfxQib0DEBEl1vKYFvPTi5LRTibCnw`,
           },
         },
       ),
     );
+
     this.logger.debug(
-      `getChildrenFromArtBonBon.result -> ${JSON.stringify(data)}`,
+      `getChildrenFromArtBonBon.data -> ${JSON.stringify(data)}`,
     );
+    return data;
   }
 
   async createChild(
@@ -78,21 +81,23 @@ export class ChildService {
     memberId: number,
     id: number,
   ): Promise<ChildResponse | null> {
-    const result = await this.childRepository.selectChildByMemberIdAndId(
-      memberId,
-      id,
-    );
+    const result =
+      await this.childRepository.selectChildByMemberIdAndIdWithChildArtBonBon(
+        memberId,
+        id,
+      );
     if (!result) this.exceptionService.notRecognizedError();
     if (!result?.isSucceed) {
       this.exceptionService.notSelectedEntity('child');
     }
     if (!result!.data) return null;
     return new ChildResponse(
-      result!.data.id,
-      result!.data.createdAt,
-      result!.data.name,
-      result!.data.birthday,
-      result!.data.codeGender,
+      result!.data.child.id,
+      result!.data.child.createdAt,
+      result!.data.child.name,
+      result!.data.child.birthday,
+      result!.data.child.codeGender,
+      result!.data.childArtBonbon?.artBonbonStudentId || null,
     );
   }
 
@@ -107,11 +112,12 @@ export class ChildService {
     for (const child of result.data) {
       children.push(
         new ChildResponse(
-          child.id,
-          child.createdAt,
-          child.name,
-          child.birthday,
-          child.codeGender,
+          child.child.id,
+          child.child.createdAt,
+          child.child.name,
+          child.child.birthday,
+          child.child.codeGender,
+          child.childArtBonbon?.artBonbonStudentId || null,
         ),
       );
     }

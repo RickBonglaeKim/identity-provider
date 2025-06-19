@@ -38,8 +38,8 @@ export class TestController {
   }
 
   @Get('child')
-  getChild(@Query('phoneNumber') phoneNumber: string): ArtBonBonChild[] {
-    this.logger.debug(`getChild.phoneNumber -> ${phoneNumber}`);
+  getChild(@Query('phone') phoneNumber: string): ArtBonBonChild[] {
+    this.logger.debug(`getChild.phone -> ${phoneNumber}`);
 
     const children: ArtBonBonChild[] = [];
     children.push({

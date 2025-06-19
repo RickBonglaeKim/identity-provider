@@ -1,8 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { MainSchemaService } from '../service/main.schema.service';
-import { child } from 'libs/persistence/database-schema/main/schema';
+import {
+  child,
+  childArtBonbon,
+} from 'libs/persistence/database-schema/main/schema';
 import { ResponseEntity } from '@app/persistence/entity/response.entity';
 import { and, eq } from 'drizzle-orm';
+import { selectChildWithChildArtBonBon } from '@app/persistence/entity/child.entity';
 
 @Injectable()
 export class ChildRepository extends MainSchemaService {
@@ -81,18 +85,41 @@ export class ChildRepository extends MainSchemaService {
     }
   }
 
-  async selectChildByMemberId(
+  async selectChildByMemberIdAndIdWithChildArtBonBon(
     memberId: number,
-  ): Promise<ResponseEntity<(typeof child.$inferSelect)[]> | undefined> {
+    id: number,
+  ): Promise<ResponseEntity<selectChildWithChildArtBonBon> | undefined> {
     try {
       const result = await this.mainTransaction.tx
-        .select()
+        .select({ child, childArtBonbon })
         .from(child)
+        .leftJoin(childArtBonbon, eq(child.id, childArtBonbon.childId))
+        .where(and(eq(child.memberId, memberId), eq(child.id, id)));
+      if (result.length > 1) {
+        throw new Error('The data searched by child.id is duplicated.');
+      }
+      if (result.length === 0) {
+        return new ResponseEntity<selectChildWithChildArtBonBon>(false);
+      }
+      return new ResponseEntity<selectChildWithChildArtBonBon>(true, result[0]);
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
+  async selectChildByMemberId(
+    memberId: number,
+  ): Promise<ResponseEntity<selectChildWithChildArtBonBon[]> | undefined> {
+    try {
+      const result = await this.mainTransaction.tx
+        .select({ child, childArtBonbon })
+        .from(child)
+        .leftJoin(childArtBonbon, eq(child.id, childArtBonbon.childId))
         .where(eq(child.memberId, memberId));
       if (result.length === 0) {
-        return new ResponseEntity<(typeof child.$inferSelect)[]>(false);
+        return new ResponseEntity<selectChildWithChildArtBonBon[]>(false);
       }
-      return new ResponseEntity<(typeof child.$inferSelect)[]>(true, result);
+      return new ResponseEntity<selectChildWithChildArtBonBon[]>(true, result);
     } catch (error) {
       this.logger.error(error);
     }

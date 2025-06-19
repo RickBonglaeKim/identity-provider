@@ -1,11 +1,12 @@
 import { relations } from "drizzle-orm/relations";
-import { member, child, client, clientConsent, clientKeypair, clientMember, clientUri, code, memberConsent, memberDetail, provider, memberDetailPhone, memberPhone, memberWithdrawal, withdrawalSchedule } from "./schema";
+import { member, child, childArtBonbon, client, clientConsent, clientKeypair, clientMember, clientUri, code, memberConsent, memberDetail, provider, memberDetailPhone, memberPhone, memberWithdrawal, withdrawalSchedule } from "./schema";
 
-export const childRelations = relations(child, ({one}) => ({
+export const childRelations = relations(child, ({one, many}) => ({
 	member: one(member, {
 		fields: [child.memberId],
 		references: [member.id]
 	}),
+	childArtBonbons: many(childArtBonbon),
 }));
 
 export const memberRelations = relations(member, ({many}) => ({
@@ -15,6 +16,13 @@ export const memberRelations = relations(member, ({many}) => ({
 	memberPhones: many(memberPhone),
 	memberWithdrawals: many(memberWithdrawal),
 	withdrawalSchedules: many(withdrawalSchedule),
+}));
+
+export const childArtBonbonRelations = relations(childArtBonbon, ({one}) => ({
+	child: one(child, {
+		fields: [childArtBonbon.childId],
+		references: [child.id]
+	}),
 }));
 
 export const clientConsentRelations = relations(clientConsent, ({one, many}) => ({

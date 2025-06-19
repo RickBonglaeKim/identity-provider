@@ -19,6 +19,8 @@ import { Passport } from '../../decorator/passport.decorator';
 import ERROR_MESSAGE from 'dto/constant/http.error.message.constant';
 import SUCCESS_HTTP_STATUS from 'dto/constant/http.status.constant';
 import { ChildService } from '../../service/child/child.service';
+import { ChildArtBonBonRepository } from '@app/persistence/schema/main/repository/child.art_bonbon.repository';
+import { ChildRepository } from '@app/persistence/schema/main/repository/child.repository';
 
 @Controller('signUp')
 @UseInterceptors(TransformInterceptor)
@@ -29,6 +31,8 @@ export class SignUpController {
     private readonly signUpService: SignUpService,
     private readonly oauthService: OauthService,
     private readonly childService: ChildService,
+    private readonly childRepository: ChildRepository,
+    private readonly childArtBonBonRepository: ChildArtBonBonRepository,
   ) {}
 
   // Not used yet
@@ -102,8 +106,48 @@ export class SignUpController {
       );
     }
 
+    //--------------------------------------------------------------------------------//
     // Get children from ArtBonBon
-    this.childService.getChildrenFromArtBonBon(dto.memberPhone.phoneNumber);
+    //--------------------------------------------------------------------------------//
+    try {
+      this.logger.debug(
+        `postSignUpWithPhone.dto.memberPhone.phoneNumber -> ${dto.memberPhone.phoneNumber}`,
+      );
+      const artBonBonResponse =
+        await this.childService.getChildrenFromArtBonBon(
+          `0${dto.memberPhone.phoneNumber}`,
+        );
+      if (artBonBonResponse.result.length > 0) {
+        for (const child of artBonBonResponse.result) {
+          const childId = await this.childService.createChild(result.memberId, {
+            name: child.name,
+            birthDay: child.birthday,
+            gender: child.gender,
+          });
+          await this.childArtBonBonRepository.insertChildArtBonBon({
+            childId: childId,
+            artBonbonStudentId: child.id,
+          });
+        }
+      } else {
+        if (process.env.NODE_ENV !== 'prod') {
+          // Create test children, if no children from ArtBonBon
+          await this.childService.createChild(result.memberId, {
+            name: '테스트 아들',
+            birthDay: '2020-01-01',
+            gender: 'GENDER.MALE',
+          });
+          await this.childService.createChild(result.memberId, {
+            name: '테스트 딸',
+            birthDay: '2020-01-01',
+            gender: 'GENDER.FEMALE',
+          });
+        }
+      }
+    } catch (error) {
+      this.logger.error(error);
+    }
+    //--------------------------------------------------------------------------------//
     return memberKey;
   }
 }

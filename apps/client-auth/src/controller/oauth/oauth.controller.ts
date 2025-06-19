@@ -131,6 +131,18 @@ export class OauthController {
       memberId,
     );
 
+    const clientMemberIdResult = await this.oauthService.createClientMemberId(
+      memberId,
+      memberDetailId,
+      clientMemberId,
+    );
+    this.logger.debug(
+      `postToken.clientMemberIdResult -> ${clientMemberIdResult}`,
+    );
+    if (!clientMemberIdResult) {
+      this.logger.warn('The client member id is over written.');
+    }
+
     const memberGroupResult = await Promise.all([
       this.memberService.findMemberDetailById(memberDetailId),
       this.memberService.findMemberPhoneByMemberId(memberId),
@@ -184,20 +196,6 @@ export class OauthController {
     if (!refreshToken)
       throw new HttpException(
         'It fails to issue the refresh token.',
-        HttpStatus.UNAUTHORIZED,
-      );
-
-    const clientMemberIdResult = await this.oauthService.createClientMemberId(
-      memberId,
-      memberDetailId,
-      clientMemberId,
-    );
-    this.logger.debug(
-      `postToken.clientMemberIdResult -> ${clientMemberIdResult}`,
-    );
-    if (!clientMemberIdResult)
-      throw new HttpException(
-        'It fails to create the client_member_id.',
         HttpStatus.UNAUTHORIZED,
       );
 

@@ -6,13 +6,24 @@ export const child = mysqlTable("child", {
 	memberId: bigint("member_id", { mode: "number" }).notNull().references(() => member.id),
 	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
 	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
-	name: varchar({ length: 16 }),
+	name: varchar({ length: 16 }).notNull(),
 	// you can use { mode: 'date' }, if you want to have Date as type for this column
-	birthday: date({ mode: 'string' }),
-	codeGender: varchar("code__gender", { length: 32 }),
+	birthday: date({ mode: 'string' }).notNull(),
+	codeGender: varchar("code__gender", { length: 32 }).notNull(),
 },
 (table) => [
 	primaryKey({ columns: [table.id], name: "child_id"}),
+]);
+
+export const childArtBonbon = mysqlTable("child__art_bonbon", {
+	childId: bigint("child_id", { mode: "number" }).notNull().references(() => child.id),
+	createdAt: datetime("created_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
+	updatedAt: datetime("updated_at", { mode: 'string', fsp: 6 }).default(sql`(sysdate(6))`).notNull(),
+	artBonbonStudentId: varchar("art_bonbon_student_id", { length: 36 }).notNull(),
+},
+(table) => [
+	primaryKey({ columns: [table.childId], name: "child__art_bonbon_child_id"}),
+	unique("child__art_bonbon_ix__art_bonbon_student_id").on(table.artBonbonStudentId),
 ]);
 
 export const client = mysqlTable("client", {
