@@ -94,23 +94,26 @@ export class OauthController {
       `postToken.authorizationData -> ${JSON.stringify(authorizationData)}`,
     );
 
-    if (!authorizationData)
+    if (!authorizationData) {
       throw new HttpException(
         'It does not find the data from the authorization code.',
         HttpStatus.UNAUTHORIZED,
       );
+    }
 
     const { client_id, redirect_uri, scope } = authorizationData;
-    if (dto.client_id !== client_id)
+    if (dto.client_id !== client_id) {
       throw new HttpException(
         'The client_id of request parameters is incorrect.',
         HttpStatus.UNAUTHORIZED,
       );
-    if (dto.redirect_uri !== redirect_uri)
+    }
+    if (dto.redirect_uri !== redirect_uri) {
       throw new HttpException(
         'The redirect_uri of request parameters is incorrect.',
         HttpStatus.UNAUTHORIZED,
       );
+    }
 
     const memberResult = await Promise.all([
       this.oauthService.findMemberIdInAuthorizationCode(dto.code),
@@ -140,7 +143,10 @@ export class OauthController {
       `postToken.clientMemberIdResult -> ${clientMemberIdResult}`,
     );
     if (!clientMemberIdResult) {
-      this.logger.warn('The client member id is over written.');
+      throw new HttpException(
+        'It fails to create the client member id.',
+        HttpStatus.UNAUTHORIZED,
+      );
     }
 
     const memberGroupResult = await Promise.all([
@@ -171,33 +177,36 @@ export class OauthController {
       idTokenPayload,
     );
     this.logger.debug(`postToken.idToken -> ${idToken}`);
-    if (!idToken)
+    if (!idToken) {
       throw new HttpException(
         'It fails to issue the id token.',
         HttpStatus.UNAUTHORIZED,
       );
+    }
 
     const accessToken = await this.oauthService.issueAccessToken(
       memberId,
       memberDetailId,
     );
     this.logger.debug(`postToken.accessToken -> ${accessToken}`);
-    if (!accessToken)
+    if (!accessToken) {
       throw new HttpException(
         'It fails to issue the access token.',
         HttpStatus.UNAUTHORIZED,
       );
+    }
 
     const refreshToken = await this.oauthService.issueRefreshToken(
       memberId,
       memberDetailId,
     );
     this.logger.debug(`postToken.refreshToken -> ${refreshToken}`);
-    if (!refreshToken)
+    if (!refreshToken) {
       throw new HttpException(
         'It fails to issue the refresh token.',
         HttpStatus.UNAUTHORIZED,
       );
+    }
 
     const authorizationDataResult =
       await this.oauthService.createAuthorizationData(
@@ -208,22 +217,21 @@ export class OauthController {
     this.logger.debug(
       `postToken.authorizationDataResult -> ${authorizationDataResult}`,
     );
-    if (!authorizationDataResult)
+    if (!authorizationDataResult) {
       throw new HttpException(
         'It fails to create the authorization data.',
         HttpStatus.UNAUTHORIZED,
       );
+    }
 
     const expiryResult = await this.oauthService.setExpiry(
       memberId,
       memberDetailId,
     );
     this.logger.debug(`postToken.expiryResult -> ${expiryResult}`);
-    if (!expiryResult)
-      throw new HttpException(
-        'It fails to set the expiry.',
-        HttpStatus.UNAUTHORIZED,
-      );
+    if (!expiryResult) {
+      this.logger.warn('It fails to set the expiry.');
+    }
 
     const deletedResult = await this.oauthService.removeAuthorizationCode(
       dto.code,

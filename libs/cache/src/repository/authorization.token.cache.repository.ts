@@ -52,7 +52,7 @@ export class AuthorizationTokenCacheRepository extends CacheService {
     const setResult = await this.cache.hset(key, [
       { field: this.fields.clientMemberId, value: clientMemberId },
     ]);
-    if (setResult > 0) return new CacheResponseEntity<number>(true, setResult);
+    if (setResult >= 0) return new CacheResponseEntity<number>(true, setResult);
     return new CacheResponseEntity<number>(false);
   }
 
@@ -74,7 +74,7 @@ export class AuthorizationTokenCacheRepository extends CacheService {
     const setResult = await this.cache.hset(key, [
       { field: this.fields.accessToken, value: accessToken },
     ]);
-    if (setResult > 0) return new CacheResponseEntity<number>(true, setResult);
+    if (setResult >= 0) return new CacheResponseEntity<number>(true, setResult);
     return new CacheResponseEntity<number>(false);
   }
 
@@ -85,7 +85,7 @@ export class AuthorizationTokenCacheRepository extends CacheService {
     const setResult = await this.cache.hset(key, [
       { field: this.fields.refreshToken, value: refreshToken },
     ]);
-    if (setResult > 0) return new CacheResponseEntity<number>(true, setResult);
+    if (setResult >= 0) return new CacheResponseEntity<number>(true, setResult);
     return new CacheResponseEntity<number>(false);
   }
 
@@ -96,7 +96,7 @@ export class AuthorizationTokenCacheRepository extends CacheService {
     const setResult = await this.cache.hset(key, [
       { field: this.fields.data, value: data },
     ]);
-    if (setResult > 0) return new CacheResponseEntity<number>(true, setResult);
+    if (setResult >= 0) return new CacheResponseEntity<number>(true, setResult);
     return new CacheResponseEntity<number>(false);
   }
 
