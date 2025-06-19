@@ -97,7 +97,9 @@ export class ChildService {
       result!.data.child.name,
       result!.data.child.birthday,
       result!.data.child.codeGender,
-      result!.data.childArtBonbon?.artBonbonStudentId || null,
+      result!.data.childArtBonbon
+        ? result!.data.childArtBonbon.artBonbonStudentId
+        : null,
     );
   }
 
@@ -120,7 +122,7 @@ export class ChildService {
           child.child.name,
           child.child.birthday,
           child.child.codeGender,
-          child.childArtBonbon?.artBonbonStudentId || null,
+          child.childArtBonbon ? child.childArtBonbon.artBonbonStudentId : null,
         ),
       );
     }
