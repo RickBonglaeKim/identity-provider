@@ -93,7 +93,6 @@ export class OauthController {
     this.logger.debug(
       `postToken.authorizationData -> ${JSON.stringify(authorizationData)}`,
     );
-
     if (!authorizationData) {
       throw new HttpException(
         'It does not find the data from the authorization code.',
@@ -230,17 +229,18 @@ export class OauthController {
     );
     this.logger.debug(`postToken.expiryResult -> ${expiryResult}`);
     if (!expiryResult) {
-      this.logger.warn('It fails to set the expiry.');
+      this.logger.warn('The expiry is not set.');
     }
 
     const deletedResult = await this.oauthService.removeAuthorizationCode(
       dto.code,
     );
-    if (!deletedResult)
+    if (!deletedResult) {
       throw new HttpException(
         'It fails to remove the authorization code.',
         HttpStatus.UNAUTHORIZED,
       );
+    }
 
     return new OauthTokenResponse(
       accessToken,

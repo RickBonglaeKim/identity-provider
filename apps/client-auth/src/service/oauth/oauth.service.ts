@@ -153,12 +153,11 @@ export class OauthService {
 
   async findDataInAuthorizationCode(
     code: string,
-  ): Promise<OauthAuthorizeRequestCreate> {
+  ): Promise<OauthAuthorizeRequestCreate | undefined> {
     const result = await this.authorizationCodeCacheRepository.getData(code);
     if (!result) this.exceptionService.notRecognizedError();
-    if (!result.isSucceed && !result.data)
-      this.exceptionService.notGottenCacheValue('data');
-    return JSON.parse(result.data!) as OauthAuthorizeRequestCreate;
+    if (!result.isSucceed || !result.data) return;
+    return JSON.parse(result.data) as OauthAuthorizeRequestCreate;
   }
 
   async findMemberIdInAuthorizationCode(code: string): Promise<number> {
