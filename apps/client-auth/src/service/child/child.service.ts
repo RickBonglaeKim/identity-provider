@@ -103,6 +103,9 @@ export class ChildService {
 
   async findChildByMemberId(memberId: number): Promise<ChildResponse[]> {
     const result = await this.childRepository.selectChildByMemberId(memberId);
+    this.logger.debug(
+      `findChildByMemberId.result -> ${JSON.stringify(result)}`,
+    );
 
     const children: ChildResponse[] = [];
 
