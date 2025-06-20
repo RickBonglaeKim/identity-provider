@@ -319,6 +319,17 @@ export class OauthService {
     if (result) return refreshToken;
   }
 
+  async existAuthorizationToken(
+    memberId: number,
+    memberDetailId: number,
+  ): Promise<boolean> {
+    const key = this.authorizationTokenCacheRepository.createKey(
+      memberId,
+      memberDetailId,
+    );
+    return await this.authorizationTokenCacheRepository.existAuthorizationToken(key);
+  }
+
   async createClientMemberId(
     memberId: number,
     memberDetailId: number,

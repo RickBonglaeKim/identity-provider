@@ -127,6 +127,22 @@ export class OauthController {
     const memberId = memberResult[0];
     const memberDetailId = memberResult[1];
 
+    const existAuthorizationTokenResult =
+      await this.oauthService.existAuthorizationToken(memberId, memberDetailId);
+    if (existAuthorizationTokenResult) {
+      const removeAuthorizationTokenResult =
+        await this.oauthService.removeAuthorizationToken(
+          memberId,
+          memberDetailId,
+        );
+      if (!removeAuthorizationTokenResult) {
+        throw new HttpException(
+          'It fails to remove the existing authorization token.',
+          HttpStatus.FORBIDDEN,
+        );
+      }
+    }
+
     const client = await this.clientService.findClientByClientId(client_id);
     const clientMemberId = await this.memberService.createClientMember(
       client.id,
