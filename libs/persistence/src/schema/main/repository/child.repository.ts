@@ -6,7 +6,7 @@ import {
 } from 'libs/persistence/database-schema/main/schema';
 import { ResponseEntity } from '@app/persistence/entity/response.entity';
 import { and, eq } from 'drizzle-orm';
-import { selectChildWithChildArtBonBon } from '@app/persistence/entity/child.entity';
+import { SelectChildWithChildArtBonBon } from '@app/persistence/entity/child.entity';
 
 @Injectable()
 export class ChildRepository extends MainSchemaService {
@@ -48,12 +48,51 @@ export class ChildRepository extends MainSchemaService {
     }
   }
 
+  async updateChildByMemberIdAndId(
+    id: number,
+    data: typeof child.$inferInsert,
+  ): Promise<ResponseEntity<number> | undefined> {
+    try {
+      const result = (
+        await this.mainTransaction.tx
+          .update(child)
+          .set(data)
+          .where(and(eq(child.memberId, data.memberId), eq(child.id, id)))
+      )[0];
+      if (result.affectedRows === 0) {
+        return new ResponseEntity<number>(false);
+      }
+      return new ResponseEntity<number>(true, result.affectedRows);
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
   async deleteChildById(
     id: number,
   ): Promise<ResponseEntity<number> | undefined> {
     try {
       const result = (
         await this.mainTransaction.tx.delete(child).where(eq(child.id, id))
+      )[0];
+      if (result.affectedRows === 0) {
+        return new ResponseEntity<number>(false);
+      }
+      return new ResponseEntity<number>(true, result.affectedRows);
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
+  async deleteChildByMemberIdAndId(
+    memberId: number,
+    id: number,
+  ): Promise<ResponseEntity<number> | undefined> {
+    try {
+      const result = (
+        await this.mainTransaction.tx
+          .delete(child)
+          .where(and(eq(child.memberId, memberId), eq(child.id, id)))
       )[0];
       if (result.affectedRows === 0) {
         return new ResponseEntity<number>(false);
@@ -88,7 +127,7 @@ export class ChildRepository extends MainSchemaService {
   async selectChildByMemberIdAndIdWithChildArtBonBon(
     memberId: number,
     id: number,
-  ): Promise<ResponseEntity<selectChildWithChildArtBonBon> | undefined> {
+  ): Promise<ResponseEntity<SelectChildWithChildArtBonBon> | undefined> {
     try {
       const result = await this.mainTransaction.tx
         .select({ child, childArtBonbon })
@@ -99,9 +138,9 @@ export class ChildRepository extends MainSchemaService {
         throw new Error('The data searched by child.id is duplicated.');
       }
       if (result.length === 0) {
-        return new ResponseEntity<selectChildWithChildArtBonBon>(false);
+        return new ResponseEntity<SelectChildWithChildArtBonBon>(false);
       }
-      return new ResponseEntity<selectChildWithChildArtBonBon>(true, result[0]);
+      return new ResponseEntity<SelectChildWithChildArtBonBon>(true, result[0]);
     } catch (error) {
       this.logger.error(error);
     }
@@ -109,7 +148,7 @@ export class ChildRepository extends MainSchemaService {
 
   async selectChildByMemberId(
     memberId: number,
-  ): Promise<ResponseEntity<selectChildWithChildArtBonBon[]> | undefined> {
+  ): Promise<ResponseEntity<SelectChildWithChildArtBonBon[]> | undefined> {
     try {
       const result = await this.mainTransaction.tx
         .select({ child, childArtBonbon })
@@ -117,9 +156,9 @@ export class ChildRepository extends MainSchemaService {
         .leftJoin(childArtBonbon, eq(child.id, childArtBonbon.childId))
         .where(eq(child.memberId, memberId));
       if (result.length === 0) {
-        return new ResponseEntity<selectChildWithChildArtBonBon[]>(false);
+        return new ResponseEntity<SelectChildWithChildArtBonBon[]>(false);
       }
-      return new ResponseEntity<selectChildWithChildArtBonBon[]>(true, result);
+      return new ResponseEntity<SelectChildWithChildArtBonBon[]>(true, result);
     } catch (error) {
       this.logger.error(error);
     }

@@ -4,7 +4,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ChildRequestCreate } from 'dto/interface/child/request/child.request.create.dto';
 import { ChildResponse } from 'dto/interface/child/response/child.response.dto';
 import { HttpService } from '@nestjs/axios';
-import { catchError, firstValueFrom, map } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { ArtBonBonResponse } from '../../type/service/child.service.type';
 
 @Injectable()
@@ -69,8 +69,39 @@ export class ChildService {
     return result!.data!;
   }
 
+  async updateChildByMemberIdAndId(
+    id: number,
+    memberId: number,
+    data: ChildRequestCreate,
+  ): Promise<number> {
+    const result = await this.childRepository.updateChildByMemberIdAndId(id, {
+      memberId,
+      name: data.name,
+      birthday: data.birthDay,
+      codeGender: data.gender,
+    });
+    if (!result) this.exceptionService.notRecognizedError();
+    if (!result?.isSucceed || !result.data)
+      this.exceptionService.notUpdatedEntity('child');
+    return result!.data!;
+  }
+
   async deleteChildById(id: number): Promise<number> {
     const result = await this.childRepository.deleteChildById(id);
+    if (!result) this.exceptionService.notRecognizedError();
+    if (!result?.isSucceed || !result.data)
+      this.exceptionService.notDeletedEntity('child');
+    return result!.data!;
+  }
+
+  async deleteChildByMemberIdAndId(
+    memberId: number,
+    id: number,
+  ): Promise<number> {
+    const result = await this.childRepository.deleteChildByMemberIdAndId(
+      memberId,
+      id,
+    );
     if (!result) this.exceptionService.notRecognizedError();
     if (!result?.isSucceed || !result.data)
       this.exceptionService.notDeletedEntity('child');

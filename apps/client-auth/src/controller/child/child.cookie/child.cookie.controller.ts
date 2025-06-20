@@ -63,12 +63,12 @@ export class ChildCookieController {
 
   @Patch('/:id')
   async updateChild(
-    @SignInfo() signCookie: SignCookie,
     @Param('id') id: number,
+    @SignInfo() signCookie: SignCookie,
     @Body() dto: ChildRequestCreate,
   ): Promise<number> {
     this.logger.debug(`updateChild.signCookie -> ${JSON.stringify(dto)}`);
-    const childId = await this.childService.updateChildById(
+    const childId = await this.childService.updateChildByMemberIdAndId(
       id,
       signCookie.memberId,
       dto,
@@ -77,8 +77,14 @@ export class ChildCookieController {
   }
 
   @Delete('/:id')
-  async deleteChild(@Param('id') id: number): Promise<number> {
-    const childId = await this.childService.deleteChildById(id);
+  async deleteChild(
+    @SignInfo() signCookie: SignCookie,
+    @Param('id') id: number,
+  ): Promise<number> {
+    const childId = await this.childService.deleteChildByMemberIdAndId(
+      signCookie.memberId,
+      id,
+    );
     return childId;
   }
 }
