@@ -4,6 +4,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
+  HttpStatus,
   Logger,
   Param,
   Patch,
@@ -68,7 +70,17 @@ export class ChildTokenController {
     @Body() dto: ChildRequestCreate,
   ): Promise<number> {
     this.logger.debug(`updateChild.signToken -> ${JSON.stringify(dto)}`);
-    const childId = await this.childService.updateChildById(
+    const childResult = await this.childService.findChildByMemberIdAndId(
+      signToken.memberId,
+      id,
+    );
+    if (!childResult) {
+      throw new HttpException(
+        'The child id is not correct',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+    const childId = await this.childService.updateChildByMemberIdAndId(
       id,
       signToken.memberId,
       dto,
@@ -77,8 +89,24 @@ export class ChildTokenController {
   }
 
   @Delete('/:id')
-  async deleteChild(@Param('id') id: number): Promise<number> {
-    const childId = await this.childService.deleteChildById(id);
+  async deleteChild(
+    @TokenInfo() signToken: SignToken,
+    @Param('id') id: number,
+  ): Promise<number> {
+    const childResult = await this.childService.findChildByMemberIdAndId(
+      signToken.memberId,
+      id,
+    );
+    if (!childResult) {
+      throw new HttpException(
+        'The child id is not correct',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+    const childId = await this.childService.deleteChildByMemberIdAndId(
+      signToken.memberId,
+      id,
+    );
     return childId;
   }
 }

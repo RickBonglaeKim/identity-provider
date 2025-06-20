@@ -118,18 +118,15 @@ export class ChildService {
         id,
       );
     if (!result) this.exceptionService.notRecognizedError();
-    if (!result?.isSucceed) {
-      this.exceptionService.notSelectedEntity('child');
-    }
-    if (!result!.data) return null;
+    if (!result?.isSucceed || !result.data) return null;
     return new ChildResponse(
-      result!.data.child.id,
-      result!.data.child.createdAt,
-      result!.data.child.name,
-      result!.data.child.birthday,
-      result!.data.child.codeGender,
-      result!.data.childArtBonbon
-        ? result!.data.childArtBonbon.artBonbonStudentId
+      result.data.child.id,
+      result.data.child.createdAt,
+      result.data.child.name,
+      result.data.child.birthday,
+      result.data.child.codeGender,
+      result.data.childArtBonbon
+        ? result.data.childArtBonbon.artBonbonStudentId
         : null,
     );
   }

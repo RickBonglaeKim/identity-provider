@@ -4,6 +4,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
+  HttpStatus,
   Logger,
   Param,
   Patch,
@@ -68,6 +70,16 @@ export class ChildCookieController {
     @Body() dto: ChildRequestCreate,
   ): Promise<number> {
     this.logger.debug(`updateChild.signCookie -> ${JSON.stringify(dto)}`);
+    const childResult = await this.childService.findChildByMemberIdAndId(
+      signCookie.memberId,
+      id,
+    );
+    if (!childResult) {
+      throw new HttpException(
+        'The child id is not correct',
+        HttpStatus.FORBIDDEN,
+      );
+    }
     const childId = await this.childService.updateChildByMemberIdAndId(
       id,
       signCookie.memberId,
@@ -81,6 +93,16 @@ export class ChildCookieController {
     @SignInfo() signCookie: SignCookie,
     @Param('id') id: number,
   ): Promise<number> {
+    const childResult = await this.childService.findChildByMemberIdAndId(
+      signCookie.memberId,
+      id,
+    );
+    if (!childResult) {
+      throw new HttpException(
+        'The child id is not correct',
+        HttpStatus.FORBIDDEN,
+      );
+    }
     const childId = await this.childService.deleteChildByMemberIdAndId(
       signCookie.memberId,
       id,
