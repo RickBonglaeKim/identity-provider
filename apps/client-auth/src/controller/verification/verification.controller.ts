@@ -118,19 +118,19 @@ export class VerificationController {
     return dto.verificationCode === result;
   }
 
-  @Get('phone/get')
-  async getPhoneVerifiedCode(@Query() dto: VerificationPhoneRequestCreate) {
-    const code = await this.verificationService.getPhoneVerificationCode(
-      dto.countryCallingCode,
-      trimPhoneNumber(dto.phoneNumber),
-    );
-    if (!code)
-      throw new HttpException(
-        ERROR_MESSAGE.VERIFICATION_CODE_NOT_FOUND,
-        SUCCESS_HTTP_STATUS.DATA_NOT_FOUND,
-      );
-    return code;
-  }
+  // @Get('phone/get')
+  // async getPhoneVerifiedCode(@Query() dto: VerificationPhoneRequestCreate) {
+  //   const code = await this.verificationService.getPhoneVerificationCode(
+  //     dto.countryCallingCode,
+  //     trimPhoneNumber(dto.phoneNumber),
+  //   );
+  //   if (!code)
+  //     throw new HttpException(
+  //       ERROR_MESSAGE.VERIFICATION_CODE_NOT_FOUND,
+  //       SUCCESS_HTTP_STATUS.DATA_NOT_FOUND,
+  //     );
+  //   return code;
+  // }
 
   @Get('email')
   async getVerifyEmail(

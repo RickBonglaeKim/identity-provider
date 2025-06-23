@@ -31,6 +31,10 @@ export class ClientCookieHandler {
       maxAge: maxAgeInSeconds * 1000,
       domain: this.signUrl,
     });
+    this.logger.debug(
+      `setCookie.cookieName -> ${cookieName}, cookieValue -> ${cookieValue}, maxAgeInSeconds -> ${maxAgeInSeconds}`,
+    );
+    this.logger.debug(`cookieOptions -> ${JSON.stringify(cookieOptions)}`);
   }
 
   getCookie(
