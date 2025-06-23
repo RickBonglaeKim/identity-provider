@@ -9,13 +9,13 @@ import { SignOutService } from '../../service/sign.out/sign.out.service';
 @Controller('signout')
 export class SignOutController {
   private readonly logger = new Logger(SignOutController.name);
-  private readonly signUpUrl: string;
+  private readonly signUrl: string;
 
   constructor(
     private readonly configService: ConfigService,
     private readonly signOutService: SignOutService,
   ) {
-    this.signUpUrl = this.configService.getOrThrow<string>('SIGN_UP_URL');
+    this.signUrl = this.configService.getOrThrow<string>('SIGN_URL');
   }
 
   @Get()
@@ -32,6 +32,6 @@ export class SignOutController {
     );
 
     if (returnUrl) response.redirect(returnUrl);
-    response.redirect(this.signUpUrl);
+    response.redirect(this.signUrl);
   }
 }

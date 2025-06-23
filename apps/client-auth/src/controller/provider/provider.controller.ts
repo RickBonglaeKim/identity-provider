@@ -28,8 +28,7 @@ import { COOKIE_NAME } from '../../enum/cookie.name.enum';
 @Controller('provider')
 export class ProviderController {
   private readonly logger = new Logger(ProviderController.name);
-  private readonly signInUrl: string;
-  private readonly signUpUrl: string;
+  private readonly signUrl: string;
   private readonly memberKeyEncryptionKey: string;
 
   constructor(
@@ -37,8 +36,7 @@ export class ProviderController {
     private readonly configService: ConfigService,
     private readonly signInService: SignInService,
   ) {
-    this.signInUrl = this.configService.getOrThrow<string>('SIGN_IN_URL');
-    this.signUpUrl = this.configService.getOrThrow<string>('SIGN_UP_URL');
+    this.signUrl = this.configService.getOrThrow<string>('SIGN_URL');
     this.memberKeyEncryptionKey = this.configService.getOrThrow<string>(
       'MEMBER_KEY_ENCRYPTION_KEY',
     );
@@ -85,7 +83,7 @@ export class ProviderController {
       providerId,
       providerData.id,
     );
-    let signUpUrl = `${this.signUpUrl}?provider=${providerId}&passport=${passportKey}&memberProviderKey=${memberProviderKey}`;
+    let signUpUrl = `${this.signUrl}?provider=${providerId}&passport=${passportKey}&memberProviderKey=${memberProviderKey}`;
     if (providerData.name) signUpUrl += `&name=${providerData.name}`;
     if (providerData.email) signUpUrl += `&email=${providerData.email}`;
     if (providerData.phone) {
@@ -134,7 +132,7 @@ export class ProviderController {
       return;
     }
 
-    let signInUrl = `${this.signInUrl}?provider=${PROVIDER.KAKAO}`;
+    let signInUrl = `${this.signUrl}?provider=${PROVIDER.KAKAO}`;
     const signInErrorUrl = this.combineAuthorizationErrorUrl(
       signInUrl,
       code,
@@ -200,7 +198,7 @@ export class ProviderController {
       return;
     }
 
-    let signInUrl = `${this.signInUrl}?provider=${PROVIDER.NAVER}`;
+    let signInUrl = `${this.signUrl}?provider=${PROVIDER.NAVER}`;
 
     const signInErrorUrl = this.combineAuthorizationErrorUrl(
       signInUrl,
@@ -267,7 +265,7 @@ export class ProviderController {
       return;
     }
 
-    let signInUrl = `${this.signInUrl}?provider=${PROVIDER.GOOGLE}`;
+    let signInUrl = `${this.signUrl}?provider=${PROVIDER.GOOGLE}`;
 
     const signInErrorUrl = this.combineAuthorizationErrorUrl(
       signInUrl,
@@ -331,7 +329,7 @@ export class ProviderController {
       return;
     }
 
-    let signInUrl = `${this.signInUrl}?provider=${PROVIDER.APPLE}`;
+    let signInUrl = `${this.signUrl}?provider=${PROVIDER.APPLE}`;
 
     const signInErrorUrl = this.combineAuthorizationErrorUrl(
       signInUrl,

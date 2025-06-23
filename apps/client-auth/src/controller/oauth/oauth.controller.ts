@@ -26,7 +26,7 @@ import { ChildService } from '../../service/child/child.service';
 @UseInterceptors(TransformInterceptor)
 export class OauthController {
   private readonly logger = new Logger(OauthController.name);
-  private readonly signInUrl: string;
+  private readonly signUrl: string;
   private readonly tokenExpirySeconds: number;
   private readonly refreshTokenExpirySeconds: number;
   private readonly idTokenISS: string;
@@ -38,7 +38,7 @@ export class OauthController {
     private readonly memberService: MemberService,
     private readonly childService: ChildService,
   ) {
-    this.signInUrl = this.configService.getOrThrow<string>('SIGN_IN_URL');
+    this.signUrl = this.configService.getOrThrow<string>('SIGN_URL');
     this.tokenExpirySeconds =
       this.configService.getOrThrow<number>('TOKEN_EXPIRE_IN');
     this.refreshTokenExpirySeconds = this.configService.getOrThrow<number>(
@@ -71,7 +71,7 @@ export class OauthController {
         redirectClient('server_error')('It fails to generate passport.')(null);
       }
 
-      let url = `${this.signInUrl}?passport=${passport}&client=${verifiedResult.signCode}`;
+      let url = `${this.signUrl}?passport=${passport}&client=${verifiedResult.signCode}`;
       if (dto.service_url) {
         url += `&service_url=${dto.service_url}`;
       }

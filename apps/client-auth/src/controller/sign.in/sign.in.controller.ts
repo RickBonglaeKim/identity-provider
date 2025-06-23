@@ -40,7 +40,7 @@ export class SignInController {
   private readonly passportExpirySeconds: number;
   private readonly tokenExpirySeconds: number;
 
-  private readonly signInUrl: string;
+  private readonly signUrl: string;
 
   private readonly kakaoClientId: string;
   private readonly kakaoRedirectUri: string;
@@ -68,7 +68,7 @@ export class SignInController {
       this.configService.getOrThrow<number>('PASSPORT_EXPIRE_IN');
     this.tokenExpirySeconds =
       this.configService.getOrThrow<number>('TOKEN_EXPIRE_IN');
-    this.signInUrl = this.configService.getOrThrow<string>('SIGN_IN_URL');
+    this.signUrl = this.configService.getOrThrow<string>('SIGN_URL');
     this.kakaoClientId =
       this.configService.getOrThrow<string>('KAKAO_CLIENT_ID');
     this.kakaoRedirectUri =
@@ -157,7 +157,7 @@ export class SignInController {
 
     if (!memberValue) {
       const error: OauthError = 'access_denied';
-      response.redirect(`${this.signInUrl}?error=${error}`);
+      response.redirect(`${this.signUrl}?error=${error}`);
       return;
     }
 
@@ -175,7 +175,7 @@ export class SignInController {
     const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
       const error: OauthError = 'unauthorized_client';
-      response.redirect(`${this.signInUrl}?error=${error}`);
+      response.redirect(`${this.signUrl}?error=${error}`);
       return;
     }
 
@@ -187,7 +187,7 @@ export class SignInController {
     );
     if (!authorizationCode) {
       const error: OauthError = 'server_error';
-      response.redirect(`${this.signInUrl}?error=${error}`);
+      response.redirect(`${this.signUrl}?error=${error}`);
       return;
     }
 
@@ -232,7 +232,7 @@ export class SignInController {
     this.logger.debug(`getSignInKakao.passport -> ${passport}`);
     if (!passport) {
       const error: OauthError = 'access_denied';
-      response.redirect(`${this.signInUrl}?error=${error}`);
+      response.redirect(`${this.signUrl}?error=${error}`);
       return;
     }
     const { redirect_uri } = JSON.parse(
@@ -263,7 +263,7 @@ export class SignInController {
     const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
       const error: OauthError = 'access_denied';
-      response.redirect(`${this.signInUrl}?error=${error}`);
+      response.redirect(`${this.signUrl}?error=${error}`);
       return;
     }
     this.logger.debug(`getSignInNaver.passport -> ${passport}`);
@@ -295,7 +295,7 @@ export class SignInController {
     const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
       const error: OauthError = 'access_denied';
-      response.redirect(`${this.signInUrl}?error=${error}`);
+      response.redirect(`${this.signUrl}?error=${error}`);
       return;
     }
     this.logger.debug(`getSignInGoogle.passport -> ${passport}`);
@@ -329,7 +329,7 @@ export class SignInController {
     const passport = await this.oauthService.findPassport(passportKey);
     if (!passport) {
       const error: OauthError = 'access_denied';
-      response.redirect(`${this.signInUrl}?error=${error}`);
+      response.redirect(`${this.signUrl}?error=${error}`);
       return;
     }
     this.logger.debug(`getSignInApple.passport -> ${passport}`);
