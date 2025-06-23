@@ -9,10 +9,13 @@ import { ConfigService } from '@nestjs/config';
 import cryptoRandomString from 'crypto-random-string';
 import { HashService } from '@app/crypto/service/hash/hash.service';
 import { PROVIDER } from 'dto/enum/provider.enum';
+import { HttpService } from '@nestjs/axios';
+import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class VerificationService {
   private readonly logger = new Logger(VerificationService.name);
+  private readonly notifierMessageUrl: string;
 
   constructor(
     private readonly configService: ConfigService,
@@ -23,7 +26,12 @@ export class VerificationService {
     private readonly verificationCacheRepository: VerificationCacheRepository,
     private readonly passwordCacheRepository: PasswordCacheRepository,
     private readonly memberVerificationRepository: MemberVerificationRepository,
-  ) {}
+    private readonly httpService: HttpService,
+  ) {
+    this.notifierMessageUrl = this.configService.getOrThrow<string>(
+      'NOTIFIER_MESSAGE_URL',
+    );
+  }
 
   private generateVerificationCode() {
     return cryptoRandomString({ length: 6, type: 'numeric' });
@@ -79,6 +87,25 @@ export class VerificationService {
       phoneVerificationKey,
       code,
     );
+    if (!result.isSucceed) return false;
+
+    try {
+      const response = await lastValueFrom(
+        this.httpService.post(this.notifierMessageUrl, {
+          serviceType: 'artstation',
+          messageType: 'SMS',
+          commonCode: 'AUTH',
+          variables: [{ randomCode: code }],
+          recipient: `0${phoneNumber}`,
+        }),
+      );
+      this.logger.debug(
+        `setPhoneVerificationCode.response.statusText -> ${response.statusText}`,
+      );
+    } catch (error) {
+      this.logger.error(`setPhoneVerificationCode.error -> ${error}`);
+      return false;
+    }
     return result.isSucceed;
   }
 
