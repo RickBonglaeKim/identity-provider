@@ -83,10 +83,9 @@ import { ClientCookieHandler } from './util/client.cookie.handler';
     },
     {
       provide: ClientCookieHandler,
-      useFactory: (configService: ConfigService) => {
-        return new ClientCookieHandler(configService.getOrThrow('SIGN_URL'));
+      useFactory: () => {
+        return new ClientCookieHandler();
       },
-      inject: [ConfigService],
     },
     MemberService,
     SignUpService,
