@@ -32,6 +32,7 @@ import { CookieHandler } from './util/cookie.handler';
 import { ChildCookieController } from './controller/child/child.cookie/child.cookie.controller';
 import { ChildTokenController } from './controller/child/child.token/child.token.controller';
 import { SignOutService } from './service/sign.out/sign.out.service';
+import { ClientCookieHandler } from './util/client.cookie.handler';
 
 @Module({
   imports: [
@@ -79,6 +80,12 @@ import { SignOutService } from './service/sign.out/sign.out.service';
         );
       },
       inject: [ConfigService],
+    },
+    {
+      provide: ClientCookieHandler,
+      useFactory: () => {
+        return new ClientCookieHandler();
+      },
     },
     MemberService,
     SignUpService,

@@ -59,6 +59,9 @@ export class OauthController {
       dto.client_id,
       dto.redirect_uri,
     );
+    this.logger.debug(
+      `getAuthorize.verifiedResult -> ${JSON.stringify(verifiedResult)}`,
+    );
 
     if (verifiedResult.isVerified) {
       const passport = await this.oauthService.createPassport(dto);
@@ -68,7 +71,10 @@ export class OauthController {
         redirectClient('server_error')('It fails to generate passport.')(null);
       }
 
-      const url = `${this.signInUrl}?passport=${passport}&client=${verifiedResult.signCode}`;
+      let url = `${this.signInUrl}?passport=${passport}&client=${verifiedResult.signCode}`;
+      if (dto.service_url) {
+        url += `&service_url=${dto.service_url}`;
+      }
       this.logger.debug(`getAuthorize.url -> ${url}`);
       response.redirect(HttpStatus.TEMPORARY_REDIRECT, url);
     } else {
@@ -76,9 +82,6 @@ export class OauthController {
         'Request parameters are incorrect.',
       )(null);
       this.logger.debug(`getAuthorize.redirectUri -> ${redirectUri}`);
-      this.logger.debug(
-        `getAuthorize.verifiedResult -> ${JSON.stringify(verifiedResult)}`,
-      );
       response.redirect(HttpStatus.TEMPORARY_REDIRECT, redirectUri);
     }
   }

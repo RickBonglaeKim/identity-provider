@@ -27,6 +27,9 @@ import { Passport } from '../../decorator/passport.decorator';
 import SUCCESS_HTTP_STATUS from 'dto/constant/http.status.constant';
 import ERROR_MESSAGE from 'dto/constant/http.error.message.constant';
 import HTTP_ERROR_MESSAGE from 'dto/constant/http.error.message.constant';
+import { ClientCookieHandler } from '../../util/client.cookie.handler';
+import { Providers } from 'dto/enum/provider.enum';
+import { CLIENT_COOKIE_NAME } from 'dto/enum/client.cookie.name.enum';
 
 @Controller('signin')
 @UseInterceptors(TransformInterceptor)
@@ -54,6 +57,7 @@ export class SignInController {
   constructor(
     private readonly configService: ConfigService,
     private readonly cookieHandler: CookieHandler,
+    private readonly clientCookieHandler: ClientCookieHandler,
     private readonly signInService: SignInService,
     private readonly oauthService: OauthService,
   ) {
@@ -136,6 +140,7 @@ export class SignInController {
   async getSignIn(
     @Res() response: Response,
     @Param('memberKey') memberKey: string,
+    @Query('provider') provider?: Providers,
   ): Promise<void> {
     this.logger.debug(`getSignIn.memberKey -> ${memberKey}`);
 
@@ -198,6 +203,16 @@ export class SignInController {
       JSON.stringify(signCookie),
       this.tokenExpirySeconds,
     );
+
+    // set client cookie
+    if (provider) {
+      this.clientCookieHandler.setCookie(
+        response,
+        CLIENT_COOKIE_NAME.SERVICE_URL,
+        provider.toString(),
+        60 * 60 * 24 * 100, // 100 days
+      );
+    }
 
     const passportJson = JSON.parse(passport) as OauthAuthorizeRequestCreate;
     let redirectUrl = `${passportJson.redirect_uri}?code=${authorizationCode}`;

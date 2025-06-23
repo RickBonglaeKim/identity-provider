@@ -1,3 +1,5 @@
+import { Providers } from 'dto/enum/provider.enum';
+
 export type SignMember = {
   memberId: number;
   memberDetailId: number;
