@@ -71,10 +71,7 @@ export class OauthController {
         redirectClient('server_error')('It fails to generate passport.')(null);
       }
 
-      let url = `${this.signUrl}?passport=${passport}&client=${verifiedResult.signCode}`;
-      if (dto.service_url) {
-        url += `&service_url=${dto.service_url}`;
-      }
+      const url = `${this.signUrl}?passport=${passport}&client=${verifiedResult.signCode}`;
       this.logger.debug(`getAuthorize.url -> ${url}`);
       response.redirect(HttpStatus.TEMPORARY_REDIRECT, url);
     } else {
