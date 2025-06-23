@@ -4,6 +4,7 @@ import { HashService } from '@app/crypto/service/hash/hash.service';
 import { SignRepository } from '@app/persistence/schema/main/repository/sign.repository';
 import { ExceptionService } from '@app/exception/service/exception.service';
 import { SignMember } from '../../type/service/sign.service.type';
+import { Providers } from 'dto/enum/provider.enum';
 
 @Injectable()
 export class SignInService {
@@ -16,10 +17,14 @@ export class SignInService {
   ) {}
 
   async findMember(
+    providerId: Providers,
     id: string,
     password: string,
   ): Promise<SignMember | undefined> {
-    const signInResult = await this.signRepository.verifyMemberByEmail(id);
+    const signInResult = await this.signRepository.verifyMemberByEmail(
+      id,
+      providerId,
+    );
     if (!signInResult) {
       this.logger.debug('SignIn result is undefined');
       return;

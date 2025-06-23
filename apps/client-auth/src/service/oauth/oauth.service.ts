@@ -66,6 +66,7 @@ export class OauthService {
           memberDetailId: memberKey.memberDetailId,
           passportKey: memberKey.passportKey,
           timestamp: Date.now(),
+          provider: memberKey.provider,
         }),
         this.memberKeyEncryptionKey,
       ).toString();

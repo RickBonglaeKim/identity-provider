@@ -14,11 +14,7 @@ const cookieOptions: CookieOptions = {
 export class ClientCookieHandler {
   private readonly logger = new Logger(ClientCookieHandler.name);
 
-  private signUrl: string;
-
-  constructor(signUrl: string) {
-    this.signUrl = signUrl;
-  }
+  constructor() {}
 
   setCookie(
     response: Response,
@@ -29,12 +25,7 @@ export class ClientCookieHandler {
     response.cookie(cookieName, cookieValue, {
       ...cookieOptions,
       maxAge: maxAgeInSeconds * 1000,
-      domain: this.signUrl,
     });
-    this.logger.debug(
-      `setCookie.cookieName -> ${cookieName}, cookieValue -> ${cookieValue}, maxAgeInSeconds -> ${maxAgeInSeconds}`,
-    );
-    this.logger.debug(`cookieOptions -> ${JSON.stringify(cookieOptions)}`);
   }
 
   getCookie(

@@ -28,7 +28,7 @@ import SUCCESS_HTTP_STATUS from 'dto/constant/http.status.constant';
 import ERROR_MESSAGE from 'dto/constant/http.error.message.constant';
 import HTTP_ERROR_MESSAGE from 'dto/constant/http.error.message.constant';
 import { ClientCookieHandler } from '../../util/client.cookie.handler';
-import { Providers } from 'dto/enum/provider.enum';
+import { PROVIDER, Providers } from 'dto/enum/provider.enum';
 import { CLIENT_COOKIE_NAME } from 'dto/enum/client.cookie.name.enum';
 
 @Controller('signin')
@@ -102,8 +102,15 @@ export class SignInController {
       );
     }
 
-    const member = await this.signInService.findMember(dto.email, dto.password);
-    this.logger.debug(`getSignIn.memberId -> ${JSON.stringify(member)}`);
+    // The only PROVIDER.I_SCREAM_ART can access this endpoint.
+    const providerId = PROVIDER.I_SCREAM_ART;
+
+    const member = await this.signInService.findMember(
+      providerId,
+      dto.email,
+      dto.password,
+    );
+    this.logger.debug(`postSignIn.memberId -> ${JSON.stringify(member)}`);
     if (!member) {
       this.logger.debug(HTTP_ERROR_MESSAGE.MEMBER_NOT_FOUND);
       response.status(SUCCESS_HTTP_STATUS.DATA_NOT_FOUND);
@@ -117,6 +124,7 @@ export class SignInController {
           memberId: member.memberId,
           memberDetailId: member.memberDetailId,
           passportKey: passportKey,
+          provider: providerId,
           timestamp: Date.now(),
         }),
         this.memberKeyEncryptionKey,
@@ -140,7 +148,6 @@ export class SignInController {
   async getSignIn(
     @Res() response: Response,
     @Param('memberKey') memberKey: string,
-    @Query('provider') provider?: Providers,
   ): Promise<void> {
     this.logger.debug(`getSignIn.memberKey -> ${memberKey}`);
 
@@ -161,12 +168,12 @@ export class SignInController {
       return;
     }
 
-    const { memberId, memberDetailId, passportKey, timestamp } = JSON.parse(
-      memberValue,
-    ) as MemberKey;
+    const { memberId, memberDetailId, passportKey, provider, timestamp } =
+      JSON.parse(memberValue) as MemberKey;
     this.logger.debug(`getSignIn.memberId -> ${memberId}`);
     this.logger.debug(`getSignIn.memberDetailId -> ${memberDetailId}`);
     this.logger.debug(`getSignIn.passportKey -> ${passportKey}`);
+    this.logger.debug(`getSignIn.provider -> ${provider}`);
     this.logger.debug(`getSignIn.timestamp -> ${timestamp}`);
     // if (timestamp + 1000 * 100 < Date.now()) {
     //   response.redirect(`${this.signUrl}?error=access_denied`);
@@ -208,7 +215,7 @@ export class SignInController {
     if (provider) {
       this.clientCookieHandler.setCookie(
         response,
-        CLIENT_COOKIE_NAME.SERVICE_URL,
+        CLIENT_COOKIE_NAME.PROVIDER,
         provider.toString(),
         60 * 60 * 24 * 100, // 100 days
       );

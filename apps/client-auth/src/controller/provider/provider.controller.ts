@@ -96,6 +96,7 @@ export class ProviderController {
   private generateSignInUrl(
     signMember: SignMember,
     passportKey: string,
+    provider: Providers,
   ): string {
     const memberKey = cryptoJS.AES.encrypt(
       JSON.stringify({
@@ -103,6 +104,7 @@ export class ProviderController {
         memberDetailId: signMember.memberDetailId,
         passportKey: passportKey,
         timestamp: Date.now(),
+        provider: provider,
       }),
       this.memberKeyEncryptionKey,
     ).toString();
@@ -132,7 +134,9 @@ export class ProviderController {
       return;
     }
 
-    let signInUrl = `${this.signUrl}?provider=${PROVIDER.KAKAO}`;
+    const provider = PROVIDER.KAKAO;
+    let signInUrl = `${this.signUrl}?provider=${provider}`;
+
     const signInErrorUrl = this.combineAuthorizationErrorUrl(
       signInUrl,
       code,
@@ -156,13 +160,13 @@ export class ProviderController {
     }
 
     const member = await this.signInService.findMemberByMemberProvider(
-      makeMemberProviderKey(PROVIDER.KAKAO, kakao.id),
+      makeMemberProviderKey(provider, kakao.id),
     );
 
     if (member) {
       response.redirect(
         HttpStatus.FOUND,
-        this.generateSignInUrl(member, passportKey),
+        this.generateSignInUrl(member, passportKey, provider),
       );
       return;
     }
@@ -170,7 +174,7 @@ export class ProviderController {
     // The member searched by the Kakao does not exist in the database.
     response.redirect(
       HttpStatus.FOUND,
-      this.combineSignUpUrl(PROVIDER.KAKAO, passportKey, kakao),
+      this.combineSignUpUrl(provider, passportKey, kakao),
     );
     return;
   }
@@ -198,7 +202,8 @@ export class ProviderController {
       return;
     }
 
-    let signInUrl = `${this.signUrl}?provider=${PROVIDER.NAVER}`;
+    const provider = PROVIDER.NAVER;
+    let signInUrl = `${this.signUrl}?provider=${provider}`;
 
     const signInErrorUrl = this.combineAuthorizationErrorUrl(
       signInUrl,
@@ -223,13 +228,13 @@ export class ProviderController {
     }
 
     const member = await this.signInService.findMemberByMemberProvider(
-      makeMemberProviderKey(PROVIDER.NAVER, naver.id),
+      makeMemberProviderKey(provider, naver.id),
     );
 
     if (member) {
       response.redirect(
         HttpStatus.FOUND,
-        this.generateSignInUrl(member, passportKey),
+        this.generateSignInUrl(member, passportKey, provider),
       );
       return;
     }
@@ -237,7 +242,7 @@ export class ProviderController {
     // The member searched by the Naver does not exist in the database.
     response.redirect(
       HttpStatus.FOUND,
-      this.combineSignUpUrl(PROVIDER.NAVER, passportKey, naver),
+      this.combineSignUpUrl(provider, passportKey, naver),
     );
     return;
   }
@@ -265,7 +270,8 @@ export class ProviderController {
       return;
     }
 
-    let signInUrl = `${this.signUrl}?provider=${PROVIDER.GOOGLE}`;
+    const provider = PROVIDER.GOOGLE;
+    let signInUrl = `${this.signUrl}?provider=${provider}`;
 
     const signInErrorUrl = this.combineAuthorizationErrorUrl(
       signInUrl,
@@ -290,13 +296,13 @@ export class ProviderController {
     }
 
     const member = await this.signInService.findMemberByMemberProvider(
-      makeMemberProviderKey(PROVIDER.GOOGLE, google.id),
+      makeMemberProviderKey(provider, google.id),
     );
 
     if (member) {
       response.redirect(
         HttpStatus.FOUND,
-        this.generateSignInUrl(member, passportKey),
+        this.generateSignInUrl(member, passportKey, provider),
       );
       return;
     }
@@ -304,7 +310,7 @@ export class ProviderController {
     // The member searched by the Google does not exist in the database.
     response.redirect(
       HttpStatus.FOUND,
-      this.combineSignUpUrl(PROVIDER.GOOGLE, passportKey, google),
+      this.combineSignUpUrl(provider, passportKey, google),
     );
     return;
   }
@@ -329,7 +335,8 @@ export class ProviderController {
       return;
     }
 
-    let signInUrl = `${this.signUrl}?provider=${PROVIDER.APPLE}`;
+    const provider = PROVIDER.APPLE;
+    let signInUrl = `${this.signUrl}?provider=${provider}`;
 
     const signInErrorUrl = this.combineAuthorizationErrorUrl(
       signInUrl,
@@ -356,13 +363,13 @@ export class ProviderController {
     this.logger.debug(`getApple.apple -> ${JSON.stringify(apple)}`);
 
     const member = await this.signInService.findMemberByMemberProvider(
-      makeMemberProviderKey(PROVIDER.APPLE, apple.id),
+      makeMemberProviderKey(provider, apple.id),
     );
 
     if (member) {
       response.redirect(
         HttpStatus.FOUND,
-        this.generateSignInUrl(member, passportKey),
+        this.generateSignInUrl(member, passportKey, provider),
       );
       return;
     }
@@ -370,7 +377,7 @@ export class ProviderController {
     // The member searched by the Apple does not exist in the database.
     response.redirect(
       HttpStatus.FOUND,
-      this.combineSignUpUrl(PROVIDER.APPLE, passportKey, apple),
+      this.combineSignUpUrl(provider, passportKey, apple),
     );
     return;
   }

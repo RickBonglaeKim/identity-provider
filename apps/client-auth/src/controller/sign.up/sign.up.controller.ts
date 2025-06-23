@@ -61,6 +61,7 @@ export class SignUpController {
       memberId: result.memberId,
       memberDetailId: result.memberDetailId,
       passportKey: passportKey,
+      provider: dto.memberDetail.providerId,
       timestamp: Date.now(),
     });
     if (!memberKey) {
@@ -97,6 +98,7 @@ export class SignUpController {
       memberId: result.memberId,
       memberDetailId: result.memberDetailId,
       passportKey: passportKey,
+      provider: dto.memberDetail.providerId,
       timestamp: Date.now(),
     });
     if (!memberKey) {

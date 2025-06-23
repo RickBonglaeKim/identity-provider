@@ -20,5 +20,6 @@ export type SignToken = SignMember & {
 
 export type MemberKey = SignMember & {
   passportKey: string;
+  provider: Providers;
   timestamp: number;
 };

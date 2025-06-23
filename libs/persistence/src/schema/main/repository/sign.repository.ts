@@ -12,6 +12,7 @@ import {
   verifyMemberByMemberProviderKey,
   verifyMemberByPassword,
 } from '@app/persistence/entity/sign.entity';
+import { Providers } from 'dto/enum/provider.enum';
 
 @Injectable()
 export class SignRepository extends MainSchemaService {
@@ -19,8 +20,8 @@ export class SignRepository extends MainSchemaService {
 
   async verifyMemberByEmail(
     email: string,
+    providerId: Providers,
   ): Promise<ResponseEntity<verifyMemberByEmail[]> | undefined> {
-    const PROVIDER_ID = 101; // 아이스크림아트 (provider table)
     try {
       const result = await this.mainTransaction.tx
         .select({
@@ -33,7 +34,7 @@ export class SignRepository extends MainSchemaService {
         .where(
           and(
             eq(memberDetail.email, email),
-            eq(memberDetail.providerId, PROVIDER_ID),
+            eq(memberDetail.providerId, providerId),
           ),
         );
       if (result.length === 0) {
