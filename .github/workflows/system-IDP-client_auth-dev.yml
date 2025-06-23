@@ -80,6 +80,7 @@ jobs:
             REFRESH_TOKEN_EXPIRE_IN=${{ vars.REFRESH_TOKEN_EXPIRE_IN }}
             SIGN_IN_URL=${{ vars.SIGN_IN_URL }}
             SIGN_UP_URL=${{ vars.SIGN_UP_URL }}
+            NOTIFIER_MESSAGE_URL=${{ vars.NOTIFIER_MESSAGE_URL }}
             TOKEN_EXPIRE_IN=${{ vars.TOKEN_EXPIRE_IN }}
             PASSPORT_EXPIRE_IN=${{ vars.PASSPORT_EXPIRE_IN }}
 
