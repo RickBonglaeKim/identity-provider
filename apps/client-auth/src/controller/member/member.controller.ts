@@ -73,6 +73,7 @@ export class MemberController {
     await this.signOutService.signOut(
       signCookie.memberId,
       signCookie.memberDetailId,
+      signCookie.clientMemberId,
       response,
     );
     return;

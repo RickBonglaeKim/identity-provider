@@ -28,6 +28,7 @@ export class SignOutController {
     await this.signOutService.signOut(
       signCookie.memberId,
       signCookie.memberDetailId,
+      signCookie.clientMemberId,
       response,
     );
 

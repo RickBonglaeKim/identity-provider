@@ -140,6 +140,11 @@ export class MemberService {
         clientId,
       );
     if (!clientMemberResult) this.exceptionService.notRecognizedError();
+    this.logger.debug(
+      `createClientMember.clientMemberResult -> ${JSON.stringify(
+        clientMemberResult,
+      )}`,
+    );
     //-----------------------------------------------------------------------------//
     // Must return existing id of client_member table, if the data exist.
     //-----------------------------------------------------------------------------//
@@ -151,6 +156,7 @@ export class MemberService {
       clientId,
       memberId,
     });
+    this.logger.debug(`createClientMember.result -> ${JSON.stringify(result)}`);
     if (!result) this.exceptionService.notRecognizedError();
     if (!result?.isSucceed || !result.data)
       this.exceptionService.notInsertedEntity('client member');

@@ -30,6 +30,8 @@ import HTTP_ERROR_MESSAGE from 'dto/constant/http.error.message.constant';
 import { ClientCookieHandler } from '../../util/client.cookie.handler';
 import { PROVIDER, Providers } from 'dto/enum/provider.enum';
 import { CLIENT_COOKIE_NAME } from 'dto/enum/client.cookie.name.enum';
+import { MemberService } from '../../service/member/member.service';
+import { ClientService } from '../../service/client/client.service';
 
 @Controller('signin')
 @UseInterceptors(TransformInterceptor)
@@ -60,6 +62,8 @@ export class SignInController {
     private readonly clientCookieHandler: ClientCookieHandler,
     private readonly signInService: SignInService,
     private readonly oauthService: OauthService,
+    private readonly memberService: MemberService,
+    private readonly clientService: ClientService,
   ) {
     this.memberKeyEncryptionKey = this.configService.getOrThrow<string>(
       'MEMBER_KEY_ENCRYPTION_KEY',
@@ -186,9 +190,31 @@ export class SignInController {
       return;
     }
 
+    const { client_id, redirect_uri, state } = JSON.parse(
+      passport,
+    ) as OauthAuthorizeRequestCreate;
+
+    const clientResult =
+      await this.clientService.findClientByClientId(client_id);
+    if (!clientResult) {
+      const error: OauthError = 'unauthorized_client';
+      response.redirect(`${this.signUrl}?error=${error}`);
+      return;
+    }
+
+    this.logger.debug(`getSignIn.client_id -> ${client_id}`);
+    this.logger.debug(`getSignIn.redirect_uri -> ${redirect_uri}`);
+    this.logger.debug(`getSignIn.scope -> ${state}`);
+
+    const clientMemberId = await this.memberService.createClientMember(
+      clientResult.id,
+      memberId,
+    );
+
     const authorizationCode = await this.oauthService.createAuthorizationCode(
       memberId,
       memberDetailId,
+      clientMemberId,
       passportKey,
       passport,
     );
@@ -202,6 +228,7 @@ export class SignInController {
     const signCookie: SignCookie = {
       memberId,
       memberDetailId,
+      clientMemberId,
       timestamp: Date.now(),
     };
     this.cookieHandler.setCookie(
@@ -221,9 +248,8 @@ export class SignInController {
       );
     }
 
-    const passportJson = JSON.parse(passport) as OauthAuthorizeRequestCreate;
-    let redirectUrl = `${passportJson.redirect_uri}?code=${authorizationCode}`;
-    if (passportJson.state) redirectUrl += `&state=${passportJson.state}`;
+    let redirectUrl = `${redirect_uri}?code=${authorizationCode}`;
+    if (state) redirectUrl += `&state=${state}`;
     this.logger.debug(`getSignIn.redirectUrl -> ${redirectUrl}`);
 
     response.redirect(HttpStatus.TEMPORARY_REDIRECT, redirectUrl);

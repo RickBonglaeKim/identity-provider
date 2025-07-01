@@ -10,6 +10,7 @@ export class AuthorizationCodeCacheRepository extends CacheService {
   private readonly fields = {
     memberId: 'memberId',
     memberDetailId: 'memberDetailId',
+    clientMemberId: 'clientMemberId',
     data: 'data',
   };
 
@@ -27,11 +28,13 @@ export class AuthorizationCodeCacheRepository extends CacheService {
     key: string,
     memberId: string,
     memberDetailId: string,
+    clientMemberId: string,
     data: string,
   ): Promise<CacheResponseEntity<number>> {
     const setResult = await this.cache.hset(key, [
       { field: this.fields.memberId, value: memberId },
       { field: this.fields.memberDetailId, value: memberDetailId },
+      { field: this.fields.clientMemberId, value: clientMemberId },
       { field: this.fields.data, value: data },
     ]);
     const expireResult = await this.cache.expire(
@@ -56,6 +59,15 @@ export class AuthorizationCodeCacheRepository extends CacheService {
   async getMemberDetailId(code: string): Promise<CacheResponseEntity<string>> {
     const key = `${this.prefix}:${code}`;
     const result = await this.cache.hget(key, this.fields.memberDetailId, {
+      decoder: Decoder.String,
+    });
+    if (result) return new CacheResponseEntity<string>(true, result.toString());
+    return new CacheResponseEntity<string>(false);
+  }
+
+  async getClientMemberId(code: string): Promise<CacheResponseEntity<string>> {
+    const key = `${this.prefix}:${code}`;
+    const result = await this.cache.hget(key, this.fields.clientMemberId, {
       decoder: Decoder.String,
     });
     if (result) return new CacheResponseEntity<string>(true, result.toString());

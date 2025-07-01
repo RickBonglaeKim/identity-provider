@@ -49,13 +49,13 @@ export class TokenGuard implements CanActivate {
       ).toString(cryptoJS.enc.Utf8);
       this.logger.debug(`TokenGuard.canActivate.signToken -> ${signToken}`);
 
-      const { memberId, memberDetailId, timestamp, nonce } = JSON.parse(
-        signToken,
-      ) as SignToken;
+      const { memberId, memberDetailId, clientMemberId, timestamp, nonce } =
+        JSON.parse(signToken) as SignToken;
 
       const key = this.authorizationTokenCacheRepository.createKey(
         memberId,
         memberDetailId,
+        clientMemberId,
       );
       const tokenData =
         await this.authorizationTokenCacheRepository.getAccessToken(key);
@@ -69,6 +69,7 @@ export class TokenGuard implements CanActivate {
       request.signToken = {
         memberId,
         memberDetailId,
+        clientMemberId,
         timestamp,
         nonce,
       };

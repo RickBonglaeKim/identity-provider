@@ -113,27 +113,41 @@ export class OauthController {
         HttpStatus.UNAUTHORIZED,
       );
     }
+    const client = await this.clientService.findClientByClientId(client_id);
+    if (!client) {
+      throw new HttpException(
+        'It does not find the client.',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
 
     const memberResult = await Promise.all([
       this.oauthService.findMemberIdInAuthorizationCode(dto.code),
       this.oauthService.findMemberDetailIdInAuthorizationCode(dto.code),
+      this.oauthService.findClientMemberIdInAuthorizationCode(dto.code),
     ]).catch((error) => {
       this.logger.error(error);
       throw new HttpException(
-        'It can not find member form the cache.',
+        'It does not find the member from the cache.',
         HttpStatus.UNAUTHORIZED,
       );
     });
     const memberId = memberResult[0];
     const memberDetailId = memberResult[1];
+    const clientMemberId = memberResult[2];
 
     const existAuthorizationTokenResult =
-      await this.oauthService.existAuthorizationToken(memberId, memberDetailId);
+      await this.oauthService.existAuthorizationToken(
+        memberId,
+        memberDetailId,
+        clientMemberId,
+      );
     if (existAuthorizationTokenResult) {
       const removeAuthorizationTokenResult =
         await this.oauthService.removeAuthorizationToken(
           memberId,
           memberDetailId,
+          clientMemberId,
         );
       if (!removeAuthorizationTokenResult) {
         throw new HttpException(
@@ -141,27 +155,6 @@ export class OauthController {
           HttpStatus.FORBIDDEN,
         );
       }
-    }
-
-    const client = await this.clientService.findClientByClientId(client_id);
-    const clientMemberId = await this.memberService.createClientMember(
-      client.id,
-      memberId,
-    );
-
-    const clientMemberIdResult = await this.oauthService.createClientMemberId(
-      memberId,
-      memberDetailId,
-      clientMemberId,
-    );
-    this.logger.debug(
-      `postToken.clientMemberIdResult -> ${clientMemberIdResult}`,
-    );
-    if (!clientMemberIdResult) {
-      throw new HttpException(
-        'It fails to create the client member id.',
-        HttpStatus.UNAUTHORIZED,
-      );
     }
 
     const memberGroupResult = await Promise.all([
@@ -184,6 +177,7 @@ export class OauthController {
     const idToken = await this.oauthService.issueIdToken(
       memberId,
       memberDetailId,
+      clientMemberId,
       idTokenKeypair.privateKey,
       client_id,
       this.idTokenISS,
@@ -202,6 +196,7 @@ export class OauthController {
     const accessToken = await this.oauthService.issueAccessToken(
       memberId,
       memberDetailId,
+      clientMemberId,
     );
     this.logger.debug(`postToken.accessToken -> ${accessToken}`);
     if (!accessToken) {
@@ -214,6 +209,7 @@ export class OauthController {
     const refreshToken = await this.oauthService.issueRefreshToken(
       memberId,
       memberDetailId,
+      clientMemberId,
     );
     this.logger.debug(`postToken.refreshToken -> ${refreshToken}`);
     if (!refreshToken) {
@@ -227,6 +223,7 @@ export class OauthController {
       await this.oauthService.createAuthorizationData(
         memberId,
         memberDetailId,
+        clientMemberId,
         JSON.stringify(authorizationData),
       );
     this.logger.debug(
@@ -242,6 +239,7 @@ export class OauthController {
     const expiryResult = await this.oauthService.setExpiry(
       memberId,
       memberDetailId,
+      clientMemberId,
     );
     this.logger.debug(`postToken.expiryResult -> ${expiryResult}`);
     if (!expiryResult) {

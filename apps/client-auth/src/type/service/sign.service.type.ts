@@ -10,10 +10,12 @@ export type SignMemberPhone = SignMember & {
 };
 
 export type SignCookie = SignMember & {
+  clientMemberId: number;
   timestamp: number;
 };
 
 export type SignToken = SignMember & {
+  clientMemberId: number;
   timestamp: number;
   nonce: string;
 };

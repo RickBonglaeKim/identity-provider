@@ -27,6 +27,9 @@ export class ClientMemberRepository extends MainSchemaService {
   async selectClientMemberById(
     clientMemberId: number,
   ): Promise<ResponseEntity<typeof clientMember.$inferSelect> | undefined> {
+    this.logger.debug(
+      `selectClientMemberById.clientMemberId -> ${clientMemberId}`,
+    );
     try {
       const result = await this.mainTransaction.tx
         .select()

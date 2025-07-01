@@ -12,13 +12,14 @@ export class ClientService {
     private readonly exceptionService: ExceptionService,
   ) {}
 
-  async findClientByClientId(clientId: string): Promise<ClientResponse> {
+  async findClientByClientId(
+    clientId: string,
+  ): Promise<ClientResponse | undefined> {
     const result = await this.clientRepository.selectClientByClientId(clientId);
     if (!result) this.exceptionService.notRecognizedError();
-    if (!result?.isSucceed || !result.data)
-      this.exceptionService.notSelectedEntity('client');
+    if (!result?.isSucceed || !result.data) return;
 
-    const data = result!.data!;
+    const data = result.data;
     return new ClientResponse(
       data.id,
       data.clientId,

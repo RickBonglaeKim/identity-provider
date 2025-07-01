@@ -10,7 +10,6 @@ export class AuthorizationTokenCacheRepository extends CacheService {
   private readonly expirySeconds: number;
   private readonly prefix: string = 'token';
   private readonly fields = {
-    clientMemberId: 'clientMemberId',
     idToken: 'idToken',
     accessToken: 'accessToken',
     refreshToken: 'refreshToken',
@@ -33,8 +32,8 @@ export class AuthorizationTokenCacheRepository extends CacheService {
     };
   }
 
-  createKey(memberId: number, memberDetailId: number) {
-    return `${this.prefix}:${memberId}:${memberDetailId}`;
+  createKey(memberId: number, memberDetailId: number, clientMemberId: number) {
+    return `${this.prefix}:${memberId}:${memberDetailId}:${clientMemberId}`;
   }
 
   async setExpiry(key: string): Promise<boolean> {
@@ -48,17 +47,6 @@ export class AuthorizationTokenCacheRepository extends CacheService {
   async existAuthorizationToken(key: string): Promise<boolean> {
     const result = await this.cache.exists([key]);
     return result === 1;
-  }
-
-  async setClientMemberId(
-    key: string,
-    clientMemberId: string,
-  ): Promise<CacheResponseEntity<number>> {
-    const setResult = await this.cache.hset(key, [
-      { field: this.fields.clientMemberId, value: clientMemberId },
-    ]);
-    if (setResult > 0) return new CacheResponseEntity<number>(true, setResult);
-    return new CacheResponseEntity<number>(false);
   }
 
   async setIdToken(
@@ -103,14 +91,6 @@ export class AuthorizationTokenCacheRepository extends CacheService {
     ]);
     if (setResult > 0) return new CacheResponseEntity<number>(true, setResult);
     return new CacheResponseEntity<number>(false);
-  }
-
-  async getClientMemberId(key: string): Promise<CacheResponseEntity<string>> {
-    const result = await this.cache.hget(key, this.fields.clientMemberId, {
-      decoder: Decoder.String,
-    });
-    if (result) return new CacheResponseEntity<string>(true, result.toString());
-    return new CacheResponseEntity<string>(false);
   }
 
   async getIdToken(key: string): Promise<CacheResponseEntity<string>> {

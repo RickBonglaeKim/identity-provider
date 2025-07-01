@@ -122,6 +122,7 @@ export class OauthService {
   async createAuthorizationCode(
     memberId: number,
     memberDetailId: number,
+    clientMemberId: number,
     passportKey: string,
     data: string,
   ): Promise<string | undefined> {
@@ -138,6 +139,7 @@ export class OauthService {
         key,
         memberId.toString(),
         memberDetailId.toString(),
+        clientMemberId.toString(),
         data,
       );
     this.logger.debug(
@@ -176,6 +178,15 @@ export class OauthService {
     if (!result) this.exceptionService.notRecognizedError();
     if (!result.isSucceed && !result.data)
       this.exceptionService.notGottenCacheValue('memberDetailId');
+    return JSON.parse(result.data!) as number;
+  }
+
+  async findClientMemberIdInAuthorizationCode(code: string): Promise<number> {
+    const result =
+      await this.authorizationCodeCacheRepository.getClientMemberId(code);
+    if (!result) this.exceptionService.notRecognizedError();
+    if (!result.isSucceed && !result.data)
+      this.exceptionService.notGottenCacheValue('clientMemberId');
     return JSON.parse(result.data!) as number;
   }
 
@@ -238,6 +249,7 @@ export class OauthService {
   async issueIdToken(
     memberId: number,
     memberDetailId: number,
+    clientMemberId: number,
     privateKey: string,
     aud: string, // client_id (oauth)
     iss: string, // constant (ID_TOKEN.ISS)
@@ -261,6 +273,7 @@ export class OauthService {
     const key = this.authorizationTokenCacheRepository.createKey(
       memberId,
       memberDetailId,
+      clientMemberId,
     );
     const result = await this.authorizationTokenCacheRepository.setIdToken(
       key,
@@ -272,11 +285,13 @@ export class OauthService {
   async issueAccessToken(
     memberId: number,
     memberDetailId: number,
+    clientMemberId: number,
   ): Promise<string | undefined> {
     let encryptedSignToken: string | undefined;
     const signToken: SignToken = {
       memberId,
       memberDetailId,
+      clientMemberId,
       timestamp: Date.now(),
       nonce: cryptoRandomString({ length: 32, type: 'alphanumeric' }),
     };
@@ -296,6 +311,7 @@ export class OauthService {
     const key = this.authorizationTokenCacheRepository.createKey(
       memberId,
       memberDetailId,
+      clientMemberId,
     );
     const result = await this.authorizationTokenCacheRepository.setAccessToken(
       key,
@@ -307,11 +323,13 @@ export class OauthService {
   async issueRefreshToken(
     memberId: number,
     memberDetailId: number,
+    clientMemberId: number,
   ): Promise<string | undefined> {
     const refreshToken = cryptoRandomString({ length: 512, type: 'base64' });
     const key = this.authorizationTokenCacheRepository.createKey(
       memberId,
       memberDetailId,
+      clientMemberId,
     );
     const result = await this.authorizationTokenCacheRepository.setRefreshToken(
       key,
@@ -323,43 +341,28 @@ export class OauthService {
   async existAuthorizationToken(
     memberId: number,
     memberDetailId: number,
-  ): Promise<boolean> {
-    const key = this.authorizationTokenCacheRepository.createKey(
-      memberId,
-      memberDetailId,
-    );
-    return await this.authorizationTokenCacheRepository.existAuthorizationToken(key);
-  }
-
-  async createClientMemberId(
-    memberId: number,
-    memberDetailId: number,
     clientMemberId: number,
   ): Promise<boolean> {
     const key = this.authorizationTokenCacheRepository.createKey(
       memberId,
       memberDetailId,
+      clientMemberId,
     );
-    this.logger.debug(`createClientMemberId.key -> ${JSON.stringify(key)}`);
-    this.logger.debug(
-      `createClientMemberId.clientMemberId -> ${clientMemberId}`,
+    return await this.authorizationTokenCacheRepository.existAuthorizationToken(
+      key,
     );
-    const result =
-      await this.authorizationTokenCacheRepository.setClientMemberId(
-        key,
-        clientMemberId.toString(),
-      );
-    return result.isSucceed;
   }
 
   async createAuthorizationData(
     memberId: number,
     memberDetailId: number,
+    clientMemberId: number,
     data: string,
   ): Promise<boolean> {
     const key = this.authorizationTokenCacheRepository.createKey(
       memberId,
       memberDetailId,
+      clientMemberId,
     );
     const result = await this.authorizationTokenCacheRepository.setData(
       key,
@@ -368,10 +371,15 @@ export class OauthService {
     return result.isSucceed;
   }
 
-  async setExpiry(memberId: number, memberDetailId: number): Promise<boolean> {
+  async setExpiry(
+    memberId: number,
+    memberDetailId: number,
+    clientMemberId: number,
+  ): Promise<boolean> {
     const key = this.authorizationTokenCacheRepository.createKey(
       memberId,
       memberDetailId,
+      clientMemberId,
     );
     const result = await this.authorizationTokenCacheRepository.setExpiry(key);
     return result;
@@ -380,10 +388,12 @@ export class OauthService {
   async removeAuthorizationToken(
     memberId: number,
     memberDetailId: number,
+    clientMemberId: number,
   ): Promise<boolean> {
     const key = this.authorizationTokenCacheRepository.createKey(
       memberId,
       memberDetailId,
+      clientMemberId,
     );
     const result = await this.authorizationTokenCacheRepository.delete(key);
     return result.isSucceed;

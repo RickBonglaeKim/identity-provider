@@ -18,11 +18,13 @@ export class SignOutService {
   async signOut(
     memberId: number,
     memberDetailId: number,
+    clientMemberId: number,
     response: Response,
   ): Promise<void> {
     const removedResult = await this.oauthService.removeAuthorizationToken(
       memberId,
       memberDetailId,
+      clientMemberId,
     );
     if (!removedResult) {
       this.logger.warn('The authorization token does not exist.');

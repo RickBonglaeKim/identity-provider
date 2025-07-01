@@ -347,7 +347,6 @@ export class ProviderService {
   }
 
   private async createClientSecret(): Promise<string> {
-
     try {
       const keyContent = await fs.promises.readFile(
         path.resolve('cert', this.apple_auth_key!),
