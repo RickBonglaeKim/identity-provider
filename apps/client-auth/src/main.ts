@@ -33,6 +33,8 @@ async function bootstrap() {
       'https://nid.naver.com',
       'https://accounts.google.com',
       'https://appleid.apple.com',
+      'https://dev-dg-mobile.artbonbon.co.kr',
+      'https://local-dg-mobile.artbonbon.co.kr',
     ],
     method: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
