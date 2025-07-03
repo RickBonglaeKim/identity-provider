@@ -20,17 +20,11 @@ export class SignOutController {
 
   @Get()
   @UseGuards(SignGuard)
-  async getSignout(
-    @SignInfo() signCookie: SignCookie,
+  getSignout(
     @Res() response: Response,
     @Query('return') returnUrl: string,
-  ): Promise<void> {
-    await this.signOutService.signOut(
-      signCookie.memberId,
-      signCookie.memberDetailId,
-      signCookie.clientMemberId,
-      response,
-    );
+  ): void {
+    this.signOutService.signOut(response);
 
     if (returnUrl) response.redirect(returnUrl);
     response.redirect(this.signUrl);
