@@ -27,9 +27,7 @@ import { Passport } from '../../decorator/passport.decorator';
 import SUCCESS_HTTP_STATUS from 'dto/constant/http.status.constant';
 import ERROR_MESSAGE from 'dto/constant/http.error.message.constant';
 import HTTP_ERROR_MESSAGE from 'dto/constant/http.error.message.constant';
-import { ClientCookieHandler } from '../../util/client.cookie.handler';
-import { PROVIDER, Providers } from 'dto/enum/provider.enum';
-import { CLIENT_COOKIE_NAME } from 'dto/enum/client.cookie.name.enum';
+import { PROVIDER } from 'dto/enum/provider.enum';
 import { MemberService } from '../../service/member/member.service';
 import { ClientService } from '../../service/client/client.service';
 
@@ -59,7 +57,6 @@ export class SignInController {
   constructor(
     private readonly configService: ConfigService,
     private readonly cookieHandler: CookieHandler,
-    private readonly clientCookieHandler: ClientCookieHandler,
     private readonly signInService: SignInService,
     private readonly oauthService: OauthService,
     private readonly memberService: MemberService,
@@ -228,7 +225,6 @@ export class SignInController {
     const signCookie: SignCookie = {
       memberId,
       memberDetailId,
-      clientMemberId,
       timestamp: Date.now(),
     };
     this.cookieHandler.setCookie(
@@ -237,16 +233,6 @@ export class SignInController {
       JSON.stringify(signCookie),
       this.tokenExpirySeconds,
     );
-
-    // set client cookie
-    if (provider) {
-      this.clientCookieHandler.setCookie(
-        response,
-        CLIENT_COOKIE_NAME.PROVIDER,
-        provider.toString(),
-        60 * 60 * 24 * 100, // 100 days
-      );
-    }
 
     let redirectUrl = `${redirect_uri}?code=${authorizationCode}`;
     if (state) redirectUrl += `&state=${state}`;

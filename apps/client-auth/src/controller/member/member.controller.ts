@@ -70,12 +70,7 @@ export class MemberController {
       signCookie.memberId,
       data,
     );
-    await this.signOutService.signOut(
-      signCookie.memberId,
-      signCookie.memberDetailId,
-      signCookie.clientMemberId,
-      response,
-    );
+    this.signOutService.signOut(response);
     return;
   }
 }

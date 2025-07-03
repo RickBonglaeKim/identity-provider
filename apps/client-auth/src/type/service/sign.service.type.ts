@@ -10,7 +10,6 @@ export type SignMemberPhone = SignMember & {
 };
 
 export type SignCookie = SignMember & {
-  clientMemberId: number;
   timestamp: number;
 };
 
