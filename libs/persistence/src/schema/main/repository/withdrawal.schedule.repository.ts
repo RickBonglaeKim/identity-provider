@@ -2,8 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { MainSchemaService } from '../service/main.schema.service';
 import { withdrawalSchedule } from 'libs/persistence/database-schema/main/schema';
 import { ResponseEntity } from '@app/persistence/entity/response.entity';
-import { and, eq, isNull } from 'drizzle-orm';
-import { SelectMemberDetailByDistinctEmail } from '@app/persistence/entity/member.entity';
+import { eq } from 'drizzle-orm';
 
 @Injectable()
 export class WithdrawalScheduleRepository extends MainSchemaService {

@@ -113,8 +113,14 @@ export class SignInController {
     );
     this.logger.debug(`postSignIn.memberId -> ${JSON.stringify(member)}`);
     if (!member) {
-      this.logger.debug(HTTP_ERROR_MESSAGE.MEMBER_NOT_FOUND);
       response.status(SUCCESS_HTTP_STATUS.DATA_NOT_FOUND);
+      return;
+    }
+
+    if (
+      await this.signInService.findWithdrawalScheduleByMemberId(member.memberId)
+    ) {
+      response.status(SUCCESS_HTTP_STATUS.DATA_NOT_ALLOWED);
       return;
     }
 

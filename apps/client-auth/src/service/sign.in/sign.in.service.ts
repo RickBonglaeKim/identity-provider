@@ -5,6 +5,7 @@ import { SignRepository } from '@app/persistence/schema/main/repository/sign.rep
 import { ExceptionService } from '@app/exception/service/exception.service';
 import { SignMember } from '../../type/service/sign.service.type';
 import { Providers } from 'dto/enum/provider.enum';
+import { WithdrawalScheduleRepository } from '@app/persistence/schema/main/repository/withdrawal.schedule.repository';
 
 @Injectable()
 export class SignInService {
@@ -13,6 +14,7 @@ export class SignInService {
   constructor(
     private readonly signRepository: SignRepository,
     private readonly hashService: HashService,
+    private readonly withdrawalScheduleRepository: WithdrawalScheduleRepository,
     private readonly exceptionService: ExceptionService,
   ) {}
 
@@ -123,5 +125,16 @@ export class SignInService {
       memberId: signInResult.data.memberId,
       memberDetailId: signInResult.data.memberDetailId,
     };
+  }
+
+  async findWithdrawalScheduleByMemberId(memberId: number): Promise<boolean> {
+    const withdrawalScheduleData =
+      await this.withdrawalScheduleRepository.selectWithdrawalScheduleByMemberId(
+        memberId,
+      );
+    if (withdrawalScheduleData?.isSucceed) {
+      return true;
+    }
+    return false;
   }
 }

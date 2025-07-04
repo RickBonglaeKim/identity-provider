@@ -20,7 +20,6 @@ import ERROR_MESSAGE from 'dto/constant/http.error.message.constant';
 import SUCCESS_HTTP_STATUS from 'dto/constant/http.status.constant';
 import { ChildService } from '../../service/child/child.service';
 import { ChildArtBonBonRepository } from '@app/persistence/schema/main/repository/child.art_bonbon.repository';
-import { ChildRepository } from '@app/persistence/schema/main/repository/child.repository';
 
 @Controller('signUp')
 @UseInterceptors(TransformInterceptor)
@@ -31,7 +30,6 @@ export class SignUpController {
     private readonly signUpService: SignUpService,
     private readonly oauthService: OauthService,
     private readonly childService: ChildService,
-    private readonly childRepository: ChildRepository,
     private readonly childArtBonBonRepository: ChildArtBonBonRepository,
   ) {}
 
