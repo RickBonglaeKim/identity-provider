@@ -12,6 +12,7 @@ import { Observable } from 'rxjs';
 import { Request } from 'express';
 import { SignCookie } from '../type/service/sign.service.type';
 import { COOKIE_NAME } from '../enum/cookie.name.enum';
+import { CookieHandler } from '../util/cookie.handler';
 
 declare module 'express' {
   interface Request {
@@ -24,7 +25,10 @@ export class SignGuard implements CanActivate {
   private readonly logger = new Logger(SignGuard.name);
   private readonly cookieEncryptionKey: string;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly cookieHandler: CookieHandler,
+  ) {
     this.cookieEncryptionKey = this.configService.getOrThrow<string>(
       'COOKIE_ENCRYPTION_KEY',
     );
@@ -38,29 +42,13 @@ export class SignGuard implements CanActivate {
         `SignGuard.canActivate.cookieEncryptionKey -> ${this.cookieEncryptionKey}`,
       );
       const request = context.switchToHttp().getRequest<Request>();
-      this.logger.debug(
-        `SignGuard.canActivate.request.cookies -> ${JSON.stringify(request.cookies)}`,
-      );
-      const encryptedCookieValue = request.cookies[COOKIE_NAME.IDP] as
-        | string
-        | undefined;
-      this.logger.debug(
-        `SignGuard.canActivate.encryptedCookieValue -> ${encryptedCookieValue}`,
-      );
-      if (!encryptedCookieValue) {
-        throw new Error('The authentication cookie does not exist.');
-      }
+      const signCookie = this.cookieHandler.getSignInCookie(request);
 
-      const decryptedCookieValue = cryptoJS.AES.decrypt(
-        encryptedCookieValue,
-        this.cookieEncryptionKey,
-      ).toString(cryptoJS.enc.Utf8);
-      const signCookie = JSON.parse(decryptedCookieValue) as SignCookie;
       this.logger.debug(
         `SignGuard.canActivate.signCookie -> ${JSON.stringify(signCookie)}`,
       );
       if (!signCookie) {
-        throw new Error('The authentication cookie does not parsed.');
+        throw new Error('The authentication cookie does not exist.');
       }
 
       request.signCookie = signCookie;

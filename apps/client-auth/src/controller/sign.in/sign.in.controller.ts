@@ -120,6 +120,7 @@ export class SignInController {
     if (
       await this.signInService.findWithdrawalScheduleByMemberId(member.memberId)
     ) {
+      // Scheduled to withdraw.
       response.status(SUCCESS_HTTP_STATUS.DATA_NOT_ALLOWED);
       return;
     }
@@ -227,16 +228,15 @@ export class SignInController {
       return;
     }
 
-    // set cookie
-    const signCookie: SignCookie = {
-      memberId,
-      memberDetailId,
-      timestamp: Date.now(),
-    };
+    // Set the cookie to save the member signed in.
     this.cookieHandler.setCookie(
       response,
       COOKIE_NAME.IDP,
-      JSON.stringify(signCookie),
+      JSON.stringify({
+        memberId,
+        memberDetailId,
+        timestamp: Date.now(),
+      }),
       this.tokenExpirySeconds,
     );
 

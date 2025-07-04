@@ -22,7 +22,6 @@ import { OauthTokenRequestCreate } from 'dto/interface/oauth/token/request/oauth
 import { OauthTokenResponse } from 'dto/interface/oauth/token/response/oauth.token.response.dto';
 import { ChildService } from '../../service/child/child.service';
 import { CookieHandler } from '../../util/cookie.handler';
-import { COOKIE_NAME } from '../../enum/cookie.name.enum';
 
 @Controller('oauth')
 @UseInterceptors(TransformInterceptor)
