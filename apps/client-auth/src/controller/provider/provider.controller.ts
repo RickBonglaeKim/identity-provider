@@ -24,6 +24,7 @@ import trimPhoneNumber from '../../util/trim.phoneNumber';
 import * as cryptoJS from 'crypto-js';
 import { SignMember } from '../../type/service/sign.service.type';
 import { COOKIE_NAME } from '../../enum/cookie.name.enum';
+import { CookieHandler } from '../../util/cookie.handler';
 
 @Controller('provider')
 export class ProviderController {
@@ -35,6 +36,7 @@ export class ProviderController {
     private readonly providerService: ProviderService,
     private readonly configService: ConfigService,
     private readonly signInService: SignInService,
+    private readonly cookieHandler: CookieHandler,
   ) {
     this.signUrl = this.configService.getOrThrow<string>('SIGN_URL');
     this.memberKeyEncryptionKey = this.configService.getOrThrow<string>(
@@ -67,8 +69,11 @@ export class ProviderController {
     error: string,
     errorDescription?: string,
   ): string {
-    let url = request.signedCookies[COOKIE_NAME.REDIRECT] as string;
+    let url = this.cookieHandler.getRedirectCookie(request);
     this.logger.debug(`combineRedirectUrlWithError.url -> ${url}`);
+    if (!url) {
+      url = this.signUrl;
+    }
     url += `?error=${error}`;
     if (errorDescription) url += `&error_description=${errorDescription}`;
     return url;

@@ -240,6 +240,14 @@ export class SignInController {
       this.tokenExpirySeconds,
     );
 
+    // Set the cookie to save the provider last signed in.
+    this.cookieHandler.setCookie(
+      response,
+      COOKIE_NAME.PROVIDER,
+      provider.toString(),
+      60 * 60 * 24 * 365, // 1 year
+    );
+
     let redirectUrl = `${redirect_uri}?code=${authorizationCode}`;
     if (state) redirectUrl += `&state=${state}`;
     this.logger.debug(`getSignIn.redirectUrl -> ${redirectUrl}`);

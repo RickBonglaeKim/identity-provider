@@ -21,6 +21,8 @@ import { ClientService } from '../../service/client/client.service';
 import { OauthTokenRequestCreate } from 'dto/interface/oauth/token/request/oauth.token.request.create.dto';
 import { OauthTokenResponse } from 'dto/interface/oauth/token/response/oauth.token.response.dto';
 import { ChildService } from '../../service/child/child.service';
+import { CookieHandler } from '../../util/cookie.handler';
+import { COOKIE_NAME } from '../../enum/cookie.name.enum';
 
 @Controller('oauth')
 @UseInterceptors(TransformInterceptor)
@@ -37,6 +39,7 @@ export class OauthController {
     private readonly clientService: ClientService,
     private readonly memberService: MemberService,
     private readonly childService: ChildService,
+    private readonly cookieHandler: CookieHandler,
   ) {
     this.signUrl = this.configService.getOrThrow<string>('SIGN_URL');
     this.tokenExpirySeconds =
@@ -49,6 +52,7 @@ export class OauthController {
 
   @Get('authorize')
   async getAuthorize(
+    @Req() request: Request,
     @Res() response: Response,
     @Query() dto: OauthAuthorizeRequestCreate,
   ): Promise<void> {
@@ -71,7 +75,12 @@ export class OauthController {
         redirectClient('server_error')('It fails to generate passport.')(null);
       }
 
-      const url = `${this.signUrl}?passport=${passport}&client=${verifiedResult.signCode}`;
+      let url = `${this.signUrl}?passport=${passport}`;
+      const provider = this.cookieHandler.getProviderCookie(request);
+      this.logger.debug(`getAuthorize.provider -> ${provider}`);
+      if (provider) {
+        url += `&sign=${provider}`;
+      }
       this.logger.debug(`getAuthorize.url -> ${url}`);
       response.redirect(HttpStatus.TEMPORARY_REDIRECT, url);
     } else {
