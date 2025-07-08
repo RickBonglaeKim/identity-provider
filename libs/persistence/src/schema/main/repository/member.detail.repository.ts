@@ -1,6 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { MainSchemaService } from '../service/main.schema.service';
-import { memberDetail } from 'libs/persistence/database-schema/main/schema';
+import {
+  child,
+  memberDetail,
+} from 'libs/persistence/database-schema/main/schema';
 import { ResponseEntity } from '@app/persistence/entity/response.entity';
 import { and, eq, isNull } from 'drizzle-orm';
 import { SelectMemberDetailByDistinctEmail } from '@app/persistence/entity/member.entity';
@@ -138,6 +141,24 @@ export class MemberDetailRepository extends MainSchemaService {
           .update(memberDetail)
           .set({ password })
           .where(eq(memberDetail.id, id))
+      )[0];
+      if (result.affectedRows === 0) {
+        return new ResponseEntity<number>(false);
+      }
+      return new ResponseEntity<number>(true, result.affectedRows);
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
+  async deleteMemberDetailByMemberId(
+    memberId: number,
+  ): Promise<ResponseEntity<number> | undefined> {
+    try {
+      const result = (
+        await this.mainTransaction.tx
+          .delete(child)
+          .where(eq(child.memberId, memberId))
       )[0];
       if (result.affectedRows === 0) {
         return new ResponseEntity<number>(false);

@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { MainSchemaService } from '../service/main.schema.service';
-import { memberPhone } from 'libs/persistence/database-schema/main/schema';
+import { memberDetail, memberPhone } from 'libs/persistence/database-schema/main/schema';
 import { ResponseEntity } from '@app/persistence/entity/response.entity';
 import { and, eq } from 'drizzle-orm';
 import { selectMemberPhoneByDistinctCountryCallingCodeAndPhoneNumber } from '@app/persistence/entity/member.entity';
@@ -164,6 +164,24 @@ export class MemberPhoneRepository extends MainSchemaService {
         true,
         result[0],
       );
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
+  async deleteMemberPhoneByMemberId(
+    memberId: number,
+  ): Promise<ResponseEntity<number> | undefined> {
+    try {
+      const result = (
+        await this.mainTransaction.tx
+          .delete(memberDetail)
+          .where(eq(memberDetail.memberId, memberId))
+      )[0];
+      if (result.affectedRows === 0) {
+        return new ResponseEntity<number>(false);
+      }
+      return new ResponseEntity<number>(true, result.affectedRows);
     } catch (error) {
       this.logger.error(error);
     }

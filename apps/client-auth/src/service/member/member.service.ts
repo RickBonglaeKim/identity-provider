@@ -17,6 +17,8 @@ import { MemberEntireRepository } from '@app/persistence/schema/main/repository/
 import { DUPLICATION_TYPE } from 'dto/enum/duplication.type.enum';
 import { WithdrawalScheduleRepository } from '@app/persistence/schema/main/repository/withdrawal.schedule.repository';
 import { MemberWithdrawalRequestCreate } from 'dto/interface/member.withdrawal/request/member.withdrawal.request.create.dto';
+import { ChildRepository } from '@app/persistence/schema/main/repository/child.repository';
+import { ChildArtBonBonRepository } from '@app/persistence/schema/main/repository/child.art_bonbon.repository';
 
 @Injectable()
 export class MemberService {
@@ -32,6 +34,8 @@ export class MemberService {
     private readonly memberEntireRepository: MemberEntireRepository,
     private readonly memberDetailPhoneRepository: MemberDetailPhoneRepository,
     private readonly withdrawalScheduleRepository: WithdrawalScheduleRepository,
+    private readonly childRepository: ChildRepository,
+    private readonly childArtBonbonRepository: ChildArtBonBonRepository,
   ) {}
 
   @Transactional()
@@ -331,5 +335,53 @@ export class MemberService {
       this.exceptionService.notInsertedEntity('withdrawal_schedule');
 
     return withdrawalScheduleResult!.data!;
+  }
+
+  @Transactional()
+  async removeMemberData(memberId: number, memberDetailId: number) {
+    const memberDetailPhoneResult =
+      await this.memberDetailPhoneRepository.deleteMemberDetailPhoneByMemberDetailId(
+        memberDetailId,
+      );
+    if (!memberDetailPhoneResult) {
+      this.exceptionService.notRecognizedError();
+    }
+    if (!memberDetailPhoneResult?.isSucceed) {
+      return false;
+    }
+
+    const childArtBonbonResult =
+      await this.childRepository.selectChildByMemberIdWithChildArtBonBon(
+        memberId,
+      );
+    if (!childArtBonbonResult) {
+      this.exceptionService.notRecognizedError();
+    }
+    if (childArtBonbonResult?.isSucceed && childArtBonbonResult.data) {
+      for (const child of childArtBonbonResult.data) {
+        await this.childArtBonbonRepository.deleteChildArtBonBonById(
+          child.childArtBonbon!.childId,
+        );
+      }
+    }
+
+    const removeResult = await Promise.all([
+      this.childRepository.deleteChildByMemberId(memberId),
+      this.memberDetailRepository.deleteMemberDetailByMemberId(memberId),
+      this.memberPhoneRepository.deleteMemberPhoneByMemberId(memberId),
+    ]).catch((error) => {
+      this.logger.error(error);
+    });
+
+    if (!removeResult) return false;
+    if (
+      !removeResult[0]?.isSucceed ||
+      !removeResult[1]?.isSucceed ||
+      !removeResult[2]?.isSucceed
+    ) {
+      return false;
+    }
+
+    return true;
   }
 }

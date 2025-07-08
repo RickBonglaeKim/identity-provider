@@ -47,4 +47,22 @@ export class MemberDetailPhoneRepository extends MainSchemaService {
       this.logger.error(error);
     }
   }
+
+  async deleteMemberDetailPhoneByMemberDetailId(
+    memberDetailId: number,
+  ): Promise<ResponseEntity<number> | undefined> {
+    try {
+      const result = (
+        await this.mainTransaction.tx
+          .delete(memberDetailPhone)
+          .where(eq(memberDetailPhone.memberDetailId, memberDetailId))
+      )[0];
+      if (result.affectedRows === 0) {
+        return new ResponseEntity<number>(false);
+      }
+      return new ResponseEntity<number>(true, result.affectedRows);
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
 }

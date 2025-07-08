@@ -84,6 +84,24 @@ export class ChildRepository extends MainSchemaService {
     }
   }
 
+  async deleteChildByMemberId(
+    memberId: number,
+  ): Promise<ResponseEntity<number> | undefined> {
+    try {
+      const result = (
+        await this.mainTransaction.tx
+          .delete(child)
+          .where(eq(child.memberId, memberId))
+      )[0];
+      if (result.affectedRows === 0) {
+        return new ResponseEntity<number>(false);
+      }
+      return new ResponseEntity<number>(true, result.affectedRows);
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
   async deleteChildByMemberIdAndId(
     memberId: number,
     id: number,
@@ -141,6 +159,24 @@ export class ChildRepository extends MainSchemaService {
         return new ResponseEntity<SelectChildWithChildArtBonBon>(false);
       }
       return new ResponseEntity<SelectChildWithChildArtBonBon>(true, result[0]);
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
+  async selectChildByMemberIdWithChildArtBonBon(
+    memberId: number,
+  ): Promise<ResponseEntity<SelectChildWithChildArtBonBon[]> | undefined> {
+    try {
+      const result = await this.mainTransaction.tx
+        .select({ child, childArtBonbon })
+        .from(child)
+        .leftJoin(childArtBonbon, eq(child.id, childArtBonbon.childId))
+        .where(eq(child.memberId, memberId));
+      if (result.length === 0) {
+        return new ResponseEntity<SelectChildWithChildArtBonBon[]>(false);
+      }
+      return new ResponseEntity<SelectChildWithChildArtBonBon[]>(true, result);
     } catch (error) {
       this.logger.error(error);
     }
