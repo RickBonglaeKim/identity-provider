@@ -19,6 +19,7 @@ import { WithdrawalScheduleRepository } from '@app/persistence/schema/main/repos
 import { MemberWithdrawalRequestCreate } from 'dto/interface/member.withdrawal/request/member.withdrawal.request.create.dto';
 import { ChildRepository } from '@app/persistence/schema/main/repository/child.repository';
 import { ChildArtBonBonRepository } from '@app/persistence/schema/main/repository/child.art_bonbon.repository';
+import { MemberWithdrawalRepository } from '@app/persistence/schema/main/repository/member.withdrawal.repository';
 
 @Injectable()
 export class MemberService {
@@ -33,6 +34,7 @@ export class MemberService {
     private readonly hashService: HashService,
     private readonly memberEntireRepository: MemberEntireRepository,
     private readonly memberDetailPhoneRepository: MemberDetailPhoneRepository,
+    private readonly memberWithdrawalRepository: MemberWithdrawalRepository,
     private readonly withdrawalScheduleRepository: WithdrawalScheduleRepository,
     private readonly childRepository: ChildRepository,
     private readonly childArtBonbonRepository: ChildArtBonBonRepository,
@@ -305,11 +307,10 @@ export class MemberService {
     );
   }
 
-  @Transactional()
   async createWithdrawalSchedule(
     memberId: number,
     data: MemberWithdrawalRequestCreate,
-  ): Promise<number> {
+  ): Promise<boolean> {
     this.logger.debug(`createWithdrawalSchedule.memberId -> ${memberId}`);
     this.logger.debug(
       `createWithdrawalSchedule.data -> ${JSON.stringify(data)}`,
@@ -330,11 +331,28 @@ export class MemberService {
         codeReason: data.withdrawalReason,
         reasonExplanation: data.reasonExplanation,
       });
-    if (!withdrawalScheduleResult) this.exceptionService.notRecognizedError();
-    if (!withdrawalScheduleResult?.isSucceed || !withdrawalScheduleResult.data)
-      this.exceptionService.notInsertedEntity('withdrawal_schedule');
+    if (!withdrawalScheduleResult) {
+      this.exceptionService.notRecognizedError();
+    }
 
-    return withdrawalScheduleResult!.data!;
+    return withdrawalScheduleResult!.isSucceed;
+  }
+
+  async createMemberWithdrawal(
+    memberId: number,
+    data: MemberWithdrawalRequestCreate,
+  ): Promise<boolean> {
+    const memberWithdrawalResult =
+      await this.memberWithdrawalRepository.insertWithdrawal({
+        memberId,
+        codeReason: data.withdrawalReason,
+        reasonExplanation: data.reasonExplanation,
+      });
+    if (!memberWithdrawalResult) {
+      this.exceptionService.notRecognizedError();
+    }
+
+    return memberWithdrawalResult!.isSucceed;
   }
 
   @Transactional()
@@ -351,13 +369,19 @@ export class MemberService {
     }
 
     const childArtBonbonResult =
-      await this.childRepository.selectChildByMemberIdWithChildArtBonBon(
+      await this.childRepository.selectChildByMemberIdWithChildArtBonBonOnInnerJoin(
         memberId,
       );
     if (!childArtBonbonResult) {
       this.exceptionService.notRecognizedError();
     }
-    if (childArtBonbonResult?.isSucceed && childArtBonbonResult.data) {
+    this.logger.debug(
+      `removeMemberData.childArtBonbonResult -> ${JSON.stringify(childArtBonbonResult?.data)}`,
+    );
+    if (
+      childArtBonbonResult?.isSucceed &&
+      Array.isArray(childArtBonbonResult.data)
+    ) {
       for (const child of childArtBonbonResult.data) {
         await this.childArtBonbonRepository.deleteChildArtBonBonById(
           child.childArtBonbon!.childId,
@@ -380,6 +404,31 @@ export class MemberService {
       !removeResult[2]?.isSucceed
     ) {
       return false;
+    }
+
+    return true;
+  }
+
+  @Transactional()
+  async withdraw(
+    memberId: number,
+    memberDetailId: number,
+    data: MemberWithdrawalRequestCreate,
+  ): Promise<boolean> {
+    const isCreatedMemberWithdrawal = await this.createMemberWithdrawal(
+      memberId,
+      data,
+    );
+    if (!isCreatedMemberWithdrawal) {
+      this.exceptionService.notInsertedEntity('member_withdrawal');
+    }
+
+    const isRemovedMemberData = await this.removeMemberData(
+      memberId,
+      memberDetailId,
+    );
+    if (!isRemovedMemberData) {
+      this.exceptionService.notDeletedEntity('member data');
     }
 
     return true;

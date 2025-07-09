@@ -182,6 +182,24 @@ export class ChildRepository extends MainSchemaService {
     }
   }
 
+  async selectChildByMemberIdWithChildArtBonBonOnInnerJoin(
+    memberId: number,
+  ): Promise<ResponseEntity<SelectChildWithChildArtBonBon[]> | undefined> {
+    try {
+      const result = await this.mainTransaction.tx
+        .select({ child, childArtBonbon })
+        .from(child)
+        .innerJoin(childArtBonbon, eq(child.id, childArtBonbon.childId))
+        .where(eq(child.memberId, memberId));
+      if (result.length === 0) {
+        return new ResponseEntity<SelectChildWithChildArtBonBon[]>(false);
+      }
+      return new ResponseEntity<SelectChildWithChildArtBonBon[]>(true, result);
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
   async selectChildByMemberId(
     memberId: number,
   ): Promise<ResponseEntity<SelectChildWithChildArtBonBon[]> | undefined> {

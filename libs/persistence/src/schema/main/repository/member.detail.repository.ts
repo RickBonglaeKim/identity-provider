@@ -157,8 +157,8 @@ export class MemberDetailRepository extends MainSchemaService {
     try {
       const result = (
         await this.mainTransaction.tx
-          .delete(child)
-          .where(eq(child.memberId, memberId))
+          .delete(memberDetail)
+          .where(eq(memberDetail.memberId, memberId))
       )[0];
       if (result.affectedRows === 0) {
         return new ResponseEntity<number>(false);

@@ -3,6 +3,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpException,
+  HttpStatus,
   Logger,
   Patch,
   Post,
@@ -19,6 +21,7 @@ import { SignGuard } from '../../guard/sign.guard';
 import { MemberDetailPasswordRequestUpdate } from 'dto/interface/member.detail/request/member.detail.password.request.update.dto';
 import { MemberWithdrawalRequestCreate } from 'dto/interface/member.withdrawal/request/member.withdrawal.request.create.dto';
 import { SignOutService } from '../../service/sign.out/sign.out.service';
+import HTTP_ERROR_MESSAGE from 'dto/constant/http.error.message.constant';
 
 @Controller('member')
 @UseInterceptors(TransformInterceptor)
@@ -66,10 +69,18 @@ export class MemberController {
     @Res({ passthrough: true }) response: Response,
     @Body() data: MemberWithdrawalRequestCreate,
   ): Promise<void> {
-    await this.memberService.createWithdrawalSchedule(
+    const isWithdrawn = await this.memberService.withdraw(
       signCookie.memberId,
+      signCookie.memberDetailId,
       data,
     );
+    if (!isWithdrawn) {
+      throw new HttpException(
+        HTTP_ERROR_MESSAGE,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
     this.signOutService.signOut(response);
     return;
   }

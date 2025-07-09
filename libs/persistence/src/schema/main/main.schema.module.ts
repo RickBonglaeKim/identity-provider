@@ -15,6 +15,7 @@ import { MemberEntireRepository } from './repository/member.entire.repository';
 import { MemberVerificationRepository } from './repository/member.verification.repository';
 import { WithdrawalScheduleRepository } from './repository/withdrawal.schedule.repository';
 import { ChildArtBonBonRepository } from './repository/child.art_bonbon.repository';
+import { MemberWithdrawalRepository } from './repository/member.withdrawal.repository';
 
 @Module({
   providers: [
@@ -26,6 +27,7 @@ import { ChildArtBonBonRepository } from './repository/child.art_bonbon.reposito
     MemberPhoneRepository,
     MemberDetailPhoneRepository,
     MemberEntireRepository,
+    MemberWithdrawalRepository,
     OauthRepository,
     SignRepository,
     IdTokenKeypairRepository,
@@ -44,6 +46,7 @@ import { ChildArtBonBonRepository } from './repository/child.art_bonbon.reposito
     MemberPhoneRepository,
     MemberDetailPhoneRepository,
     MemberEntireRepository,
+    MemberWithdrawalRepository,
     OauthRepository,
     SignRepository,
     IdTokenKeypairRepository,
