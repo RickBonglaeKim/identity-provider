@@ -15,10 +15,15 @@ export class KeyController {
   @Get('jwk')
   async getKeyJWK(): Promise<void> {
     const keyResult = await this.keyService.generateJWK();
-    this.logger.debug(`getKeyJWK.keyResult -> ${JSON.stringify(keyResult)}`);
-    await this.keyService.createKeypairJWK(
-      JSON.stringify(keyResult.privateJWK),
-      JSON.stringify(keyResult.publicJWK),
+    this.logger.debug(
+      `getKeyJWK.keyResult.privateJWK -> ${JSON.stringify(keyResult.privateJWK)}`,
     );
+    this.logger.debug(
+      `getKeyJWK.keyResult.publicJWK -> ${JSON.stringify(keyResult.publicJWK)}`,
+    );
+    // await this.keyService.createKeypairJWK(
+    //   JSON.stringify(keyResult.privateJWK),
+    //   JSON.stringify(keyResult.publicJWK),
+    // );
   }
 }
